@@ -15,6 +15,9 @@ from backend.app.api.crm import router as crm_router
 from backend.app.api.marketing import router as marketing_router
 from backend.app.api.whatsapp import router as whatsapp_router
 from backend.app.api.email import router as email_router
+from backend.app.api.autonomous import router as autonomous_router
+from backend.app.api.media import router as media_router
+from backend.app.api.leadgen import router as leadgen_router
 
 router = APIRouter()
 router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -33,3 +36,6 @@ router.include_router(crm_router, prefix="/crm", tags=["CRM"])
 router.include_router(marketing_router, prefix="/marketing", tags=["Marketing"])
 router.include_router(whatsapp_router, prefix="/whatsapp", tags=["WhatsApp"])
 router.include_router(email_router, prefix="/email", tags=["Email"])
+router.include_router(autonomous_router, prefix="/autonomous", tags=["Autonomous"])
+router.include_router(media_router, prefix="/media", tags=["Media"])
+router.include_router(leadgen_router, prefix="/leadgen", tags=["Lead Generation"])
