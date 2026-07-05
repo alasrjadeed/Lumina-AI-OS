@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumina-postgres
+  namespace: lumina
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lumina-postgres
+  template:
+    metadata:
+      labels:
+        app: lumina-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "lumina"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lumina-secrets
+                  key: postgres_password
+            - name: POSTGRES_DB
+              value: "lumina_ai_os"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: lumina-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumina-postgres
+  namespace: lumina
+spec:
+  selector:
+    app: lumina-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

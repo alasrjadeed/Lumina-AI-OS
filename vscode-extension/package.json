@@ -1,0 +1,71 @@
+{
+  "name": "lumina-ai-os",
+  "displayName": "Lumina AI OS",
+  "description": "Lumina AI OS coding assistant — generate, review, debug, and refactor code directly in VS Code",
+  "version": "1.0.0",
+  "publisher": "lumina-ai",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Programming Languages", "Machine Learning", "Other"],
+  "activationEvents": [
+    "onCommand:lumina.generate",
+    "onCommand:lumina.review",
+    "onCommand:lumina.debug",
+    "onCommand:lumina.refactor",
+    "onCommand:lumina.explain",
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "lumina.generate",
+        "title": "Lumina: Generate Code"
+      },
+      {
+        "command": "lumina.review",
+        "title": "Lumina: Review Code"
+      },
+      {
+        "command": "lumina.debug",
+        "title": "Lumina: Debug Error"
+      },
+      {
+        "command": "lumina.refactor",
+        "title": "Lumina: Refactor Code"
+      },
+      {
+        "command": "lumina.explain",
+        "title": "Lumina: Explain Code"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "lumina.generate",
+        "key": "ctrl+shift+g",
+        "mac": "cmd+shift+g"
+      },
+      {
+        "command": "lumina.explain",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e"
+      }
+    ],
+    "configuration": {
+      "title": "Lumina AI OS",
+      "properties": {
+        "lumina.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000/api",
+          "description": "Lumina API base URL"
+        },
+        "lumina.token": {
+          "type": "string",
+          "default": "",
+          "description": "Lumina authentication token"
+        }
+      }
+    }
+  }
+}

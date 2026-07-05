@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumina-frontend
+  namespace: lumina
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lumina-frontend
+  template:
+    metadata:
+      labels:
+        app: lumina-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: lumina-ai/frontend:latest
+          ports:
+            - containerPort: 5173
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumina-frontend
+  namespace: lumina
+spec:
+  selector:
+    app: lumina-frontend
+  ports:
+    - port: 80
+      targetPort: 5173
+  type: ClusterIP
