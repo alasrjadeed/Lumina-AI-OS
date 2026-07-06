@@ -8,3 +8,10 @@ build/
 .DS_Store
 *.db
 *.sqlite3
+.env
+*.log
+node_modules/
+.next/
+lumina-ui/node_modules/
+lumina-ui/.next/
+
