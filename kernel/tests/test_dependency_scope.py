@@ -91,3 +91,39 @@ def test_dispose_scope():
 
     b = container.resolve(_ScopedService)
     assert a is not b
+
+
+def test_scope_class_wraps_container():
+    from kernel.dependency.scope import Scope
+    container = DIContainer()
+    container.register_type(_ScopedService, lifetime=Lifetime.SCOPED)
+    scope = Scope(container)
+    assert scope._parent is container
+
+
+def test_scope_class_resolve():
+    from kernel.dependency.scope import Scope
+    container = DIContainer()
+    container.register_instance("key", "value")
+    scope = Scope(container)
+    assert scope.resolve("key") == "value"
+
+
+def test_scope_class_try_resolve():
+    from kernel.dependency.scope import Scope
+    container = DIContainer()
+    scope = Scope(container)
+    assert scope.try_resolve("missing") is None
+
+
+def test_scope_class_dispose():
+    from kernel.dependency.scope import Scope
+    container = DIContainer()
+    container.register_type(_ScopedService, lifetime=Lifetime.SCOPED)
+    scope = Scope(container)
+    a = scope.resolve(_ScopedService)
+    b = scope.resolve(_ScopedService)
+    assert a is b
+    scope.dispose()
+    c = scope.resolve(_ScopedService)
+    assert a is not c

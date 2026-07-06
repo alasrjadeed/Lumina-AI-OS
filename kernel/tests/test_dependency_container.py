@@ -179,3 +179,48 @@ def test_named_register_type():
     secondary = container.resolve("repo_secondary")
     assert isinstance(primary, _Repo)
     assert isinstance(secondary, _Repo)
+
+
+def test_try_resolve_found():
+    container = DIContainer()
+    container.register_instance("x", 42)
+    assert container.try_resolve("x") == 42
+
+
+def test_try_resolve_not_found_returns_none():
+    container = DIContainer()
+    assert container.try_resolve("nonexistent") is None
+
+
+def test_try_resolve_circular_returns_none():
+    container = DIContainer()
+    container.register_type(_CircularA)
+    container.register_type(_CircularB)
+    assert container.try_resolve(_CircularA) is None
+
+
+def test_resolve_all():
+    container = DIContainer()
+    container.register_instance("a", 1)
+    container.register_instance("b", 2)
+    result = container.resolve_all()
+    assert result == {"a": 1, "b": 2}
+
+
+def test_register_delegate():
+    container = DIContainer()
+    container.register_type(_Repo, lifetime=Lifetime.SINGLETON)
+    container.register_delegate(
+        "repo_delegated",
+        lambda c, r: c.resolve(_Repo),
+    )
+    instance = container.resolve("repo_delegated")
+    assert isinstance(instance, _Repo)
+
+
+def test_register_alias():
+    container = DIContainer()
+    obj = {"original": True}
+    container.register_instance("original", obj)
+    container.register_alias("alias", "original")
+    assert container.resolve("alias") is obj

@@ -58,3 +58,34 @@ class FactoryProvider(ServiceProvider):
             msg = "Factory returned None"
             raise DependencyError(msg)
         return result
+
+
+class DelegateProvider(ServiceProvider):
+    def __init__(
+        self,
+        factory: Callable[[Any, Any], Any],
+    ) -> None:
+        self._factory = factory
+
+    def create_instance(
+        self,
+        container: Any,
+        resolver: Any,
+    ) -> Any:
+        result = self._factory(container, resolver)
+        if result is None:
+            msg = "Delegate returned None"
+            raise DependencyError(msg)
+        return result
+
+
+class AliasProvider(ServiceProvider):
+    def __init__(self, target: str | type) -> None:
+        self._target = target
+
+    def create_instance(
+        self,
+        container: Any,
+        resolver: Any,
+    ) -> Any:
+        return container.resolve(self._target)

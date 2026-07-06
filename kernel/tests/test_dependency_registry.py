@@ -3,7 +3,8 @@ import pytest
 from kernel.dependency.exceptions import ServiceRegistrationError
 from kernel.dependency.lifetime import Lifetime
 from kernel.dependency.provider import InstanceProvider, TypeProvider
-from kernel.dependency.registry import ServiceRegistration, ServiceRegistry
+from kernel.dependency.models import ServiceRegistration
+from kernel.dependency.registry import ServiceRegistry
 
 
 class _Repo:
@@ -118,3 +119,75 @@ def test_find_by_tag():
     assert len(reg.find_by_tag("cache")) == 1
     assert len(reg.find_by_tag("public")) == 1
     assert len(reg.find_by_tag("missing")) == 0
+
+
+def test_keys():
+    reg = ServiceRegistry()
+    reg.register(ServiceRegistration(service="a", provider=InstanceProvider(1)))
+    reg.register(ServiceRegistration(service="b", provider=InstanceProvider(2)))
+    keys = reg.keys()
+    assert "a" in keys
+    assert "b" in keys
+
+
+def test_count():
+    reg = ServiceRegistry()
+    assert reg.count() == 0
+    reg.register(ServiceRegistration(service="a", provider=InstanceProvider(1)))
+    assert reg.count() == 1
+    reg.register(ServiceRegistration(service="b", provider=InstanceProvider(2)))
+    assert reg.count() == 2
+
+
+def test_register_or_replace_new():
+    reg = ServiceRegistry()
+    r = ServiceRegistration(service="x", provider=InstanceProvider(1))
+    existed = reg.register_or_replace(r)
+    assert existed is False
+    assert reg.get("x") is r
+
+
+def test_register_or_replace_existing():
+    reg = ServiceRegistry()
+    r1 = ServiceRegistration(service="x", provider=InstanceProvider(1))
+    r2 = ServiceRegistration(service="x", provider=InstanceProvider(2))
+    reg.register(r1)
+    existed = reg.register_or_replace(r2)
+    assert existed is True
+    assert reg.get("x") is r2
+
+
+def test_bulk_register():
+    reg = ServiceRegistry()
+    reg.bulk_register([
+        ServiceRegistration(service="a", provider=InstanceProvider(1)),
+        ServiceRegistration(service="b", provider=InstanceProvider(2)),
+    ])
+    assert reg.count() == 2
+    assert reg.has("a")
+    assert reg.has("b")
+
+
+def test_bulk_register_duplicate_raises():
+    reg = ServiceRegistry()
+    reg.register(ServiceRegistration(service="a", provider=InstanceProvider(1)))
+    with pytest.raises(ServiceRegistrationError):
+        reg.bulk_register([
+            ServiceRegistration(service="a", provider=InstanceProvider(2)),
+        ])
+
+
+def test_find_by_lifetime():
+    reg = ServiceRegistry()
+    reg.register(ServiceRegistration(
+        service="s1", provider=InstanceProvider(1), lifetime=Lifetime.SINGLETON,
+    ))
+    reg.register(ServiceRegistration(
+        service="s2", provider=InstanceProvider(2), lifetime=Lifetime.SCOPED,
+    ))
+    reg.register(ServiceRegistration(
+        service="t1", provider=InstanceProvider(3), lifetime=Lifetime.TRANSIENT,
+    ))
+    assert len(reg.find_by_lifetime(Lifetime.SINGLETON)) == 1
+    assert len(reg.find_by_lifetime(Lifetime.SCOPED)) == 1
+    assert len(reg.find_by_lifetime(Lifetime.TRANSIENT)) == 1

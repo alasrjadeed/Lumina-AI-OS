@@ -4,6 +4,7 @@ import threading
 from typing import Any, Callable
 
 from kernel.dependency.exceptions import (
+    CircularDependencyError,
     DependencyError,
     LifetimeError,
     ServiceNotFoundError,
@@ -11,12 +12,15 @@ from kernel.dependency.exceptions import (
 )
 from kernel.dependency.lifetime import Lifetime
 from kernel.dependency.provider import (
+    AliasProvider,
+    DelegateProvider,
     FactoryProvider,
     InstanceProvider,
     ServiceProvider,
     TypeProvider,
 )
-from kernel.dependency.registry import ServiceRegistration, ServiceRegistry
+from kernel.dependency.models import ServiceRegistration
+from kernel.dependency.registry import ServiceRegistry
 from kernel.dependency.resolver import Resolver
 
 
@@ -119,6 +123,39 @@ class DIContainer:
             ),
         )
 
+    def register_alias(
+        self,
+        service: str | type,
+        target: str | type,
+        *,
+        tags: set[str] | None = None,
+    ) -> None:
+        self._registry.register(
+            ServiceRegistration(
+                service=service,
+                provider=AliasProvider(target),
+                lifetime=Lifetime.TRANSIENT,
+                tags=tags or set(),
+            ),
+        )
+
+    def register_delegate(
+        self,
+        service: str | type,
+        factory: Callable[[Any, Any], Any],
+        lifetime: Lifetime = Lifetime.TRANSIENT,
+        *,
+        tags: set[str] | None = None,
+    ) -> None:
+        self._registry.register(
+            ServiceRegistration(
+                service=service,
+                provider=DelegateProvider(factory),
+                lifetime=lifetime,
+                tags=tags or set(),
+            ),
+        )
+
     # ------------------------------------------------------------------
     # Resolution
     # ------------------------------------------------------------------
@@ -133,8 +170,20 @@ class DIContainer:
 
         raise ServiceNotFoundError(str(service))
 
+    def try_resolve(self, service: str | type) -> Any | None:
+        try:
+            return self.resolve(service)
+        except (ServiceNotFoundError, CircularDependencyError):
+            return None
+
     def resolve_name(self, name: str) -> Any:
         return self.resolve(name)
+
+    def resolve_all(self) -> dict[str | type, Any]:
+        return {
+            reg.service: self.resolve(reg.service)
+            for reg in self._registry.all()
+        }
 
     def _get_from_registration(
         self,
