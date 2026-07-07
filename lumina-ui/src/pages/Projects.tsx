@@ -70,10 +70,10 @@ function formatDate(ts: number) {
   return new Date(ts * 1000).toLocaleDateString();
 }
 
-function getFileIcon(name: string, type: string) {
+function getFileIcon(name: string, type: string): any {
   if (type === 'directory') return <Folder className="w-4 h-4 text-amber-400 shrink-0" />;
   const ext = name.split('.').pop()?.toLowerCase();
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, any> = {
     tsx: <FileText className="w-4 h-4 text-blue-400 shrink-0" />,
     ts: <FileText className="w-4 h-4 text-blue-400 shrink-0" />,
     js: <FileText className="w-4 h-4 text-yellow-400 shrink-0" />,

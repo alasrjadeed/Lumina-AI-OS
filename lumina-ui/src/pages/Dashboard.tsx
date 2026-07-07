@@ -89,18 +89,21 @@ export default function Dashboard() {
       if (results[2].status === 'fulfilled') setDesktop(results[2].value);
       if (results[3].status === 'fulfilled') setStats(results[3].value);
       if (results[4].status === 'fulfilled') {
-        const data = results[4].value;
+        const data = results[4].value as { agents: string[] };
         setAgents(Array.isArray(data.agents) ? data.agents : []);
       }
-      if (results[5].status === 'fulfilled') setAgentRuns(results[5].value.runs || []);
+      if (results[5].status === 'fulfilled') setAgentRuns((results[5].value as any).runs || []);
       if (results[6].status === 'fulfilled') setCrmSummary(results[6].value);
       if (results[7].status === 'fulfilled') setMarketingSummary(results[7].value);
       if (results[8].status === 'fulfilled') setTaskStats(results[8].value);
       if (results[9].status === 'fulfilled') setEmployeeStatus(results[9].value);
       if (results[10].status === 'fulfilled') setLearningStats(results[10].value);
-      if (results[11].status === 'fulfilled') setProcessCount(results[11].value.count || results[11].value.processes?.length || 0);
-      if (results[12].status === 'fulfilled') setChatThreads(results[12].value.total || 0);
-      if (results[13].status === 'fulfilled') setCodeReviews(results[13].value.total || 0);
+      if (results[11].status === 'fulfilled') {
+        const v = results[11].value as any;
+        setProcessCount(v.count || v.processes?.length || 0);
+      }
+      if (results[12].status === 'fulfilled') setChatThreads((results[12].value as any).total || 0);
+      if (results[13].status === 'fulfilled') setCodeReviews((results[13].value as any).total || 0);
       if (results[14].status === 'fulfilled') setWhatsapp(results[14].value);
     } catch (e: any) {
       setError(e.message);
