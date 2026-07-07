@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -10,7 +9,7 @@ class IServiceProvider(Protocol):
         ...
 
 
-class IDisposable(ABC):
-    @abstractmethod
-    async def dispose(self) -> None:
+@runtime_checkable
+class IDisposable(Protocol):
+    def dispose(self) -> None:
         ...

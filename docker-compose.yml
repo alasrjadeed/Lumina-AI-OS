@@ -1,0 +1,67 @@
+services:
+  lumina-api:
+    build:
+      context: .
+      target: production
+    image: lumina:latest
+    container_name: lumina
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      LUMINA_ENV: production
+      AUTH_ENABLED: "true"
+      CORS_ORIGINS: "http://localhost:5173,https://lumina.example.com"
+      LUMINA_MASTER_KEY: ${LUMINA_MASTER_KEY:-}
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - lumina_data:/app/data
+      - ./secrets.json:/app/lumina_auth.json:ro
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lumina-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lumina-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - lumina-net
+
+  lumina-ui:
+    image: node:20-alpine
+    container_name: lumina-ui
+    working_dir: /app
+    volumes:
+      - ./lumina-ui:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - lumina-api
+    networks:
+      - lumina-net
+
+volumes:
+  lumina_data:
+  ollama_data:
+
+networks:
+  lumina-net:
+    driver: bridge

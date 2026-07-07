@@ -11,11 +11,17 @@ def test_global_star():
     assert TopicMatcher.matches("*", "kernel.started")
 
 
-def test_prefix_wildcard():
+def test_global_globstar():
+    assert TopicMatcher.matches("**", "anything")
+    assert TopicMatcher.matches("**", "")
+    assert TopicMatcher.matches("**", "a.b.c.d.e")
+
+
+def test_prefix_wildcard_one_level():
     assert TopicMatcher.matches("browser.*", "browser.started")
     assert TopicMatcher.matches("browser.*", "browser.closed")
-    assert TopicMatcher.matches("browser.*", "browser.tab.created")
-    assert TopicMatcher.matches("browser.*", "browser.tab.closed")
+    assert not TopicMatcher.matches("browser.*", "browser.tab.created")
+    assert not TopicMatcher.matches("browser.*", "browser.tab.closed")
 
 
 def test_nested_prefix_wildcard():
@@ -41,8 +47,20 @@ def test_prefix_matches_root_topic():
     assert TopicMatcher.matches("kernel.*", "kernel")
 
 
-def test_multiple_dot_levels():
-    assert TopicMatcher.matches("a.*", "a.b.c.d")
+def test_prefix_wildcard_rejects_multi_level():
+    assert not TopicMatcher.matches("a.*", "a.b.c.d")
+
+
+def test_globstar_matches_multi_level():
+    assert TopicMatcher.matches("a.**", "a.b.c.d")
+    assert TopicMatcher.matches("a.**", "a.b")
+    assert TopicMatcher.matches("a.**", "a")
+
+
+def test_globstar_matches_deeply_nested():
+    assert TopicMatcher.matches("kernel.**", "kernel.events.bus.publish")
+    assert TopicMatcher.matches("kernel.**", "kernel")
+    assert not TopicMatcher.matches("kernel.**", "browser.started")
 
 
 def test_empty_subscription():
@@ -50,5 +68,12 @@ def test_empty_subscription():
 
 
 def test_topic_longer_than_prefix():
-    assert TopicMatcher.matches("crm.*", "crm.lead.created")
-    assert TopicMatcher.matches("crm.*", "crm.followup.sent")
+    assert TopicMatcher.matches("crm.*", "crm.lead")
+    assert TopicMatcher.matches("crm.*", "crm.followup")
+    assert not TopicMatcher.matches("crm.*", "crm.lead.created")
+    assert not TopicMatcher.matches("crm.*", "crm.followup.sent")
+
+
+def test_globstar_longer_than_prefix():
+    assert TopicMatcher.matches("crm.**", "crm.lead.created")
+    assert TopicMatcher.matches("crm.**", "crm.followup.sent")

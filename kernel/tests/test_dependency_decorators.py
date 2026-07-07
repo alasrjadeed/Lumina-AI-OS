@@ -1,8 +1,7 @@
-import pytest
-
 from kernel.dependency.container import DIContainer
 from kernel.dependency.decorators import auto_register, inject, scoped, service, singleton
 from kernel.dependency.lifetime import Lifetime
+from kernel.tests import test_dependency_decorators as mod
 
 
 @singleton()
@@ -24,7 +23,7 @@ class _DecoratedScoped:
 
 
 class _WithInject:
-    @inject
+    @inject()
     def method(self, x: int) -> int:
         return x * 2
 
@@ -71,11 +70,43 @@ def test_inject_decorator_marks_function():
     assert hasattr(obj.method, "__di_inject__")
 
 
+def test_inject_with_container_resolves_dep():
+    container = DIContainer()
+
+    class MyDep:
+        def __init__(self):
+            self.value = 42
+
+    container.register_type(MyDep, lifetime=Lifetime.SINGLETON)
+
+    @inject(container=container)
+    def needs_dep(dep: MyDep) -> int:
+        return dep.value
+
+    assert needs_dep() == 42
+
+
+def test_inject_with_missing_type_uses_default():
+    container = DIContainer()
+
+    @inject(container=container)
+    def with_default(x: int = 99) -> int:
+        return x
+
+    assert with_default() == 99
+
+
+def test_inject_no_container_no_hints():
+    @inject()
+    def plain(x: int) -> int:
+        return x
+
+    assert plain(5) == 5
+
+
 def test_auto_register_scans_modules():
     container = DIContainer()
-    import sys
 
-    from kernel.tests import test_dependency_decorators as mod
     auto_register(container, mod)
     assert container.is_registered(_DecoratedSingleton)
     assert container.is_registered(_DecoratedService)

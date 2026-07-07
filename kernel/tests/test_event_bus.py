@@ -1,8 +1,8 @@
 import pytest
 
 from kernel.events.event import Event
+from kernel.events.exceptions import DuplicateSubscriberError
 from kernel.events.subscription import Subscription
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -73,8 +73,6 @@ async def test_handler_error_does_not_break_bus(started_bus):
 
 
 async def test_duplicate_registration_raises(bus):
-    from kernel.events.exceptions import DuplicateSubscriberError
-
     async def handler(event: Event):
         pass
 
@@ -201,7 +199,7 @@ async def test_wildcard_prefix_match(started_bus):
     async def handler(event: Event):
         received.append(event.name)
 
-    await bus.register(Subscription(topic="browser.*", handler=handler))
+    await bus.register(Subscription(topic="browser.**", handler=handler))
     await bus.publish(Event(name="browser.started"))
     await bus.publish(Event(name="browser.tab.created"))
     await bus.publish(Event(name="browser.closed"))

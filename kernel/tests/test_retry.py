@@ -1,7 +1,7 @@
 import pytest
 
-from kernel.events.event import Event
 from kernel.events.envelope import EventEnvelope, RetryDecision
+from kernel.events.event import Event
 from kernel.events.retry import RetryPolicy
 
 

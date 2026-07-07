@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "lumina-ai-os": {
+      "command": "python3",
+      "args": ["/home/oem/Documents/Lumina/workspace/mcp_server/server.py"],
+      "env": {
+        "PYTHONPATH": "/home/oem/Documents/Lumina/workspace"
+      }
+    }
+  }
+}

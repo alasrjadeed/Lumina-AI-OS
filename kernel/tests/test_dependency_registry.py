@@ -2,8 +2,8 @@ import pytest
 
 from kernel.dependency.exceptions import ServiceRegistrationError
 from kernel.dependency.lifetime import Lifetime
-from kernel.dependency.provider import InstanceProvider, TypeProvider
 from kernel.dependency.models import ServiceRegistration
+from kernel.dependency.provider import InstanceProvider
 from kernel.dependency.registry import ServiceRegistry
 
 

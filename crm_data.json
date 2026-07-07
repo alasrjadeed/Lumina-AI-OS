@@ -1,0 +1,299 @@
+{
+  "contacts": [
+    {
+      "id": "1",
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:41:44.347858",
+      "tags": []
+    },
+    {
+      "id": "2",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-07T10:46:37.465355",
+      "tags": []
+    },
+    {
+      "id": "3",
+      "name": "Alice",
+      "email": "alice@test.com",
+      "phone": "1234567890",
+      "company": "Acme Inc",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.496207",
+      "tags": []
+    },
+    {
+      "id": "4",
+      "name": "Bob",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.618181",
+      "tags": [
+        "vip",
+        "partner"
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Charlie",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "website",
+      "created_at": "2026-07-07T10:58:52.625075",
+      "tags": [],
+      "custom_field": "yes"
+    },
+    {
+      "id": "6",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.638417",
+      "tags": []
+    },
+    {
+      "id": "7",
+      "name": "Bob",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.639105",
+      "tags": []
+    },
+    {
+      "id": "8",
+      "name": "Alice Smith",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.649026",
+      "tags": []
+    },
+    {
+      "id": "9",
+      "name": "Bob Jones",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.649885",
+      "tags": []
+    },
+    {
+      "id": "10",
+      "name": "Alice",
+      "email": "alice@test.com",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.667629",
+      "tags": []
+    },
+    {
+      "id": "11",
+      "name": "Bob",
+      "email": "bob@test.com",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.668445",
+      "tags": []
+    },
+    {
+      "id": "12",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.677836",
+      "tags": []
+    },
+    {
+      "id": "13",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.681942",
+      "tags": []
+    },
+    {
+      "id": "14",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.695100",
+      "tags": []
+    },
+    {
+      "id": "15",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.701046",
+      "tags": []
+    },
+    {
+      "id": "16",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.727898",
+      "tags": []
+    },
+    {
+      "id": "17",
+      "name": "Alice",
+      "email": "",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-07T10:58:52.739921",
+      "tags": []
+    },
+    {
+      "id": "18",
+      "name": "Alice",
+      "email": "alice@test.com",
+      "phone": "1234567890",
+      "company": "Acme Inc",
+      "source": "manual",
+      "created_at": "2026-07-07T11:00:24.646122",
+      "tags": []
+    }
+  ],
+  "deals": [
+    {
+      "id": "1",
+      "title": "Test Deal",
+      "value": 1000.0,
+      "contact_id": "test-contact",
+      "stage": "lead",
+      "created_at": "2026-07-07T10:41:44.364094",
+      "updated_at": "2026-07-07T10:41:44.364107"
+    },
+    {
+      "id": "2",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-07T10:46:37.467007",
+      "updated_at": "2026-07-07T10:46:37.467487"
+    },
+    {
+      "id": "3",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "1",
+      "stage": "lead",
+      "created_at": "2026-07-07T10:58:52.678697",
+      "updated_at": "2026-07-07T10:58:52.678705"
+    },
+    {
+      "id": "4",
+      "title": "Proposal Deal",
+      "value": 10000,
+      "contact_id": "1",
+      "stage": "proposal",
+      "created_at": "2026-07-07T10:58:52.682810",
+      "updated_at": "2026-07-07T10:58:52.682818"
+    },
+    {
+      "id": "5",
+      "title": "Won Deal",
+      "value": 5000,
+      "contact_id": "1",
+      "stage": "closed_won",
+      "created_at": "2026-07-07T10:58:52.696047",
+      "updated_at": "2026-07-07T10:58:52.696054"
+    },
+    {
+      "id": "6",
+      "title": "Lost Deal",
+      "value": 3000,
+      "contact_id": "1",
+      "stage": "closed_lost",
+      "created_at": "2026-07-07T10:58:52.696815",
+      "updated_at": "2026-07-07T10:58:52.696821"
+    },
+    {
+      "id": "7",
+      "title": "Open Deal",
+      "value": 2000,
+      "contact_id": "1",
+      "stage": "qualified",
+      "created_at": "2026-07-07T10:58:52.697587",
+      "updated_at": "2026-07-07T10:58:52.697593"
+    },
+    {
+      "id": "8",
+      "title": "Moving Deal",
+      "value": 5000,
+      "contact_id": "1",
+      "stage": "qualified",
+      "created_at": "2026-07-07T10:58:52.713024",
+      "updated_at": "2026-07-07T10:58:52.713935"
+    },
+    {
+      "id": "9",
+      "title": "Won",
+      "value": 10000,
+      "contact_id": "1",
+      "stage": "closed_won",
+      "created_at": "2026-07-07T10:58:52.729004",
+      "updated_at": "2026-07-07T10:58:52.729013"
+    },
+    {
+      "id": "10",
+      "title": "Lost",
+      "value": 5000,
+      "contact_id": "1",
+      "stage": "closed_lost",
+      "created_at": "2026-07-07T10:58:52.729887",
+      "updated_at": "2026-07-07T10:58:52.729894"
+    },
+    {
+      "id": "11",
+      "title": "Pipeline",
+      "value": 3000,
+      "contact_id": "1",
+      "stage": "proposal",
+      "created_at": "2026-07-07T10:58:52.730647",
+      "updated_at": "2026-07-07T10:58:52.730654"
+    }
+  ],
+  "activities": [
+    {
+      "id": "1",
+      "contact_id": "1",
+      "type": "call",
+      "description": "Discussed terms",
+      "timestamp": "2026-07-07T10:58:52.740985"
+    }
+  ],
+  "notes": []
+}

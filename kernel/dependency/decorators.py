@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, TypeVar
+import inspect
+import sys
+import typing
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from kernel.dependency.container import DIContainer
 from kernel.dependency.lifetime import Lifetime
@@ -9,13 +13,35 @@ from kernel.dependency.lifetime import Lifetime
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def inject(func: F) -> F:
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        return func(*args, **kwargs)
+def inject(
+    container: DIContainer | None = None,
+) -> Callable[[F], F]:
+    def decorator(func: F) -> F:
+        sig = inspect.signature(func)
+        hints = typing.get_type_hints(func)
 
-    wrapper.__di_inject__ = True  # type: ignore[attr-defined]
-    return wrapper
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if container is None:
+                return func(*args, **kwargs)
+            bound = sig.bind_partial(*args, **kwargs)
+            resolved = dict(bound.arguments)
+            for name, param in sig.parameters.items():
+                if name in resolved:
+                    continue
+                if name not in hints:
+                    continue
+                ann = hints[name]
+                if isinstance(ann, type) and container.has(ann):
+                    resolved[name] = container.resolve(ann)
+                elif param.default is not inspect.Parameter.empty:
+                    resolved[name] = param.default
+            return func(**resolved)
+
+        wrapper.__di_inject__ = True  # type: ignore[attr-defined]
+        return wrapper
+
+    return decorator
 
 
 def service(
@@ -58,9 +84,6 @@ def auto_register(
     container: DIContainer,
     *modules: object,
 ) -> None:
-    import inspect
-    import sys
-
     seen: set[type] = set()
     for mod in modules or list(sys.modules.values()):
         if mod is None:

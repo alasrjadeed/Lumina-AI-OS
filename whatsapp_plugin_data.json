@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "keyword": "help",
+      "response": "How can I assist?",
+      "match_type": "contains",
+      "enabled": true
+    }
+  ],
+  "campaigns": [
+    {
+      "name": "Test Campaign",
+      "message": "Hello!",
+      "recipients": [
+        "+1234567890"
+      ],
+      "sent": 0,
+      "failed": 0,
+      "status": "draft"
+    }
+  ]
+}

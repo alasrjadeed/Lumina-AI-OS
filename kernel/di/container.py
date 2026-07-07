@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Type
+from typing import Any
 
 from kernel.log import setup_log
 from kernel.models import ServiceLifetime
@@ -11,13 +11,19 @@ class DIContainer:
     def __init__(self):
         self._bindings: dict[str, dict] = {}
 
-    def bind(self, abstract: str, concrete: Type | Any, lifetime: ServiceLifetime = ServiceLifetime.TRANSIENT):
+    def bind(
+        self,
+        abstract: str,
+        concrete: type | Any,
+        lifetime: ServiceLifetime = ServiceLifetime.TRANSIENT,
+    ):
         self._bindings[abstract] = {
             "concrete": concrete,
             "lifetime": lifetime,
             "instance": None,
         }
-        log.debug("Bound: %s -> %s (%s)", abstract, concrete.__name__ if isinstance(concrete, type) else concrete, lifetime.value)
+        cname = concrete.__name__ if isinstance(concrete, type) else concrete
+        log.debug("Bound: %s -> %s (%s)", abstract, cname, lifetime.value)
 
     def resolve(self, abstract: str) -> Any:
         binding = self._bindings.get(abstract)
@@ -34,7 +40,7 @@ class DIContainer:
 
         return self._build(binding["concrete"])
 
-    def _build(self, concrete: Type) -> Any:
+    def _build(self, concrete: type) -> Any:
         if not isinstance(concrete, type):
             return concrete
         sig = inspect.signature(concrete.__init__)
@@ -42,7 +48,8 @@ class DIContainer:
         for name, param in sig.parameters.items():
             if name == "self":
                 continue
-            if hasattr(param.annotation, "__name__") and param.annotation.__name__ in self._bindings:
+            ann = param.annotation
+            if hasattr(ann, "__name__") and ann.__name__ in self._bindings:
                 params[name] = self.resolve(param.annotation.__name__)
             elif param.default is not inspect.Parameter.empty:
                 params[name] = param.default

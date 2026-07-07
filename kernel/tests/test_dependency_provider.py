@@ -4,7 +4,6 @@ from kernel.dependency.container import DIContainer
 from kernel.dependency.exceptions import DependencyError
 from kernel.dependency.lifetime import Lifetime
 from kernel.dependency.provider import (
-    AliasProvider,
     DelegateProvider,
     FactoryProvider,
     InstanceProvider,

@@ -6,7 +6,7 @@ Event Envelope
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import auto, Enum
+from enum import Enum, auto
 
 from kernel.events.event import Event
 

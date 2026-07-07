@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -10,5 +10,5 @@ class IEvent(Protocol):
     timestamp: float
     source: str
     is_replay: bool
-    correlation_id: Optional[str]
+    correlation_id: str | None
     version: int

@@ -8,11 +8,12 @@ from __future__ import annotations
 import asyncio
 from asyncio import Queue
 from collections import defaultdict
-from collections.abc import Awaitable
-from typing import Any, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from kernel.events.dead_letter import DeadLetterEntry, DeadLetterQueue
-from kernel.events.envelope import EventEnvelope
+from kernel.events.dlq_backend import DLQBackend
+from kernel.events.envelope import EventEnvelope, RetryDecision
 from kernel.events.event import Event
 from kernel.events.exceptions import (
     DuplicateSubscriberError,
@@ -26,7 +27,7 @@ from kernel.events.retry import RetryPolicy
 from kernel.events.subscription import Subscription
 from kernel.events.topic_matcher import TopicMatcher
 
-EventHandler = Callable[[Event], Awaitable[None]]
+EventHandler = Callable[[Event], Awaitable[RetryDecision | None]]
 
 
 class EventBus:
@@ -251,7 +252,24 @@ class EventBus:
         while True:
             try:
                 modified.attempts += 1
-                await subscription.handler(modified.event)
+                result = await subscription.handler(modified.event)
+                if isinstance(result, RetryDecision):
+                    if result is RetryDecision.IGNORE:
+                        return
+                    if result in (RetryDecision.FAIL, RetryDecision.DEAD_LETTER):
+                        self._metrics.failed_events += 1
+                        self._dead_letters.add(
+                            DeadLetterEntry(
+                                event=modified.event,
+                                attempts=modified.attempts,
+                                exception="Handler returned " + result.name,
+                                exception_type="RetryDecision",
+                                subscriber=subscription.handler.__name__,
+                            ),
+                        )
+                        raise EventSubscriberError(
+                            f"Handler returned {result.name}"
+                        )
                 self._metrics.dispatched_events += 1
 
                 for mw in self._middleware:
@@ -261,13 +279,24 @@ class EventBus:
             except self._retry_policy.retry_exceptions as ex:
                 modified.last_error = str(ex)
 
+                decision: RetryDecision | None = None
                 for mw in self._middleware:
                     if hasattr(mw, 'on_exception'):
-                        await mw.on_exception(
+                        mw_result = await mw.on_exception(
                             subscription, modified.event, ex,
                         )
+                        if isinstance(mw_result, RetryDecision):
+                            decision = mw_result
 
-                if modified.attempts >= self._retry_policy.max_attempts:
+                if decision is RetryDecision.IGNORE:
+                    return
+
+                send_to_dlq = (
+                    decision is RetryDecision.DEAD_LETTER
+                    or decision is RetryDecision.FAIL
+                    or modified.attempts >= self._retry_policy.max_attempts
+                )
+                if send_to_dlq:
                     self._metrics.failed_events += 1
                     self._dead_letters.add(
                         DeadLetterEntry(
@@ -298,10 +327,10 @@ class EventBus:
         Gracefully stop accepting new work, drain the queue, and terminate.
         """
         self._running = False
-        await self._queue.join()
-        if self._dispatch_task is not None:
+        if self._dispatch_task and not self._dispatch_task.done():
+            await self._queue.join()
             self._dispatch_task.cancel()
-            self._dispatch_task = None
+        self._dispatch_task = None
 
     async def join(self) -> None:
         """Wait until all queued events have been processed."""
@@ -376,6 +405,9 @@ class EventBus:
     # ------------------------------------------------------------------
     # Dead Letter Queue
     # ------------------------------------------------------------------
+
+    def set_dlq_backend(self, backend: DLQBackend) -> None:
+        self._dead_letters = backend
 
     def dead_letter_count(self) -> int:
         return self._dead_letters.count()

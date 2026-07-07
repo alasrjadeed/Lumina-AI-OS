@@ -5,15 +5,16 @@ Subscription Model
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Awaitable, Callable
 from uuid import UUID, uuid4
 
+from kernel.events.envelope import RetryDecision
 from kernel.events.event import Event
 from kernel.events.filters import EventFilter
 
-EventHandler = Callable[[Event], Awaitable[None]]
+EventHandler = Callable[[Event], Awaitable[RetryDecision | None]]
 
 
 @dataclass(slots=True)

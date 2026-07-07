@@ -1,6 +1,5 @@
 import pytest
 
-from kernel.events.event import Event
 from kernel.events.metrics import EventBusMetrics
 
 

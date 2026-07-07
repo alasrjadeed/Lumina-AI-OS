@@ -1,4 +1,3 @@
-from kernel.dependency import DIContainer as DIContainer
 from kernel.dependency import (
     CircularDependencyError,
     DependencyError,
@@ -6,6 +5,7 @@ from kernel.dependency import (
     ServiceNotFoundError,
     ServiceRegistrationError,
 )
+from kernel.dependency import DIContainer as DIContainer
 from kernel.dependency.lifetime import Lifetime as ServiceLifetime
 
 __all__ = [

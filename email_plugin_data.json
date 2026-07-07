@@ -1,0 +1,37 @@
+{
+  "templates": {
+    "welcome": {
+      "name": "welcome",
+      "subject": "Welcome {name}!",
+      "body": "Hello {name}, welcome to our service",
+      "is_html": false,
+      "variables": [
+        "name"
+      ]
+    },
+    "greet": {
+      "name": "greet",
+      "subject": "Hi {name}",
+      "body": "Hello {name}",
+      "is_html": false,
+      "variables": [
+        "name"
+      ]
+    }
+  },
+  "campaigns": [
+    {
+      "name": "Newsletter",
+      "template": "welcome",
+      "recipients": [
+        "a@b.com",
+        "c@d.com"
+      ],
+      "sent": 0,
+      "failed": 0,
+      "opened": 0,
+      "status": "draft"
+    }
+  ],
+  "smtp": {}
+}

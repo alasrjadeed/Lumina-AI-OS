@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from threading import Lock
-from typing import Any
 
 from kernel.dependency.exceptions import ServiceRegistrationError
 from kernel.dependency.lifetime import Lifetime

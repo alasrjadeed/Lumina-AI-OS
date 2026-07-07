@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import threading
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from kernel.dependency.exceptions import (
     CircularDependencyError,
-    DependencyError,
-    LifetimeError,
     ServiceNotFoundError,
     ServiceRegistrationError,
 )
 from kernel.dependency.lifetime import Lifetime
+from kernel.dependency.models import ServiceRegistration
 from kernel.dependency.provider import (
     AliasProvider,
     DelegateProvider,
@@ -19,7 +19,6 @@ from kernel.dependency.provider import (
     ServiceProvider,
     TypeProvider,
 )
-from kernel.dependency.models import ServiceRegistration
 from kernel.dependency.registry import ServiceRegistry
 from kernel.dependency.resolver import Resolver
 
@@ -243,12 +242,16 @@ class DIContainer:
         scope._singletons = self._singletons
         return scope
 
-    async def dispose_scope(self) -> None:
-        self._scoped_instances.clear()
+    def dispose_scope(self) -> None:
+        """Alias for dispose(). Provided for backward compatibility."""
+        self.dispose()
 
     # ------------------------------------------------------------------
     # Introspection
     # ------------------------------------------------------------------
+
+    def get_service(self, service_type: type) -> Any:
+        return self.resolve(service_type)
 
     def has(self, service: str | type) -> bool:
         return self._registry.has(service)
@@ -264,3 +267,9 @@ class DIContainer:
 
     def is_registered(self, service: str | type) -> bool:
         return self._registry.has(service)
+
+    def remove(self, service: str | type) -> bool:
+        return self._registry.remove(service)
+
+    def dispose(self) -> None:
+        self._scoped_instances.clear()

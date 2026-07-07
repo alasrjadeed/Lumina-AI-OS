@@ -1,0 +1,15 @@
+{
+  "users": {
+    "mal": {
+      "id": "u_609c2ce31303bc4b",
+      "username": "mal",
+      "password_hash": "40cb4defae08fa3c9ce0b0ad8be3777d:2f95856f48fa64d050e626f7601afd8e1ecc5937316d98a1ef40dda82a1c0bcf",
+      "roles": [
+        "user"
+      ],
+      "api_keys": [],
+      "enabled": true,
+      "created": 1783410390.6126893
+    }
+  }
+}

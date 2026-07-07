@@ -1,7 +1,6 @@
-import pytest
-
 from kernel.dependency.container import DIContainer
 from kernel.dependency.lifetime import Lifetime
+from kernel.dependency.scope import Scope
 
 
 class _ScopedService:
@@ -86,15 +85,13 @@ def test_dispose_scope():
     container.register_type(_ScopedService, lifetime=Lifetime.SCOPED)
 
     a = container.resolve(_ScopedService)
-    import asyncio
-    asyncio.run(container.dispose_scope())
+    container.dispose_scope()
 
     b = container.resolve(_ScopedService)
     assert a is not b
 
 
 def test_scope_class_wraps_container():
-    from kernel.dependency.scope import Scope
     container = DIContainer()
     container.register_type(_ScopedService, lifetime=Lifetime.SCOPED)
     scope = Scope(container)
@@ -102,7 +99,6 @@ def test_scope_class_wraps_container():
 
 
 def test_scope_class_resolve():
-    from kernel.dependency.scope import Scope
     container = DIContainer()
     container.register_instance("key", "value")
     scope = Scope(container)
@@ -110,14 +106,12 @@ def test_scope_class_resolve():
 
 
 def test_scope_class_try_resolve():
-    from kernel.dependency.scope import Scope
     container = DIContainer()
     scope = Scope(container)
     assert scope.try_resolve("missing") is None
 
 
 def test_scope_class_dispose():
-    from kernel.dependency.scope import Scope
     container = DIContainer()
     container.register_type(_ScopedService, lifetime=Lifetime.SCOPED)
     scope = Scope(container)

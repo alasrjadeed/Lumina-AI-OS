@@ -1,0 +1,14 @@
+{
+  "default": {
+    "mood": {
+      "key": "mood",
+      "value": "happy",
+      "namespace": "default",
+      "tags": [
+        "emotion"
+      ],
+      "timestamp": 1783410395.7644362,
+      "ttl": null
+    }
+  }
+}

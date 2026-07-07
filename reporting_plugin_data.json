@@ -1,0 +1,116 @@
+{
+  "reports": [
+    {
+      "title": "Test Report",
+      "sections": [
+        {
+          "title": "Overview",
+          "metrics": [
+            {
+              "label": "Users",
+              "value": 1500,
+              "unit": "count",
+              "change": 12.5
+            }
+          ],
+          "chart_type": "metrics"
+        }
+      ],
+      "generated": 1783410397.5411463
+    },
+    {
+      "title": "Data Report",
+      "sections": [
+        {
+          "title": "Details",
+          "metrics": [],
+          "chart_type": "table"
+        }
+      ],
+      "generated": 1783410397.5436947
+    },
+    {
+      "title": "CSV Test",
+      "sections": [
+        {
+          "title": "Metrics",
+          "metrics": [
+            {
+              "label": "Revenue",
+              "value": 50000,
+              "unit": "USD",
+              "change": 15.0
+            }
+          ],
+          "chart_type": "metrics"
+        }
+      ],
+      "generated": 1783410397.5474803
+    },
+    {
+      "title": "JSON Test",
+      "sections": [
+        {
+          "title": "Stats",
+          "metrics": [
+            {
+              "label": "Visitors",
+              "value": 1000,
+              "unit": "",
+              "change": 0.0
+            }
+          ],
+          "chart_type": "table"
+        }
+      ],
+      "generated": 1783410397.5523257
+    },
+    {
+      "title": "HTML Test",
+      "sections": [
+        {
+          "title": "Overview",
+          "metrics": [
+            {
+              "label": "Users",
+              "value": 500,
+              "unit": "",
+              "change": 0.0
+            }
+          ],
+          "chart_type": "table"
+        }
+      ],
+      "generated": 1783410397.5576513
+    },
+    {
+      "title": "Summary Report",
+      "sections": [
+        {
+          "title": "Overview",
+          "metrics": [
+            {
+              "label": "Total Items",
+              "value": 2,
+              "unit": "",
+              "change": 0.0
+            },
+            {
+              "label": "Average Value",
+              "value": 150.0,
+              "unit": "",
+              "change": 0.0
+            }
+          ],
+          "chart_type": "metrics"
+        },
+        {
+          "title": "Data Table",
+          "metrics": [],
+          "chart_type": "table"
+        }
+      ],
+      "generated": 1783410397.5613544
+    }
+  ]
+}

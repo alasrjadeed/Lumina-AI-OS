@@ -3,7 +3,6 @@ import pytest
 from kernel.events.event import Event
 from kernel.events.subscription import Subscription
 
-
 pytestmark = pytest.mark.asyncio
 
 

@@ -1,0 +1,38 @@
+{
+  "campaigns": {
+    "Summer Sale": {
+      "name": "Summer Sale",
+      "channel": "email",
+      "budget": 1000,
+      "spent": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "conversions": 0,
+      "status": "completed",
+      "start_date": 1783410397.524035,
+      "end_date": 1783410397.526572
+    },
+    "Track Test": {
+      "name": "Track Test",
+      "channel": "social",
+      "budget": 500,
+      "spent": 0.0,
+      "impressions": 1000,
+      "clicks": 50,
+      "conversions": 5,
+      "status": "draft",
+      "start_date": 1783410397.5295293,
+      "end_date": 0.0
+    }
+  },
+  "content": [
+    {
+      "title": "Post 1",
+      "content": "Content body",
+      "channel": "social",
+      "scheduled": 1783410397.5329373,
+      "status": "published",
+      "tags": []
+    }
+  ]
+}

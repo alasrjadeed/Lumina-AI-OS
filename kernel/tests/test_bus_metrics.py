@@ -1,9 +1,7 @@
 import pytest
 
 from kernel.events.event import Event
-from kernel.events.retry import RetryPolicy
 from kernel.events.subscription import Subscription
-
 
 pytestmark = pytest.mark.asyncio
 

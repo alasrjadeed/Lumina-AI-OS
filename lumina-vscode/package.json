@@ -1,0 +1,32 @@
+{
+  "name": "lumina-vscode",
+  "displayName": "Lumina AI OS",
+  "description": "AI coding assistant powered by Lumina — chat, explain, generate, and review code",
+  "version": "0.1.0",
+  "publisher": "lumina-ai",
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages", "Machine Learning", "Other"],
+  "keywords": ["lumina", "ai", "code generation", "chat"],
+  "activationEvents": [],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "lumina.chat", "title": "Lumina: Open AI Chat" },
+      { "command": "lumina.explain", "title": "Lumina: Explain Selected Code" },
+      { "command": "lumina.generate", "title": "Lumina: Generate Code at Cursor" },
+      { "command": "lumina.review", "title": "Lumina: Review Current File" },
+      { "command": "lumina.openDashboard", "title": "Lumina: Open Dashboard" },
+      { "command": "lumina.openApiDocs", "title": "Lumina: Open API Docs" },
+      { "command": "lumina.openWorkspace", "title": "Lumina: Open in File Manager" },
+      { "command": "lumina.startMcp", "title": "Lumina: Start MCP Server" },
+      { "command": "lumina.openCli", "title": "Lumina: Open CLI Terminal" }
+    ],
+    "keybindings": [
+      { "command": "lumina.chat", "key": "ctrl+alt+l", "mac": "cmd+alt+l" },
+      { "command": "lumina.explain", "key": "ctrl+alt+e", "mac": "cmd+alt+e" },
+      { "command": "lumina.generate", "key": "ctrl+alt+g", "mac": "cmd+alt+g" }
+    ]
+  }
+}

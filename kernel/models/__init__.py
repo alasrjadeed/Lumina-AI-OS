@@ -1,32 +1,30 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
-
-class JobStatus(Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "success"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+from kernel.scheduler.models import Job as Job
+from kernel.scheduler.models import JobStatus as JobStatus
 
 
-@dataclass
-class Job:
-    id: str
-    name: str
-    task: Any
-    status: JobStatus = JobStatus.PENDING
-    created_at: datetime = field(default_factory=datetime.now)
-    started_at: datetime | None = None
-    completed_at: datetime | None = None
-    retries: int = 0
-    max_retries: int = 3
-    delay: float = 0.0
-    interval: float | None = None
-    result: Any = None
-    error: str | None = None
+class ServiceLifetime(Enum):
+    SINGLETON = "singleton"
+    SCOPED = "scoped"
+    TRANSIENT = "transient"
+
+
+class PluginStatus(Enum):
+    DISCOVERED = "discovered"
+    LOADED = "loaded"
+    ENABLED = "enabled"
+    DISABLED = "disabled"
+    ERROR = "error"
+
+
+class PluginType(Enum):
+    STANDARD = "standard"
+    SYSTEM = "system"
+    EXTENSION = "extension"
+    THEME = "theme"
 
 
 @dataclass
@@ -35,14 +33,15 @@ class PluginManifest:
     version: str
     description: str = ""
     author: str = ""
+    homepage: str = ""
+    license: str = ""
     dependencies: list[str] = field(default_factory=list)
     entry_point: str = "main"
-
-
-class ServiceLifetime(Enum):
-    SINGLETON = "singleton"
-    SCOPED = "scoped"
-    TRANSIENT = "transient"
+    tags: list[str] = field(default_factory=list)
+    plugin_type: PluginType = PluginType.STANDARD
+    version_requirements: dict[str, str] = field(default_factory=dict)
+    python_version: str = ">=3.10"
+    kernel_version: str = ">=0.1.0"
 
 
 @dataclass

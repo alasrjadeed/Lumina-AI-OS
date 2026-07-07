@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Deque
 from uuid import UUID, uuid4
 
 from kernel.events.event import Event
@@ -24,7 +23,7 @@ class DeadLetterEntry:
 
 class DeadLetterQueue:
     def __init__(self, max_entries: int = 5000) -> None:
-        self._entries: Deque[DeadLetterEntry] = deque(maxlen=max_entries)
+        self._entries: deque[DeadLetterEntry] = deque(maxlen=max_entries)
 
     def add(self, entry: DeadLetterEntry) -> None:
         self._entries.append(entry)

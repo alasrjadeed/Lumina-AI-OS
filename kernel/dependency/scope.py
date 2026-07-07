@@ -19,4 +19,4 @@ class Scope:
         return self._container.try_resolve(service)
 
     def dispose(self) -> None:
-        self._container._scoped_instances.clear()
+        self._container.dispose()
