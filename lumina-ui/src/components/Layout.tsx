@@ -267,20 +267,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-1 min-h-0">
         <aside className={`flex flex-col bg-slate-900/30 border-r border-white/5 transition-all duration-200 ease-out ${sidebarCollapsed ? 'w-12' : 'w-52'}`}>
-          <div className="flex items-center gap-0.5 px-1.5 py-1.5 border-b border-white/5 overflow-x-auto shrink-0">
-            {tabs.length > 1 ? tabs.map(tab => (
-              <button key={tab.id} onClick={() => { setActiveTab(tab.id); navigate(tab.path); }}
-                className={`flex items-center gap-1 px-2.5 py-1 text-[10px] rounded-t transition-colors whitespace-nowrap ${
-                  activeTab === tab.id ? 'bg-white/5 text-lumina-300 border-t border-lumina-500/30' : 'text-slate-500 hover:text-slate-300'
-                }`}>
-                {tab.label}
-                <span onClick={(e) => { e.stopPropagation(); setTabs(tabs.filter(t => t.id !== tab.id)); if (activeTab === tab.id && tabs.length > 1) { const next = tabs.find(t => t.id !== tab.id); if (next) { setActiveTab(next.id); navigate(next.path); } } }}
-                  className="ml-1 hover:text-white transition-colors cursor-pointer"><X className="w-2.5 h-2.5" /></span>
-              </button>
-            )) : (
-              <span className="text-[10px] text-slate-500 px-2 py-1">Dashboard</span>
-            )}
-          </div>
+          {!sidebarCollapsed && tabs.length > 0 && (
+            <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-white/5 shrink-0 overflow-x-auto">
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => { setActiveTab(tab.id); navigate(tab.path); }}
+                  className={`flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors whitespace-nowrap ${
+                    activeTab === tab.id ? 'bg-lumina-600/15 text-lumina-300' : 'text-slate-500 hover:text-slate-300'
+                  }`}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {sidebarCollapsed && tabs.length > 0 && (
+            <div className="flex flex-col items-center gap-0.5 py-1.5 border-b border-white/5 shrink-0">
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => { setActiveTab(tab.id); navigate(tab.path); }}
+                  className={`w-6 h-6 flex items-center justify-center text-[10px] rounded transition-colors ${
+                    activeTab === tab.id ? 'bg-lumina-600/15 text-lumina-300' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                  title={tab.label}>
+                  {tab.label.charAt(0)}
+                </button>
+              ))}
+            </div>
+          )}
 
           <nav className="flex-1 overflow-y-auto p-1.5 space-y-2 scroll-smooth">
             {navSections.map(section => (
@@ -310,6 +321,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex items-center gap-0.5 px-2 py-1 bg-slate-900/40 border-b border-white/5 shrink-0 overflow-x-auto">
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => { setActiveTab(tab.id); navigate(tab.path); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-t transition-colors whitespace-nowrap shrink-0 ${
+                  activeTab === tab.id
+                    ? 'bg-white/5 text-lumina-300 border-t border-lumina-500/30'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
+                }`}>
+                {tab.label}
+                <span onClick={(e) => { e.stopPropagation(); setTabs(tabs.filter(t => t.id !== tab.id)); if (activeTab === tab.id && tabs.length > 1) { const next = tabs.find(t => t.id !== tab.id); if (next) { setActiveTab(next.id); navigate(next.path); } } else if (tabs.length === 1) { navigate('/'); setTabs([{ id: 'home', label: 'Dashboard', path: '/' }]); setActiveTab('home'); } }}
+                  className="ml-1 p-0.5 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
+                  <X className="w-3 h-3" />
+                </span>
+              </button>
+            ))}
+          </div>
+
           {currentSubTabs && (
             <div className="flex items-center gap-1 px-3 py-1 bg-slate-900/20 border-b border-white/5 shrink-0">
               {currentSubTabs.map(st => (
