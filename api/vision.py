@@ -1,27 +1,32 @@
-"""Vision API — camera capture, object detection, face recognition, scene description, and video streaming."""
+"""Vision API — camera capture, object detection, face recognition,
+scene description, and video streaming."""
 
-import asyncio
+import contextlib
 import json
 import time
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 from core.log import log
+from core.provider import engine as ai_engine
 from core.vision import (
     CameraDevice,
-    CameraError,
-    DetectionResult,
     FaceDetector,
-    FaceResult,
     ObjectDetector,
     SceneDescriber,
-    SceneDescription,
     VideoStream,
     list_cameras,
 )
-from core.provider import engine as ai_engine
 
 router = APIRouter(prefix="/vision", tags=["Vision"])
 
@@ -149,8 +154,8 @@ async def detect_objects_upload(
     confidence: float = Query(0.25, ge=0.0, le=1.0),
 ):
     """Upload an image and detect objects."""
-    import numpy as np
     import cv2
+    import numpy as np
 
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
@@ -186,8 +191,8 @@ async def detect_faces():
 @router.post("/face/detect/upload")
 async def detect_faces_upload(file: UploadFile = File(...)):
     """Upload an image and detect faces."""
-    import numpy as np
     import cv2
+    import numpy as np
 
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
@@ -230,8 +235,8 @@ async def describe_scene_upload(
     context: str = Query(None, max_length=500),
 ):
     """Upload an image and describe the scene using AI."""
-    import numpy as np
     import cv2
+    import numpy as np
 
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
@@ -303,10 +308,8 @@ async def websocket_stream(websocket: WebSocket):
         log.error("Vision: WebSocket stream error: %s", e)
     finally:
         await stream.stop()
-        try:
+        with contextlib.suppress(Exception):
             await websocket.close()
-        except Exception:
-            pass
 
 
 @router.post("/watch/start")
@@ -317,7 +320,6 @@ async def start_watching(
     describe_scene_: bool = Query(True, alias="describe_scene"),
 ):
     """Start continuous monitoring — captures frames at interval and runs detection/description."""
-    from core.vision import VideoStream
 
     camera = _get_camera()
     detector = _get_detector() if detect_objects_ else None
@@ -364,13 +366,14 @@ async def reload_camera():
     return {"status": "ok", "camera": camera_instance.info.to_dict()}
 
 
-_cortex_instance: "VisualCortex | None" = None
+_cortex_instance = None
 
 
 def _get_cortex():
     global _cortex_instance
     if _cortex_instance is None:
         from core.vision.cortex import VisualCortex
+
         _cortex_instance = VisualCortex(
             camera=CameraDevice(device_id=0),
             ai_engine=ai_engine,
@@ -564,7 +567,8 @@ async def vision_ui():
             <button onclick="ask()">What Do You See?</button>
             <button onclick="memory()">Memory</button>
         </div>
-        <div id="status-bar" style="margin-bottom:8px;font-size:0.8rem;color:#888;text-align:center"></div>
+        <div id="status-bar"
+             style="margin-bottom:8px;font-size:0.8rem;color:#888;text-align:center"></div>
         <div id="info">Ready. Click a button to analyze the camera feed.</div>
         <script>
             async function api(path, opts={}) {
@@ -583,11 +587,13 @@ async def vision_ui():
             function describe() { api('/vision/describe?detail=normal'); }
             async function watch() {
                 const r = await api('/vision/watch?interval=3&proactive=true');
-                if (r && r.status === 'watching') document.getElementById('status-bar').textContent = 'Watching...';
+                if (r && r.status === 'watching')
+                    document.getElementById('status-bar').textContent = 'Watching...';
             }
             async function stopWatch() {
                 const r = await api('/vision/watch/stop');
-                if (r && r.status === 'stopped') document.getElementById('status-bar').textContent = '';
+                if (r && r.status === 'stopped')
+                    document.getElementById('status-bar').textContent = '';
             }
             function ask() { api('/vision/what-do-you-see'); }
             function memory() { api('/vision/scene/memory'); }

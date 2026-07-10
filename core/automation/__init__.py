@@ -1,4 +1,4 @@
-from core.automation.engine import AutomationEngine, WorkflowModel, StepModel, TriggerConfig
+from core.automation.engine import AutomationEngine, StepModel, TriggerConfig, WorkflowModel
 
 engine = AutomationEngine()
 

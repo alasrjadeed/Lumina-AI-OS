@@ -102,18 +102,20 @@ class TestAppManager:
         assert not am.is_running("missing")
 
 
-@pytest.mark.asyncio
 class TestClipboardManager:
+    @pytest.mark.asyncio
     async def test_copy_and_paste(self):
         cm = ClipboardManager()
         result = await cm.copy("test text")
         assert result is True or result is False
 
+    @pytest.mark.asyncio
     async def test_append(self):
         cm = ClipboardManager()
         result = await cm.append("hello", separator=", ")
         assert result is True or result is False
 
+    @pytest.mark.asyncio
     async def test_clear(self):
         cm = ClipboardManager()
         result = await cm.clear()
@@ -127,13 +129,14 @@ class TestClipboardManager:
         assert len(cm.get_history()) == 0
 
 
-@pytest.mark.asyncio
 class TestNotificationManager:
+    @pytest.mark.asyncio
     async def test_send(self):
         nm = NotificationManager()
         result = await nm.send("Test Title", "Test Message")
         assert result is True or result is False
 
+    @pytest.mark.asyncio
     async def test_send_levels(self):
         nm = NotificationManager()
         assert await nm.info("Test", "Info message") in (True, False)
@@ -161,18 +164,19 @@ class TestNotificationManager:
         assert not n.dismissed
 
 
-@pytest.mark.asyncio
 class TestShortcutManager:
     def test_list_shortcuts(self):
         sm = ShortcutManager()
         sm._shortcuts["app"] = Shortcut(name="app", target="/usr/bin/app")
         assert len(sm.list_shortcuts()) == 1
 
+    @pytest.mark.asyncio
     async def test_create_desktop_entry(self, tmp_path: Path):
         sm = ShortcutManager(shortcuts_dir=str(tmp_path))
         result = await sm.create_desktop_entry("myapp", "/usr/bin/myapp")
         assert result is True or result is False
 
+    @pytest.mark.asyncio
     async def test_remove(self, tmp_path: Path):
         desktop_file = tmp_path / "test_app.desktop"
         desktop_file.write_text("[Desktop Entry]")
@@ -181,19 +185,21 @@ class TestShortcutManager:
         result = await sm.remove("test_app")
         assert result
 
+    @pytest.mark.asyncio
     async def test_remove_missing(self):
         sm = ShortcutManager()
         result = await sm.remove("missing")
         assert not result
 
 
-@pytest.mark.asyncio
 class TestWindowManager:
+    @pytest.mark.asyncio
     async def test_list_windows(self):
         wm = WindowManager()
         windows = await wm.list_windows()
         assert isinstance(windows, list)
 
+    @pytest.mark.asyncio
     async def test_get_active(self):
         wm = WindowManager()
         active = await wm.get_active()

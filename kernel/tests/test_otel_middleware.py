@@ -35,19 +35,19 @@ class TestOpenTelemetryMiddleware:
 
     @pytest.mark.asyncio
     async def test_before_handler_returns_event(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         e = Event(name="test")
         result = await mw.before_handler(sub, e)
         assert result is e
 
     @pytest.mark.asyncio
     async def test_after_handler_does_not_raise(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         await mw.after_handler(sub, Event(name="test"))
 
     @pytest.mark.asyncio
     async def test_on_exception_does_not_raise(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         await mw.on_exception(sub, Event(name="test"), ValueError("x"))
 
     @pytest.mark.asyncio

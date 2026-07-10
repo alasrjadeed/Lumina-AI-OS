@@ -31,8 +31,11 @@ class AppManager:
         return shutil.which(name) is not None
 
     async def launch(
-        self, name: str, path: str = "",
-        args: list[str] | None = None, wait: bool = False,
+        self,
+        name: str,
+        path: str = "",
+        args: list[str] | None = None,
+        wait: bool = False,
     ) -> bool:
         executable = path or name
         if not shutil.which(executable) and not os.path.exists(executable):
@@ -99,7 +102,9 @@ class AppManager:
         return True
 
     async def launch_and_wait(
-        self, name: str, path: str = "",
+        self,
+        name: str,
+        path: str = "",
         args: list[str] | None = None,
     ) -> int:
         if await self.launch(name, path, args, wait=True):

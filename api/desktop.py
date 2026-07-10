@@ -16,7 +16,6 @@ from core.desktop.clipboard import ClipboardManager
 from core.desktop.notifications import NotificationManager
 from core.desktop.os_automation import desktop
 from core.desktop.window_manager import WindowManager
-from core.log import log
 
 router = APIRouter(prefix="/desktop", tags=["Desktop"])
 
@@ -28,34 +27,42 @@ notification_manager = NotificationManager()
 
 # ── Models ──
 
+
 class CommandRequest(BaseModel):
     command: str
+
 
 class WriteFileRequest(BaseModel):
     path: str
     content: str
 
+
 class CopyMoveRequest(BaseModel):
     src: str
     dst: str
+
 
 class LaunchAppRequest(BaseModel):
     name: str
     path: str = ""
     args: list[str] = []
 
+
 class AgentTaskRequest(BaseModel):
     task: str
     timeout: int = 60
+
 
 class CompressRequest(BaseModel):
     source: str
     destination: str = ""
     format: str = "zip"
 
+
 class ExtractRequest(BaseModel):
     archive: str
     destination: str = ""
+
 
 class SearchRequest(BaseModel):
     pattern: str
@@ -63,6 +70,7 @@ class SearchRequest(BaseModel):
 
 
 # ── System Info ──
+
 
 @router.get("/info")
 async def system_info():
@@ -91,27 +99,32 @@ async def list_processes(limit: int = 30):
     try:
         result = subprocess.run(
             ["ps", "aux", "--sort=-%mem"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         lines = result.stdout.strip().split("\n")
         headers = lines[0].split()
         processes = []
-        for line in lines[1:limit + 1]:
+        for line in lines[1 : limit + 1]:
             parts = line.split(None, len(headers) - 1)
             if len(parts) >= len(headers):
-                processes.append({
-                    "user": parts[0],
-                    "pid": int(parts[1]),
-                    "cpu": parts[2],
-                    "mem": parts[3],
-                    "command": parts[-1][:60],
-                })
+                processes.append(
+                    {
+                        "user": parts[0],
+                        "pid": int(parts[1]),
+                        "cpu": parts[2],
+                        "mem": parts[3],
+                        "command": parts[-1][:60],
+                    }
+                )
         return {"processes": processes, "count": len(processes)}
     except Exception as e:
         return {"error": str(e), "processes": []}
 
 
 # ── File Operations ──
+
 
 @router.get("/files", summary="List directory contents")
 async def list_files(path: str = ".", sort_by: str = "name", ascending: bool = True):
@@ -182,13 +195,15 @@ async def search_files(req: SearchRequest):
     for m in matches[:200]:
         try:
             stat = m.stat()
-            files.append({
-                "name": m.name,
-                "path": str(m),
-                "type": "dir" if m.is_dir() else "file",
-                "size": stat.st_size if m.is_file() else 0,
-                "modified": stat.st_mtime,
-            })
+            files.append(
+                {
+                    "name": m.name,
+                    "path": str(m),
+                    "type": "dir" if m.is_dir() else "file",
+                    "size": stat.st_size if m.is_file() else 0,
+                    "modified": stat.st_mtime,
+                }
+            )
         except OSError:
             pass
     return {"files": files, "count": len(files), "pattern": req.pattern}
@@ -233,14 +248,20 @@ async def extract_files(req: ExtractRequest):
 
 # ── Application Management ──
 
+
 @router.get("/apps", summary="List launched apps")
 async def list_apps(running_only: bool = False):
     apps = app_manager.list_apps(running_only=running_only)
     return {
-        "apps": [{
-            "name": a.name, "path": a.path,
-            "pid": a.pid, "running": a.running,
-        } for a in apps],
+        "apps": [
+            {
+                "name": a.name,
+                "path": a.path,
+                "pid": a.pid,
+                "running": a.running,
+            }
+            for a in apps
+        ],
         "count": len(apps),
     }
 
@@ -263,12 +284,14 @@ async def launch_app(req: LaunchAppRequest):
 
 @router.post("/apps/launch/terminal", summary="Open a terminal window")
 async def launch_terminal(command: str = ""):
-    shell = os.environ.get("SHELL", "bash")
-    if command:
-        args = ["-c", command]
-    else:
-        args = []
-    term = shutil.which("gnome-terminal") or shutil.which("konsole") or shutil.which("xterm") or shutil.which("tmux")
+    os.environ.get("SHELL", "bash")
+    args = ["-c", command] if command else []
+    term = (
+        shutil.which("gnome-terminal")
+        or shutil.which("konsole")
+        or shutil.which("xterm")
+        or shutil.which("tmux")
+    )
     if not term:
         raise HTTPException(400, "No terminal emulator found")
     success = await app_manager.launch(f"terminal_{int(time.time())}", term, args)
@@ -289,16 +312,26 @@ async def check_installed(name: str):
 
 # ── Window Management ──
 
+
 @router.get("/windows", summary="List all desktop windows")
 async def list_windows():
     windows = await window_manager.list_windows()
     return {
-        "windows": [{
-            "id": w.id, "title": w.title, "process": w.process,
-            "x": w.x, "y": w.y, "width": w.width, "height": w.height,
-            "minimized": w.minimized, "maximized": w.maximized,
-            "focused": w.focused,
-        } for w in windows],
+        "windows": [
+            {
+                "id": w.id,
+                "title": w.title,
+                "process": w.process,
+                "x": w.x,
+                "y": w.y,
+                "width": w.width,
+                "height": w.height,
+                "minimized": w.minimized,
+                "maximized": w.maximized,
+                "focused": w.focused,
+            }
+            for w in windows
+        ],
         "count": len(windows),
     }
 
@@ -310,7 +343,9 @@ async def focus_window(title: str):
 
 
 @router.post("/windows/resize", summary="Resize a window")
-async def resize_window(title: str, width: int = Query(800, ge=100), height: int = Query(600, ge=100)):
+async def resize_window(
+    title: str, width: int = Query(800, ge=100), height: int = Query(600, ge=100)
+):
     success = await window_manager.resize(title, width, height)
     return {"status": "ok" if success else "not_found"}
 
@@ -335,6 +370,7 @@ async def close_window(title: str):
 
 # ── Clipboard ──
 
+
 @router.get("/clipboard", summary="Get clipboard content")
 async def clipboard_paste():
     text = await clipboard_manager.paste()
@@ -355,6 +391,7 @@ async def clipboard_history(limit: int = 10):
 
 # ── Notifications ──
 
+
 @router.post("/notify", summary="Send a desktop notification")
 async def send_notification(title: str, message: str, level: str = "info"):
     success = await notification_manager.send(title, message, level)
@@ -363,6 +400,7 @@ async def send_notification(title: str, message: str, level: str = "info"):
 
 # ── Command Execution ──
 
+
 @router.post("/execute", summary="Run a shell command")
 async def execute_command(req: CommandRequest):
     result = await desktop.execute(req.command)
@@ -370,6 +408,7 @@ async def execute_command(req: CommandRequest):
 
 
 # ── AI Agent ──
+
 
 @router.post("/agent", summary="Tell the AI what to do on your computer")
 async def desktop_agent(req: AgentTaskRequest):
@@ -389,14 +428,22 @@ async def desktop_agent(req: AgentTaskRequest):
 
     # App launch detection
     app_map = {
-        "vscode": "code", "vs code": "code",
-        "chrome": "google-chrome", "google chrome": "google-chrome",
-        "firefox": "firefox", "terminal": "gnome-terminal",
-        "photoshop": "photoshop", "gimp": "gimp",
-        "slack": "slack", "discord": "discord",
-        "spotify": "spotify", "vlc": "vlc",
-        "sublime": "sublime_text", "sublime text": "sublime_text",
-        "notepad": "notepad", "notepad++": "notepad-plus-plus",
+        "vscode": "code",
+        "vs code": "code",
+        "chrome": "google-chrome",
+        "google chrome": "google-chrome",
+        "firefox": "firefox",
+        "terminal": "gnome-terminal",
+        "photoshop": "photoshop",
+        "gimp": "gimp",
+        "slack": "slack",
+        "discord": "discord",
+        "spotify": "spotify",
+        "vlc": "vlc",
+        "sublime": "sublime_text",
+        "sublime text": "sublime_text",
+        "notepad": "notepad",
+        "notepad++": "notepad-plus-plus",
     }
     for label, cmd in app_map.items():
         if label in task:
@@ -431,48 +478,63 @@ async def desktop_agent(req: AgentTaskRequest):
             if intent.startswith("launch:"):
                 app_name = intent.split(":", 1)[1]
                 success = await app_manager.launch(app_name, app_name)
-                results.append({
-                    "action": f"Launch {app_name}",
-                    "status": "ok" if success else "failed",
-                    "detail": f"Started {app_name}" if success else f"Could not launch {app_name}",
-                })
+                results.append(
+                    {
+                        "action": f"Launch {app_name}",
+                        "status": "ok" if success else "failed",
+                        "detail": f"Started {app_name}"
+                        if success
+                        else f"Could not launch {app_name}",
+                    }
+                )
                 if success:
                     await asyncio.sleep(0.5)
                     await window_manager.focus(app_name)
 
             elif intent == "system:info":
                 info = await desktop.system_info()
-                results.append({
-                    "action": "Get system info",
-                    "status": "ok",
-                    "data": info,
-                })
+                results.append(
+                    {
+                        "action": "Get system info",
+                        "status": "ok",
+                        "data": info,
+                    }
+                )
 
             elif intent == "system:notify":
                 parts = req.task.split("notify", 1)
                 msg = parts[1].strip().strip('"').strip("'") if len(parts) > 1 else "Task completed"
                 await notification_manager.send("Desktop Agent", msg)
-                results.append({
-                    "action": "Send notification",
-                    "status": "ok",
-                    "detail": msg[:100],
-                })
+                results.append(
+                    {
+                        "action": "Send notification",
+                        "status": "ok",
+                        "detail": msg[:100],
+                    }
+                )
 
             elif intent == "file:compress":
-                results.append({
-                    "action": "Compress",
-                    "status": "pending",
-                    "detail": "Automatic compress requires explicit source path. Use /desktop/files/compress directly.",
-                })
+                results.append(
+                    {
+                        "action": "Compress",
+                        "status": "pending",
+                        "detail": (
+                            "Automatic compress requires explicit source path. "
+                            "Use /desktop/files/compress directly."
+                        ),
+                    }
+                )
 
             elif intent == "file:mkdir":
                 dir_name = f"new_folder_{int(time.time())}"
                 await desktop.create_dir(dir_name)
-                results.append({
-                    "action": "Create directory",
-                    "status": "ok",
-                    "detail": f"Created {dir_name}",
-                })
+                results.append(
+                    {
+                        "action": "Create directory",
+                        "status": "ok",
+                        "detail": f"Created {dir_name}",
+                    }
+                )
 
         except Exception as e:
             errors.append(f"{intent}: {e}")
@@ -484,15 +546,19 @@ async def desktop_agent(req: AgentTaskRequest):
         # Clean up conversational prefix
         for prefix in ["run ", "execute ", "please ", "can you "]:
             if shell_task.lower().startswith(prefix):
-                shell_task = shell_task[len(prefix):]
+                shell_task = shell_task[len(prefix) :]
         try:
             result = await desktop.execute(shell_task)
-            results.append({
-                "action": "Shell command",
-                "status": result.get("status", "ok"),
-                "detail": (result.get("stdout", "") or result.get("stderr", "") or "").strip()[:500],
-                "return_code": result.get("return_code"),
-            })
+            results.append(
+                {
+                    "action": "Shell command",
+                    "status": result.get("status", "ok"),
+                    "detail": (result.get("stdout", "") or result.get("stderr", "") or "").strip()[
+                        :500
+                    ],
+                    "return_code": result.get("return_code"),
+                }
+            )
         except Exception as e:
             errors.append(f"shell: {e}")
 

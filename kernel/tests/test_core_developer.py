@@ -83,8 +83,11 @@ class TestTemplates:
 
     def test_render_plugin(self, tmp_path: Path):
         tm = TemplateManager()
-        files = tm.render("plugin", {"name": "myplugin", "description": "Test",
-                                      "author": "me", "version": "1.0.0"}, str(tmp_path))
+        files = tm.render(
+            "plugin",
+            {"name": "myplugin", "description": "Test", "author": "me", "version": "1.0.0"},
+            str(tmp_path),
+        )
         assert len(files) >= 1
         init_file = [f for f in files if f.endswith("__init__.py")][0]
         content = Path(init_file).read_text()
@@ -103,8 +106,9 @@ class TestTemplates:
 
     def test_create_from_string(self, tmp_path: Path):
         tm = TemplateManager()
-        path = tm.create_from_string("test", "{{greeting}} World!", str(tmp_path / "out.txt"),
-                                      {"greeting": "Hello"})
+        path = tm.create_from_string(
+            "test", "{{greeting}} World!", str(tmp_path / "out.txt"), {"greeting": "Hello"}
+        )
         assert Path(path).read_text() == "Hello World!"
 
 
@@ -206,7 +210,8 @@ def on_unload(): pass
         (src / "__init__.py").write_text("# test")
         pm = PackageManager(packages_dir=str(tmp_path / "pkgs"))
         pm._installed["toggle_pkg"] = InstalledPackage(
-            metadata=PackageMetadata(name="toggle_pkg"), path=str(src),
+            metadata=PackageMetadata(name="toggle_pkg"),
+            path=str(src),
         )
         assert pm.disable("toggle_pkg")
         assert not pm._installed["toggle_pkg"].enabled

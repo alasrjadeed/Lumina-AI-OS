@@ -6,10 +6,8 @@ import asyncio
 import json
 import os
 import re
-import time
 import uuid
 from datetime import datetime
-from typing import Any
 
 from core.log import log
 from core.provider import engine as ai_engine
@@ -18,41 +16,144 @@ HISTORY_PATH = os.path.expanduser("~/.lumina/code_reviews.json")
 
 COMMON_ISSUES: dict[str, list[dict]] = {
     "python": [
-        {"id": "sec-1", "severity": "critical", "title": "SQL Injection", "pattern": r"execute\(.*f['\"]|execute\(.*\+|raw_input"},
-        {"id": "sec-2", "severity": "critical", "title": "Command Injection", "pattern": r"os\.system\(|subprocess\.call\(|subprocess\.Popen\(|eval\(|exec\("},
-        {"id": "sec-3", "severity": "high", "title": "Hardcoded Secret", "pattern": r"(api_key|password|secret|token)\s*=\s*['\"][^'\"]+['\"]"},
-        {"id": "perf-1", "severity": "warning", "title": "Inefficient Loop", "pattern": r"for\s+\w+\s+in\s+range\(len\("},
-        {"id": "style-1", "severity": "info", "title": "Line Too Long", "pattern": r"^.{100,}$", "multiline": True},
-        {"id": "style-2", "severity": "info", "title": "Missing Docstring", "pattern": r"^def |^class ", "check_missing": "docstring"},
+        {
+            "id": "sec-1",
+            "severity": "critical",
+            "title": "SQL Injection",
+            "pattern": r"execute\(.*f['\"]|execute\(.*\+|raw_input",
+        },
+        {
+            "id": "sec-2",
+            "severity": "critical",
+            "title": "Command Injection",
+            "pattern": r"os\.system\(|subprocess\.call\(|subprocess\.Popen\(|eval\(|exec\(",
+        },
+        {
+            "id": "sec-3",
+            "severity": "high",
+            "title": "Hardcoded Secret",
+            "pattern": r"(api_key|password|secret|token)\s*=\s*['\"][^'\"]+['\"]",
+        },
+        {
+            "id": "perf-1",
+            "severity": "warning",
+            "title": "Inefficient Loop",
+            "pattern": r"for\s+\w+\s+in\s+range\(len\(",
+        },
+        {
+            "id": "style-1",
+            "severity": "info",
+            "title": "Line Too Long",
+            "pattern": r"^.{100,}$",
+            "multiline": True,
+        },
+        {
+            "id": "style-2",
+            "severity": "info",
+            "title": "Missing Docstring",
+            "pattern": r"^def |^class ",
+            "check_missing": "docstring",
+        },
         {"id": "bug-1", "severity": "high", "title": "Bare Except", "pattern": r"except\s*:"},
-        {"id": "bug-2", "severity": "high", "title": "Mutable Default Arg", "pattern": r"def \w+\(.*=\s*\[|=\s*\{\}|=\s*set\(\)"},
-        {"id": "bug-3", "severity": "medium", "title": "Potential Unused Variable", "pattern": r"^\s+\w+\s*=\s*.+$", "multiline": False},
+        {
+            "id": "bug-2",
+            "severity": "high",
+            "title": "Mutable Default Arg",
+            "pattern": r"def \w+\(.*=\s*\[|=\s*\{\}|=\s*set\(\)",
+        },
+        {
+            "id": "bug-3",
+            "severity": "medium",
+            "title": "Potential Unused Variable",
+            "pattern": r"^\s+\w+\s*=\s*.+$",
+            "multiline": False,
+        },
     ],
     "javascript": [
-        {"id": "sec-js-1", "severity": "critical", "title": "InnerHTML Assignment", "pattern": r"\.innerHTML\s*="},
-        {"id": "sec-js-2", "severity": "critical", "title": "eval() Usage", "pattern": r"eval\(|new Function\("},
-        {"id": "sec-js-3", "severity": "high", "title": "Hardcoded Secret", "pattern": r"(api_key|password|secret|token)\s*[:=]\s*['\"][^'\"]+['\"]"},
+        {
+            "id": "sec-js-1",
+            "severity": "critical",
+            "title": "InnerHTML Assignment",
+            "pattern": r"\.innerHTML\s*=",
+        },
+        {
+            "id": "sec-js-2",
+            "severity": "critical",
+            "title": "eval() Usage",
+            "pattern": r"eval\(|new Function\(",
+        },
+        {
+            "id": "sec-js-3",
+            "severity": "high",
+            "title": "Hardcoded Secret",
+            "pattern": r"(api_key|password|secret|token)\s*[:=]\s*['\"][^'\"]+['\"]",
+        },
         {"id": "bug-js-1", "severity": "high", "title": "== Comparison", "pattern": r"==[^=]"},
-        {"id": "bug-js-2", "severity": "medium", "title": "Console Left In", "pattern": r"console\.(log|warn|error)\("},
+        {
+            "id": "bug-js-2",
+            "severity": "medium",
+            "title": "Console Left In",
+            "pattern": r"console\.(log|warn|error)\(",
+        },
         {"id": "style-js-1", "severity": "info", "title": "var Usage", "pattern": r"\bvar\b"},
-        {"id": "perf-js-1", "severity": "warning", "title": "Nested Loop", "pattern": r"for.*\{[^}]*for"},
+        {
+            "id": "perf-js-1",
+            "severity": "warning",
+            "title": "Nested Loop",
+            "pattern": r"for.*\{[^}]*for",
+        },
     ],
     "typescript": [
         {"id": "sec-ts-1", "severity": "critical", "title": "Any Type Leak", "pattern": r":\s*any"},
-        {"id": "sec-ts-2", "severity": "high", "title": "Non-null Assertion", "pattern": r"!\.\w+|as\s+\w+"},
-        {"id": "bug-ts-1", "severity": "high", "title": "Missing Error Handling", "pattern": r"catch\s*\(.*\)\s*\{\s*\}"},
+        {
+            "id": "sec-ts-2",
+            "severity": "high",
+            "title": "Non-null Assertion",
+            "pattern": r"!\.\w+|as\s+\w+",
+        },
+        {
+            "id": "bug-ts-1",
+            "severity": "high",
+            "title": "Missing Error Handling",
+            "pattern": r"catch\s*\(.*\)\s*\{\s*\}",
+        },
     ],
     "java": [
-        {"id": "sec-java-1", "severity": "critical", "title": "SQL Injection", "pattern": r"Statement\.execute|jdbcTemplate\.execute"},
-        {"id": "bug-java-1", "severity": "medium", "title": "Null Check Missing", "pattern": r"\.equals\(|\.length\(\)"},
+        {
+            "id": "sec-java-1",
+            "severity": "critical",
+            "title": "SQL Injection",
+            "pattern": r"Statement\.execute|jdbcTemplate\.execute",
+        },
+        {
+            "id": "bug-java-1",
+            "severity": "medium",
+            "title": "Null Check Missing",
+            "pattern": r"\.equals\(|\.length\(\)",
+        },
     ],
     "go": [
-        {"id": "sec-go-1", "severity": "critical", "title": "Error Ignored", "pattern": r"_\s*:=\s*\w+\(\)"},
+        {
+            "id": "sec-go-1",
+            "severity": "critical",
+            "title": "Error Ignored",
+            "pattern": r"_\s*:=\s*\w+\(\)",
+        },
         {"id": "style-go-1", "severity": "info", "title": "Naked Return", "pattern": r"return\n"},
     ],
     "rust": [
-        {"id": "sec-rust-1", "severity": "high", "title": "unwrap() Usage", "pattern": r"\.unwrap\(\)"},
-        {"id": "sec-rust-2", "severity": "medium", "title": "expect() Usage", "pattern": r"\.expect\("},
+        {
+            "id": "sec-rust-1",
+            "severity": "high",
+            "title": "unwrap() Usage",
+            "pattern": r"\.unwrap\(\)",
+        },
+        {
+            "id": "sec-rust-2",
+            "severity": "medium",
+            "title": "expect() Usage",
+            "pattern": r"\.expect\(",
+        },
     ],
 }
 
@@ -67,9 +168,18 @@ DIMENSIONS = [
 
 
 class Issue:
-    def __init__(self, id: str, severity: str, title: str, description: str = "",
-                 line: int = 0, column: int = 0, snippet: str = "",
-                 dimension: str = "", suggestion: str = ""):
+    def __init__(
+        self,
+        id: str,
+        severity: str,
+        title: str,
+        description: str = "",
+        line: int = 0,
+        column: int = 0,
+        snippet: str = "",
+        dimension: str = "",
+        suggestion: str = "",
+    ):
         self.id = id
         self.severity = severity
         self.title = title
@@ -81,17 +191,32 @@ class Issue:
         self.suggestion = suggestion
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "severity": self.severity, "title": self.title,
-                "description": self.description, "line": self.line,
-                "column": self.column, "snippet": self.snippet,
-                "dimension": self.dimension, "suggestion": self.suggestion}
+        return {
+            "id": self.id,
+            "severity": self.severity,
+            "title": self.title,
+            "description": self.description,
+            "line": self.line,
+            "column": self.column,
+            "snippet": self.snippet,
+            "dimension": self.dimension,
+            "suggestion": self.suggestion,
+        }
 
 
 class ReviewResult:
-    def __init__(self, review_id: str, language: str, code: str, score: int = 0,
-                 issues: list[Issue] | None = None, summary: str = "",
-                 ai_feedback: str = "", dimensions: dict | None = None,
-                 stats: dict | None = None):
+    def __init__(
+        self,
+        review_id: str,
+        language: str,
+        code: str,
+        score: int = 0,
+        issues: list[Issue] | None = None,
+        summary: str = "",
+        ai_feedback: str = "",
+        dimensions: dict | None = None,
+        stats: dict | None = None,
+    ):
         self.review_id = review_id
         self.language = language
         self.code = code
@@ -104,19 +229,35 @@ class ReviewResult:
         self.created_at = datetime.now().isoformat()
 
     def to_dict(self) -> dict:
-        return {"review_id": self.review_id, "language": self.language,
-                "code_preview": self.code[:500], "code_length": len(self.code),
-                "score": self.score, "issues": [i.to_dict() for i in self.issues],
-                "summary": self.summary, "ai_feedback": self.ai_feedback,
-                "dimensions": self.dimensions, "stats": self.stats,
-                "created_at": self.created_at}
+        return {
+            "review_id": self.review_id,
+            "language": self.language,
+            "code_preview": self.code[:500],
+            "code_length": len(self.code),
+            "score": self.score,
+            "issues": [i.to_dict() for i in self.issues],
+            "summary": self.summary,
+            "ai_feedback": self.ai_feedback,
+            "dimensions": self.dimensions,
+            "stats": self.stats,
+            "created_at": self.created_at,
+        }
 
 
 LANG_ALIASES = {
-    "py": "python", "js": "javascript", "ts": "typescript",
-    "golang": "go", "rs": "rust", "kt": "kotlin",
-    "cpp": "cpp", "cxx": "cpp", "cs": "csharp", "rb": "ruby",
-    "pl": "perl", "sh": "bash", "yml": "yaml",
+    "py": "python",
+    "js": "javascript",
+    "ts": "typescript",
+    "golang": "go",
+    "rs": "rust",
+    "kt": "kotlin",
+    "cpp": "cpp",
+    "cxx": "cpp",
+    "cs": "csharp",
+    "rb": "ruby",
+    "pl": "perl",
+    "sh": "bash",
+    "yml": "yaml",
 }
 
 
@@ -192,27 +333,39 @@ class CodeReviewEngine:
                 matches = list(re.finditer(pat, code))
 
             for m in matches:
-                line_no = code[:m.start()].count("\n") + 1
+                line_no = code[: m.start()].count("\n") + 1
                 snippet = lines[line_no - 1].strip()[:120] if line_no <= len(lines) else ""
                 suggestion = self._suggest_fix(title, snippet)
-                issues.append(Issue(
-                    id=pid, severity=severity, title=title,
-                    description=f"Found in {lang} code at line {line_no}",
-                    line=line_no, snippet=snippet,
-                    dimension=dimension, suggestion=suggestion,
-                ))
+                issues.append(
+                    Issue(
+                        id=pid,
+                        severity=severity,
+                        title=title,
+                        description=f"Found in {lang} code at line {line_no}",
+                        line=line_no,
+                        snippet=snippet,
+                        dimension=dimension,
+                        suggestion=suggestion,
+                    )
+                )
 
         # Check for missing docstrings (style-2 special case)
         if lang == "python" and '"""' not in code and "'''" not in code:
             func_count = len(re.findall(r"^def ", code, re.MULTILINE))
             class_count = len(re.findall(r"^class ", code, re.MULTILINE))
             if func_count + class_count > 2:
-                issues.append(Issue(
-                    id="style-2", severity="info", title="Missing Docstrings",
-                    description=f"{func_count} functions and {class_count} classes without docstrings",
-                    dimension="style",
-                    suggestion="Add docstrings to all public functions and classes",
-                ))
+                issues.append(
+                    Issue(
+                        id="style-2",
+                        severity="info",
+                        title="Missing Docstrings",
+                        description=(
+                            f"{func_count} functions and {class_count} classes without docstrings"
+                        ),
+                        dimension="style",
+                        suggestion="Add docstrings to all public functions and classes",
+                    )
+                )
 
         # 2. AI review for deeper analysis
         ai_feedback = ""
@@ -248,9 +401,14 @@ class CodeReviewEngine:
         )
 
         result = ReviewResult(
-            review_id=review_id, language=lang, code=code,
-            score=score, issues=issues, summary=summary,
-            ai_feedback=ai_feedback, dimensions=dim_scores,
+            review_id=review_id,
+            language=lang,
+            code=code,
+            score=score,
+            issues=issues,
+            summary=summary,
+            ai_feedback=ai_feedback,
+            dimensions=dim_scores,
             stats={"critical": critical, "high": high, "medium": warnings, "info": infos},
         )
         self._history.insert(0, result)
@@ -268,14 +426,15 @@ class CodeReviewEngine:
                 timeout=30.0,
             )
             return resp.get("message", {}).get("content", "")[:2000]
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return "AI review unavailable: provider timed out (30s)"
         except Exception as e:
             return f"AI review error: {e}"
 
     def _suggest_fix(self, title: str, snippet: str) -> str:
         suggestions = {
-            "SQL Injection": "Use parameterized queries or ORM methods instead of string formatting",
+            "SQL Injection": "Use parameterized queries or ORM methods instead of "
+            "string formatting",
             "Command Injection": "Use subprocess.run with a list instead of shell=True",
             "Hardcoded Secret": "Move secrets to environment variables or .env file",
             "Inefficient Loop": "Use enumerate() or direct iteration instead of range(len())",

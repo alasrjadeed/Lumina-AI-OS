@@ -104,8 +104,10 @@ class TestChatHistory:
         ch = ChatHistory(storage_dir=str(tmp_path / "chats"))
         ch.create_session("S1")
         s2 = ch.create_session("S2")
+        assert s2 is not None and s2.id is not None
         assert ch.switch_to(s2.id)
-        assert ch.current_session().id == s2.id
+        cur = ch.current_session()
+        assert cur is not None and cur.id == s2.id
 
     def test_get_messages(self, tmp_path: Path):
         ch = ChatHistory(storage_dir=str(tmp_path / "chats"))
@@ -139,7 +141,9 @@ class TestChatHistory:
     def test_load_all(self, tmp_path: Path):
         ch = ChatHistory(storage_dir=str(tmp_path / "chats"))
         ch.create_session("Loaded")
-        path = ch._session_path(ch.current_session().id)
+        cur = ch.current_session()
+        assert cur is not None and cur.id is not None
+        path = ch._session_path(cur.id)
         assert os.path.exists(path)
 
     def test_chat_message_properties(self):
@@ -380,10 +384,14 @@ class TestUINotificationManager:
         assert len(nm.get_all()) <= 6
 
     def test_icon_lookup(self):
-        assert UINotification(id="1", title="T", message="M",
-            severity=NotificationSeverity.INFO).icon == "ℹ"
-        assert UINotification(id="2", title="T", message="M",
-            severity=NotificationSeverity.ERROR).icon == "✗"
+        assert (
+            UINotification(id="1", title="T", message="M", severity=NotificationSeverity.INFO).icon
+            == "ℹ"
+        )
+        assert (
+            UINotification(id="2", title="T", message="M", severity=NotificationSeverity.ERROR).icon
+            == "✗"
+        )
 
 
 class TestLogManager:

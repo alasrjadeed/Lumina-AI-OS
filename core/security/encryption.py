@@ -5,11 +5,18 @@ import hashlib
 import hmac
 import secrets
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cryptography.fernet import Fernet, InvalidToken
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import rsa
+
     HAS_CRYPTOGRAPHY = True
 except ImportError:
     Fernet = None
@@ -66,26 +73,31 @@ class Encryption:
     @staticmethod
     def generate_key_pair(key_size: int = 2048) -> KeyPair:
         if not HAS_CRYPTOGRAPHY:
-            return KeyPair(public_key="", private_key="",
-                           algorithm=f"RSA-{key_size} (cryptography required)")
+            return KeyPair(
+                public_key="", private_key="", algorithm=f"RSA-{key_size} (cryptography required)"
+            )
+        assert rsa is not None and serialization is not None
         key = rsa.generate_private_key(public_exponent=65537, key_size=key_size)
         private = key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption(),
         ).decode()
-        public = key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        ).decode()
+        public = (
+            key.public_key()
+            .public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+            .decode()
+        )
         return KeyPair(public_key=public, private_key=private)
 
     @staticmethod
     def encrypt_symmetric(data: str, key: str) -> str:
         if HAS_CRYPTOGRAPHY:
-            f = Fernet(base64.urlsafe_b64encode(
-                hashlib.sha256(key.encode()).digest()
-            ))
+            assert Fernet is not None
+            f = Fernet(base64.urlsafe_b64encode(hashlib.sha256(key.encode()).digest()))
             return f.encrypt(data.encode()).decode()
         result = bytearray()
         for i, c in enumerate(data.encode()):
@@ -95,9 +107,8 @@ class Encryption:
     @staticmethod
     def decrypt_symmetric(data: str, key: str) -> str:
         if HAS_CRYPTOGRAPHY:
-            f = Fernet(base64.urlsafe_b64encode(
-                hashlib.sha256(key.encode()).digest()
-            ))
+            assert Fernet is not None and InvalidToken is not None
+            f = Fernet(base64.urlsafe_b64encode(hashlib.sha256(key.encode()).digest()))
             try:
                 return f.decrypt(data.encode()).decode()
             except InvalidToken:
@@ -114,9 +125,8 @@ class Encryption:
         with open(path, "rb") as f:
             data = f.read()
         if HAS_CRYPTOGRAPHY:
-            f = Fernet(base64.urlsafe_b64encode(
-                hashlib.sha256(key.encode()).digest()
-            ))
+            assert Fernet is not None
+            f = Fernet(base64.urlsafe_b64encode(hashlib.sha256(key.encode()).digest()))
             encrypted = f.encrypt(data)
         else:
             encrypted = bytearray()
@@ -133,9 +143,8 @@ class Encryption:
         with open(path, "rb") as f:
             data = f.read()
         if HAS_CRYPTOGRAPHY:
-            f = Fernet(base64.urlsafe_b64encode(
-                hashlib.sha256(key.encode()).digest()
-            ))
+            assert Fernet is not None
+            f = Fernet(base64.urlsafe_b64encode(hashlib.sha256(key.encode()).digest()))
             decrypted = f.decrypt(data)
         else:
             decrypted = bytearray()

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from core.voice.command_router import CommandCategory, VoiceCommandRouter
 from core.voice.streaming import (
@@ -192,7 +193,8 @@ class TestStreaming:
         source = FileAudioSource(path)
         collected: list[str] = []
         transcriber = StreamTranscriber(
-            stt_engine=stt, source=source,
+            stt_engine=stt,
+            source=source,
             on_partial=lambda t: collected.append(f"partial:{t}"),
             on_final=lambda r: collected.append(f"final:{r.text}"),
             silence_timeout=0,
@@ -264,10 +266,15 @@ class TestCommandRouter:
     def test_route_calls_handler(self):
         router = VoiceCommandRouter()
         results: list[str] = []
+
         def handler(c):
             results.append("handled")
+
         router.register(
-            "greet", CommandCategory.ACTION, [r"hello"], handler=handler,
+            "greet",
+            CommandCategory.ACTION,
+            [r"hello"],
+            handler=handler,
         )
         router.route("hello")
         assert "handled" in results

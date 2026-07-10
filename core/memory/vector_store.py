@@ -17,7 +17,9 @@ class VectorStore(Protocol):
     def add(self, record: VectorRecord) -> None: ...
     def add_many(self, records: list[VectorRecord]) -> None: ...
     def search(
-        self, query_vector: list[float], top_k: int = 10,
+        self,
+        query_vector: list[float],
+        top_k: int = 10,
     ) -> list[tuple[VectorRecord, float]]: ...
     def get(self, id: str) -> VectorRecord | None: ...
     def delete(self, id: str) -> bool: ...
@@ -50,7 +52,9 @@ class InMemoryVectorStore:
             self.add(r)
 
     def search(
-        self, query_vector: list[float], top_k: int = 10,
+        self,
+        query_vector: list[float],
+        top_k: int = 10,
     ) -> list[tuple[VectorRecord, float]]:
         scored = []
         for record in self._records.values():

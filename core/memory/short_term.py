@@ -6,6 +6,7 @@ from typing import Any
 
 PRIORITY_ORDER = {"system": 3, "assistant": 2, "user": 1, "tool": 0}
 
+
 @dataclass
 class ShortTermEntry:
     role: str
@@ -26,7 +27,9 @@ class ShortTermMemory:
         self._entries: list[ShortTermEntry] = []
 
     def add(
-        self, role: str, content: str,
+        self,
+        role: str,
+        content: str,
         metadata: dict[str, Any] | None = None,
     ) -> ShortTermEntry:
         entry = ShortTermEntry(role=role, content=content, metadata=metadata or {})
@@ -64,5 +67,5 @@ class ShortTermMemory:
 
     def _evict(self) -> None:
         sorted_entries = sorted(self._entries, key=lambda e: (e.priority, e.timestamp))
-        self._entries = sorted_entries[self.max_size // 4:]
+        self._entries = sorted_entries[self.max_size // 4 :]
         self._entries.sort(key=lambda e: e.timestamp)

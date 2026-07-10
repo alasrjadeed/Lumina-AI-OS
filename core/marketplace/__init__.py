@@ -7,7 +7,6 @@ import os
 import shutil
 import time
 from dataclasses import dataclass, field
-from typing import Any
 
 from core.log import log
 
@@ -39,70 +38,108 @@ class PluginListing:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "name": self.name, "version": self.version,
-            "author": self.author, "description": self.description,
-            "category": self.category, "tags": self.tags, "icon": self.icon,
-            "homepage": self.homepage, "repository": self.repository,
-            "license": self.license, "requires": self.requires,
-            "rating": self.rating, "downloads": self.downloads,
-            "installed": self.installed, "installed_version": self.installed_version,
-            "size_kb": self.size_kb, "created_at": self.created_at,
+            "id": self.id,
+            "name": self.name,
+            "version": self.version,
+            "author": self.author,
+            "description": self.description,
+            "category": self.category,
+            "tags": self.tags,
+            "icon": self.icon,
+            "homepage": self.homepage,
+            "repository": self.repository,
+            "license": self.license,
+            "requires": self.requires,
+            "rating": self.rating,
+            "downloads": self.downloads,
+            "installed": self.installed,
+            "installed_version": self.installed_version,
+            "size_kb": self.size_kb,
+            "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> PluginListing:
-        return cls(**{k: d.get(k) for k in d if k in cls.__dataclass_fields__})
+        return cls(**{k: d.get(k) for k in d if k in cls.__dataclass_fields__})  # pyright: ignore[reportArgumentType]
 
 
 DEFAULT_CATALOG: list[dict] = [
     {
-        "id": "crm-plugin", "name": "CRM Manager", "version": "1.0.0",
-        "author": "Lumina Team", "category": "business",
+        "id": "crm-plugin",
+        "name": "CRM Manager",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "business",
         "description": "CRM pipeline management with contacts, deals, and analytics.",
-        "tags": ["crm", "sales", "pipeline", "contacts"], "icon": "BarChart3",
+        "tags": ["crm", "sales", "pipeline", "contacts"],
+        "icon": "BarChart3",
         "license": "MIT",
     },
     {
-        "id": "email-plugin", "name": "Email Automation", "version": "1.0.0",
-        "author": "Lumina Team", "category": "communication",
+        "id": "email-plugin",
+        "name": "Email Automation",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "communication",
         "description": "SMTP email sender with templates, campaigns, and CSV import.",
-        "tags": ["email", "smtp", "campaign", "newsletter"], "icon": "Mail",
+        "tags": ["email", "smtp", "campaign", "newsletter"],
+        "icon": "Mail",
         "license": "MIT",
     },
     {
-        "id": "lead-plugin", "name": "Lead Manager", "version": "1.0.0",
-        "author": "Lumina Team", "category": "sales",
+        "id": "lead-plugin",
+        "name": "Lead Manager",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "sales",
         "description": "Lead capture, scoring, qualification, and analytics.",
-        "tags": ["leads", "sales", "prospecting", "scoring"], "icon": "UserPlus",
+        "tags": ["leads", "sales", "prospecting", "scoring"],
+        "icon": "UserPlus",
         "license": "MIT",
     },
     {
-        "id": "marketing-plugin", "name": "Marketing Suite", "version": "1.0.0",
-        "author": "Lumina Team", "category": "marketing",
+        "id": "marketing-plugin",
+        "name": "Marketing Suite",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "marketing",
         "description": "Campaign management, content calendar, and performance tracking.",
-        "tags": ["marketing", "campaigns", "content", "analytics"], "icon": "Megaphone",
+        "tags": ["marketing", "campaigns", "content", "analytics"],
+        "icon": "Megaphone",
         "license": "MIT",
     },
     {
-        "id": "reporting-plugin", "name": "Report Generator", "version": "1.0.0",
-        "author": "Lumina Team", "category": "analytics",
+        "id": "reporting-plugin",
+        "name": "Report Generator",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "analytics",
         "description": "Generate reports in CSV, JSON, HTML with charts and summaries.",
-        "tags": ["reports", "analytics", "csv", "export"], "icon": "FileText",
+        "tags": ["reports", "analytics", "csv", "export"],
+        "icon": "FileText",
         "license": "MIT",
     },
     {
-        "id": "seo-plugin", "name": "SEO Suite", "version": "1.0.0",
-        "author": "Lumina Team", "category": "marketing",
+        "id": "seo-plugin",
+        "name": "SEO Suite",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "marketing",
         "description": "SEO audit, keyword tracking, competitor analysis, and sitemaps.",
-        "tags": ["seo", "keywords", "audit", "ranking"], "icon": "Search",
+        "tags": ["seo", "keywords", "audit", "ranking"],
+        "icon": "Search",
         "license": "MIT",
     },
     {
-        "id": "whatsapp-plugin", "name": "WhatsApp Automation", "version": "1.0.0",
-        "author": "Lumina Team", "category": "communication",
+        "id": "whatsapp-plugin",
+        "name": "WhatsApp Automation",
+        "version": "1.0.0",
+        "author": "Lumina Team",
+        "category": "communication",
         "description": "Auto-reply, broadcast campaigns, and template management.",
-        "tags": ["whatsapp", "messaging", "campaign", "broadcast"], "icon": "MessageSquare",
+        "tags": ["whatsapp", "messaging", "campaign", "broadcast"],
+        "icon": "MessageSquare",
         "license": "MIT",
     },
 ]
@@ -156,22 +193,25 @@ class PluginMarketplace:
 
     def _save_catalog(self):
         with open(self._catalog_path(), "w") as f:
-            json.dump([l.to_dict() for l in self._catalog.values()], f, indent=2)
+            json.dump([item.to_dict() for item in self._catalog.values()], f, indent=2)
 
     def _save_installed(self):
         with open(self._installed_path(), "w") as f:
-            json.dump([l.to_dict() for l in self._installed.values()], f, indent=2)
+            json.dump([item.to_dict() for item in self._installed.values()], f, indent=2)
 
-    def browse(self, category: str = "", query: str = "",
-               sort_by: str = "downloads") -> list[PluginListing]:
+    def browse(
+        self, category: str = "", query: str = "", sort_by: str = "downloads"
+    ) -> list[PluginListing]:
         results = list(self._catalog.values())
         if category:
             results = [p for p in results if p.category == category]
         if query:
             q = query.lower()
-            results = [p for p in results if
-                       q in p.name.lower() or q in p.description.lower() or
-                       any(q in t for t in p.tags)]
+            results = [
+                p
+                for p in results
+                if q in p.name.lower() or q in p.description.lower() or any(q in t for t in p.tags)
+            ]
         for p in results:
             if p.id in self._installed:
                 inst = self._installed[p.id]
@@ -237,11 +277,13 @@ class PluginMarketplace:
             return {"error": f"Plugin not installed: {plugin_id}"}
 
         dependents = [
-            pid for pid, listing in self._installed.items()
-            if plugin_id in listing.requires
+            pid for pid, listing in self._installed.items() if plugin_id in listing.requires
         ]
         if dependents:
-            return {"error": f"Cannot uninstall: required by {dependents}", "dependents": dependents}
+            return {
+                "error": f"Cannot uninstall: required by {dependents}",
+                "dependents": dependents,
+            }
 
         listing = self._installed.pop(plugin_id)
         listing.installed = False
@@ -274,8 +316,12 @@ class PluginMarketplace:
 
         installed.installed_version = listing.version
         self._save_installed()
-        return {"status": "updated", "plugin": installed.to_dict(),
-                "from_version": installed.installed_version, "to_version": listing.version}
+        return {
+            "status": "updated",
+            "plugin": installed.to_dict(),
+            "from_version": installed.installed_version,
+            "to_version": listing.version,
+        }
 
     def get_installed(self) -> list[PluginListing]:
         return sorted(self._installed.values(), key=lambda p: p.name.lower())
@@ -295,9 +341,11 @@ class PluginMarketplace:
     def search(self, query: str) -> list[PluginListing]:
         q = query.lower()
         return sorted(
-            [p for p in self._catalog.values() if
-             q in p.name.lower() or q in p.description.lower() or
-             any(q in t for t in p.tags)],
+            [
+                p
+                for p in self._catalog.values()
+                if q in p.name.lower() or q in p.description.lower() or any(q in t for t in p.tags)
+            ],
             key=lambda p: -p.downloads,
         )
 
@@ -305,13 +353,16 @@ class PluginMarketplace:
         pid = listing_data.get("id", "")
         if not pid:
             import uuid
+
             pid = uuid.uuid4().hex[:12]
             listing_data["id"] = pid
 
         listing = PluginListing(
-            **{k: listing_data.get(k, "" if k != "tags" and k != "requires" else [])
-               for k in PluginListing.__dataclass_fields__
-               if k in listing_data or k == "tags" or k == "requires"},
+            **{
+                k: listing_data.get(k, "" if k != "tags" and k != "requires" else [])
+                for k in PluginListing.__dataclass_fields__
+                if k in listing_data or k == "tags" or k == "requires"
+            },
             created_at=time.time(),
             updated_at=time.time(),
         )

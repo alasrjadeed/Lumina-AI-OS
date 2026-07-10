@@ -9,17 +9,58 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from core.agents import BaseAgent
-from core.code_review.engine import review_engine, DIMENSIONS
+from core.code_review.engine import DIMENSIONS, review_engine
 
 LANG_IDS = {
-    "python", "py", "javascript", "js", "typescript", "ts",
-    "go", "golang", "rust", "rs", "java", "kotlin", "kt",
-    "sql", "html", "css", "dart", "flutter", "swift",
-    "php", "c", "cpp", "c++", "csharp", "c#",
-    "ruby", "rb", "scala", "r", "perl", "pl",
-    "bash", "shell", "sh", "yaml", "yml", "json", "xml",
-    "markdown", "md", "text", "node", "nodejs", "react",
-    "vue", "angular", "svelte", "nextjs", "nuxt",
+    "python",
+    "py",
+    "javascript",
+    "js",
+    "typescript",
+    "ts",
+    "go",
+    "golang",
+    "rust",
+    "rs",
+    "java",
+    "kotlin",
+    "kt",
+    "sql",
+    "html",
+    "css",
+    "dart",
+    "flutter",
+    "swift",
+    "php",
+    "c",
+    "cpp",
+    "c++",
+    "csharp",
+    "c#",
+    "ruby",
+    "rb",
+    "scala",
+    "r",
+    "perl",
+    "pl",
+    "bash",
+    "shell",
+    "sh",
+    "yaml",
+    "yml",
+    "json",
+    "xml",
+    "markdown",
+    "md",
+    "text",
+    "node",
+    "nodejs",
+    "react",
+    "vue",
+    "angular",
+    "svelte",
+    "nextjs",
+    "nuxt",
 }
 
 router = APIRouter(prefix="/code", tags=["Code Generation"])
@@ -51,8 +92,15 @@ Include clear comments. Return code and explanation."""
 
 MODE_PROMPTS = {
     "quick": "Write concise, minimal code. Prioritize clarity and brevity.",
-    "production": "Write production-grade code with error handling, type hints, logging, and comprehensive comments. Follow {lang} best practices and design patterns.",
-    "explain": "Write clean code with detailed inline comments explaining each section. Include a thorough explanation of how the code works.",
+    "production": (
+        "Write production-grade code with error handling, type hints, "
+        "logging, and comprehensive comments. "
+        "Follow {lang} best practices and design patterns."
+    ),
+    "explain": (
+        "Write clean code with detailed inline comments explaining "
+        "each section. Include a thorough explanation of how the code works."
+    ),
 }
 
 
@@ -102,17 +150,26 @@ async def generate_code(req: CodeRequest):
             if explanation.startswith("```"):
                 explanation = explanation.split("```")[0].strip()
 
-    resp = CodeResponse(code=code_section, explanation=explanation, language=req.language, framework=req.framework, mode=req.mode)
+    resp = CodeResponse(
+        code=code_section,
+        explanation=explanation,
+        language=req.language,
+        framework=req.framework,
+        mode=req.mode,
+    )
 
-    _generation_history.insert(0, {
-        "id": uuid.uuid4().hex[:8],
-        "description": req.description[:120],
-        "language": req.language,
-        "framework": req.framework,
-        "mode": req.mode,
-        "code_length": len(code_section),
-        "timestamp": datetime.now().isoformat(),
-    })
+    _generation_history.insert(
+        0,
+        {
+            "id": uuid.uuid4().hex[:8],
+            "description": req.description[:120],
+            "language": req.language,
+            "framework": req.framework,
+            "mode": req.mode,
+            "code_length": len(code_section),
+            "timestamp": datetime.now().isoformat(),
+        },
+    )
     _generation_history[:] = _generation_history[:50]
 
     return resp
@@ -138,21 +195,93 @@ FRAMEWORKS = {
 
 
 @router.get("/frameworks")
-async def list_frameworks(language: str = Query("python", description="Language to get frameworks for")):
+async def list_frameworks(
+    language: str = Query("python", description="Language to get frameworks for"),
+):
     return {"frameworks": FRAMEWORKS.get(language, [])}
 
 
 TEMPLATES = [
-    {"id": "api-crud-py", "title": "REST API CRUD", "lang": "python", "framework": "fastapi", "desc": "FastAPI CRUD with async SQLAlchemy", "code": """"""},
-    {"id": "api-express", "title": "Express REST API", "lang": "javascript", "framework": "express", "desc": "Express.js RESTful API with routing", "code": """"""},
-    {"id": "react-component", "title": "React Component", "lang": "typescript", "framework": "react", "desc": "Typed React component with props", "code": """"""},
-    {"id": "data-science", "title": "Data Pipeline", "lang": "python", "framework": "pandas", "desc": "Pandas data loading + cleaning + analysis", "code": """"""},
-    {"id": "go-server", "title": "HTTP Server", "lang": "go", "framework": "", "desc": "Basic Go HTTP server with handlers", "code": """"""},
-    {"id": "rust-cli", "title": "CLI Tool", "lang": "rust", "framework": "", "desc": "Rust CLI with clap argument parser", "code": """"""},
-    {"id": "sql-query", "title": "SQL Query Builder", "lang": "sql", "framework": "", "desc": "Multi-table join + aggregation query", "code": """"""},
-    {"id": "bash-script", "title": "Bash Automation", "lang": "bash", "framework": "", "desc": "Shell script with argument parsing + loops", "code": """"""},
-    {"id": "html-landing", "title": "Landing Page", "lang": "html", "framework": "", "desc": "Responsive landing page with CSS grid", "code": """"""},
-    {"id": "docker-compose", "title": "Docker Compose", "lang": "yaml", "framework": "", "desc": "Multi-service Docker Compose setup", "code": """"""},
+    {
+        "id": "api-crud-py",
+        "title": "REST API CRUD",
+        "lang": "python",
+        "framework": "fastapi",
+        "desc": "FastAPI CRUD with async SQLAlchemy",
+        "code": """""",
+    },
+    {
+        "id": "api-express",
+        "title": "Express REST API",
+        "lang": "javascript",
+        "framework": "express",
+        "desc": "Express.js RESTful API with routing",
+        "code": """""",
+    },
+    {
+        "id": "react-component",
+        "title": "React Component",
+        "lang": "typescript",
+        "framework": "react",
+        "desc": "Typed React component with props",
+        "code": """""",
+    },
+    {
+        "id": "data-science",
+        "title": "Data Pipeline",
+        "lang": "python",
+        "framework": "pandas",
+        "desc": "Pandas data loading + cleaning + analysis",
+        "code": """""",
+    },
+    {
+        "id": "go-server",
+        "title": "HTTP Server",
+        "lang": "go",
+        "framework": "",
+        "desc": "Basic Go HTTP server with handlers",
+        "code": """""",
+    },
+    {
+        "id": "rust-cli",
+        "title": "CLI Tool",
+        "lang": "rust",
+        "framework": "",
+        "desc": "Rust CLI with clap argument parser",
+        "code": """""",
+    },
+    {
+        "id": "sql-query",
+        "title": "SQL Query Builder",
+        "lang": "sql",
+        "framework": "",
+        "desc": "Multi-table join + aggregation query",
+        "code": """""",
+    },
+    {
+        "id": "bash-script",
+        "title": "Bash Automation",
+        "lang": "bash",
+        "framework": "",
+        "desc": "Shell script with argument parsing + loops",
+        "code": """""",
+    },
+    {
+        "id": "html-landing",
+        "title": "Landing Page",
+        "lang": "html",
+        "framework": "",
+        "desc": "Responsive landing page with CSS grid",
+        "code": """""",
+    },
+    {
+        "id": "docker-compose",
+        "title": "Docker Compose",
+        "lang": "yaml",
+        "framework": "",
+        "desc": "Multi-service Docker Compose setup",
+        "code": """""",
+    },
 ]
 
 
@@ -163,6 +292,7 @@ async def list_templates(language: str | None = Query(None, description="Filter 
 
 
 # ── Upgraded Code Review ──
+
 
 @router.post("/review")
 async def review_code(req: ReviewRequest):
@@ -234,7 +364,7 @@ async def show_preview(preview_id: str):
 <script type="text/babel">{code}</script></body></html>"""
     elif lang == "css":
         body = '<div style="padding:40px;font-family:sans-serif">'
-        body += '<h1>CSS Preview</h1><p>Your styles are applied above.</p></div>'
+        body += "<h1>CSS Preview</h1><p>Your styles are applied above.</p></div>"
         html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><style>{code}</style></head>
 <body>{body}</body></html>"""
     else:

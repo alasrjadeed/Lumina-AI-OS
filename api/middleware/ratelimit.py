@@ -33,15 +33,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         window_start = now - self.window_seconds
 
         # Clean old entries
-        self._requests[client_ip] = [
-            t for t in self._requests[client_ip] if t > window_start
-        ]
+        self._requests[client_ip] = [t for t in self._requests[client_ip] if t > window_start]
 
         # Check limit
         if len(self._requests[client_ip]) >= self.max_requests:
-            retry_after = int(
-                self._requests[client_ip][0] + self.window_seconds - now
-            )
+            retry_after = int(self._requests[client_ip][0] + self.window_seconds - now)
             return JSONResponse(
                 status_code=429,
                 content={

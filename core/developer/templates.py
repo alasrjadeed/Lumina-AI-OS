@@ -58,8 +58,13 @@ class TemplateManager:
             log.info("Created: %s", out_path)
         return created
 
-    def create_from_string(self, template_name: str, content: str, output_path: str,
-                           variables: dict[str, str] | None = None) -> str:
+    def create_from_string(
+        self,
+        template_name: str,
+        content: str,
+        output_path: str,
+        variables: dict[str, str] | None = None,
+    ) -> str:
         rendered = self._substitute(content, variables or {})
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         Path(output_path).write_text(rendered)
@@ -68,62 +73,67 @@ class TemplateManager:
     def _substitute(self, text: str, variables: dict[str, str]) -> str:
         def replace(match: re.Match) -> str:
             key = match.group(1)
-            return variables.get(key, match.group(0))
+            return variables.get(key) or match.group(0)
+
         return re.sub(r"\{\{(\w+)\}\}", replace, text)
 
     def _register_builtins(self) -> None:
-        self.register(Template(
-            name="plugin",
-            description="A new Lumina plugin",
-            variables=["name", "description", "author", "version"],
-            files=[
-                TemplateFile(
-                    path="plugins/{{name}}/__init__.py",
-                    content=(
-                        '"""{{description}}"""\n'
-                        '\n'
-                        'from core.desktop.plugin_manager import PluginMetadata\n'
-                        '\n'
-                        '\n'
-                        'metadata = PluginMetadata(\n'
-                        '    name="{{name}}",\n'
-                        '    version="{{version}}",\n'
-                        '    description="{{description}}",\n'
-                        '    author="{{author}}",\n'
-                        ')\n'
-                        '\n'
-                        '\n'
-                        'def on_load():\n'
-                        '    pass\n'
-                        '\n'
-                        '\n'
-                        'def on_unload():\n'
-                        '    pass\n'
-                        '\n'
-                        '\n'
-                        'def on_enable():\n'
-                        '    pass\n'
-                        '\n'
-                        '\n'
-                        'def on_disable():\n'
-                        '    pass\n'
+        self.register(
+            Template(
+                name="plugin",
+                description="A new Lumina plugin",
+                variables=["name", "description", "author", "version"],
+                files=[
+                    TemplateFile(
+                        path="plugins/{{name}}/__init__.py",
+                        content=(
+                            '"""{{description}}"""\n'
+                            "\n"
+                            "from core.desktop.plugin_manager import PluginMetadata\n"
+                            "\n"
+                            "\n"
+                            "metadata = PluginMetadata(\n"
+                            '    name="{{name}}",\n'
+                            '    version="{{version}}",\n'
+                            '    description="{{description}}",\n'
+                            '    author="{{author}}",\n'
+                            ")\n"
+                            "\n"
+                            "\n"
+                            "def on_load():\n"
+                            "    pass\n"
+                            "\n"
+                            "\n"
+                            "def on_unload():\n"
+                            "    pass\n"
+                            "\n"
+                            "\n"
+                            "def on_enable():\n"
+                            "    pass\n"
+                            "\n"
+                            "\n"
+                            "def on_disable():\n"
+                            "    pass\n"
+                        ),
                     ),
-                ),
-                TemplateFile(
-                    path="plugins/{{name}}/README.md",
-                    content="# {{name}}\n\n{{description}}\n",
-                ),
-            ],
-        ))
-        self.register(Template(
-            name="module",
-            description="A new core module",
-            variables=["name", "description"],
-            files=[
-                TemplateFile(path="core/{{name}}/__init__.py", content=""),
-                TemplateFile(
-                    path="core/{{name}}/main.py",
-                    content='"""{{description}}"""\n\n\nclass {{name|capitalize}}:\n    pass\n',
-                ),
-            ],
-        ))
+                    TemplateFile(
+                        path="plugins/{{name}}/README.md",
+                        content="# {{name}}\n\n{{description}}\n",
+                    ),
+                ],
+            )
+        )
+        self.register(
+            Template(
+                name="module",
+                description="A new core module",
+                variables=["name", "description"],
+                files=[
+                    TemplateFile(path="core/{{name}}/__init__.py", content=""),
+                    TemplateFile(
+                        path="core/{{name}}/main.py",
+                        content='"""{{description}}"""\n\n\nclass {{name|capitalize}}:\n    pass\n',
+                    ),
+                ],
+            )
+        )

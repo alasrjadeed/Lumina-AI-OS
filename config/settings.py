@@ -4,6 +4,8 @@ import os
 import dotenv
 from pydantic_settings import BaseSettings
 
+_ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+
 
 class Settings(BaseSettings):
     app_name: str = "Lumina AI OS"
@@ -62,13 +64,11 @@ class Settings(BaseSettings):
     api_keys: str = ""
     cors_origins: str = "*"
 
-    class Config:
-        env_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
-        env_file_encoding = "utf-8"
+    model_config = {"env_file": _ENV_FILE, "env_file_encoding": "utf-8"}
 
-    def reload(self) -> dict[str, str | None]:
+    def reload(self) -> dict[str, object]:
         """Reload settings from .env file without restarting the server."""
-        dotenv.load_dotenv(self.Config.env_file, override=True)
+        dotenv.load_dotenv(_ENV_FILE, override=True)
         # Re-read fields from environment
         updated = {}
         for field_name in self.model_fields:
@@ -86,7 +86,8 @@ class Settings(BaseSettings):
                         setattr(self, field_name, float(val))
                 else:
                     setattr(self, field_name, val)
-                updated[field_name] = val[:20] + "..." if len(val) > 20 else val
+                truncated: str | None = val[:20] + "..." if len(val) > 20 else val
+                updated[field_name] = truncated  # pyright: ignore[reportAssignmentType]
         return {"status": "reloaded", "updated": list(updated.keys())}
 
 

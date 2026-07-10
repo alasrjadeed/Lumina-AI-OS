@@ -141,8 +141,7 @@ class SqliteBackend:
 
     def get(self, namespace: str, key: str) -> LongTermEntry | None:
         cursor = self.conn.execute(
-            "SELECT namespace,key,value,tags,timestamp,ttl"
-            " FROM memory WHERE namespace=? AND key=?",
+            "SELECT namespace,key,value,tags,timestamp,ttl FROM memory WHERE namespace=? AND key=?",
             (namespace, key),
         )
         row = cursor.fetchone()
@@ -159,8 +158,14 @@ class SqliteBackend:
             "INSERT OR REPLACE INTO memory"
             " (namespace,key,value,tags,timestamp,ttl)"
             " VALUES (?,?,?,?,?,?)",
-            (entry.namespace, entry.key, entry.value,
-             json.dumps(entry.tags), entry.timestamp, entry.ttl),
+            (
+                entry.namespace,
+                entry.key,
+                entry.value,
+                json.dumps(entry.tags),
+                entry.timestamp,
+                entry.ttl,
+            ),
         )
         self.conn.commit()
 
@@ -173,20 +178,13 @@ class SqliteBackend:
 
     def list_namespace(self, namespace: str) -> list[LongTermEntry]:
         cursor = self.conn.execute(
-            "SELECT namespace,key,value,tags,timestamp,ttl"
-            " FROM memory WHERE namespace=?",
+            "SELECT namespace,key,value,tags,timestamp,ttl FROM memory WHERE namespace=?",
             (namespace,),
         )
-        return [
-            e for e in (self._row_to_entry(r) for r in cursor.fetchall())
-            if not e.is_expired
-        ]
+        return [e for e in (self._row_to_entry(r) for r in cursor.fetchall()) if not e.is_expired]
 
     def search_tags(self, namespace: str, tags: list[str]) -> list[LongTermEntry]:
-        return [
-            entry for entry in self.list_namespace(namespace)
-            if set(tags) & set(entry.tags)
-        ]
+        return [entry for entry in self.list_namespace(namespace) if set(tags) & set(entry.tags)]
 
     def search_content(self, namespace: str, query: str) -> list[LongTermEntry]:
         tokens = [t for t in query.lower().split() if len(t) > 2]
@@ -198,8 +196,7 @@ class SqliteBackend:
                 (namespace, q),
             )
             return [
-                e for e in (self._row_to_entry(r) for r in cursor.fetchall())
-                if not e.is_expired
+                e for e in (self._row_to_entry(r) for r in cursor.fetchall()) if not e.is_expired
             ]
         result = []
         for entry in self.list_namespace(namespace):
@@ -223,7 +220,9 @@ class LongTermMemory:
         self.backend = backend or JsonFileBackend()
 
     def remember(
-        self, key: str, value: str,
+        self,
+        key: str,
+        value: str,
         namespace: str = "default",
         tags: list[str] | None = None,
         ttl: float | None = None,

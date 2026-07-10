@@ -24,7 +24,7 @@ def test_event_default_timestamp():
 def test_event_is_frozen():
     e = Event(name="test")
     with __import__("pytest").raises(AttributeError):
-        e.name = "changed"
+        e.name = "changed"  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_event_requires_non_empty_name():
@@ -34,7 +34,7 @@ def test_event_requires_non_empty_name():
 
 def test_event_rejects_non_string_name():
     with pytest.raises(ValueError):
-        Event(name=123)
+        Event(name=123)  # pyright: ignore[reportArgumentType]
 
 
 def test_event_default_source():

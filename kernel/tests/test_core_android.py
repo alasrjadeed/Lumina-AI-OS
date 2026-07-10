@@ -140,10 +140,12 @@ class TestRemoteControl:
 
     def test_execute_batch(self):
         rc = RemoteControl()
-        results = rc.execute_batch([
-            RemoteCommand(type=CommandType.PING),
-            RemoteCommand(type=CommandType.PING),
-        ])
+        results = rc.execute_batch(
+            [
+                RemoteCommand(type=CommandType.PING),
+                RemoteCommand(type=CommandType.PING),
+            ]
+        )
         assert len(results) == 2
         assert all(r.success for r in results)
 
@@ -188,8 +190,10 @@ class TestAndroidVoiceInterface:
 
     def test_capture_result_dataclass(self):
         r = VoiceCaptureResult(
-            audio_path="/tmp/test.raw", duration_ms=5000,
-            text="hello", success=True,
+            audio_path="/tmp/test.raw",
+            duration_ms=5000,
+            text="hello",
+            success=True,
         )
         assert r.audio_path == "/tmp/test.raw"
         assert r.text == "hello"

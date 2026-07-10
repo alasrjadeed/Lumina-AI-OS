@@ -42,10 +42,7 @@ class ModelRouter:
     def route(self, task: str, prefer_free: bool = True) -> ModelCapability | None:
         task_lower = task.lower()
         needed = self._detect_capability(task_lower)
-        candidates = [
-            m for m in self._models
-            if any(c in m.capabilities for c in needed)
-        ]
+        candidates = [m for m in self._models if any(c in m.capabilities for c in needed)]
         if not candidates:
             candidates = list(self._models)
         if prefer_free:

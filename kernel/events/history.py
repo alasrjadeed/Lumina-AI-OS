@@ -63,21 +63,13 @@ class EventHistory:
         """
         Find events by name.
         """
-        return [
-            event
-            for event in self._events
-            if event.name == name
-        ]
+        return [event for event in self._events if event.name == name]
 
     def by_source(self, source: str) -> list[Event]:
         """
         Find events by source.
         """
-        return [
-            event
-            for event in self._events
-            if event.source == source
-        ]
+        return [event for event in self._events if event.source == source]
 
     # ------------------------------------------------------------------
     # Replay

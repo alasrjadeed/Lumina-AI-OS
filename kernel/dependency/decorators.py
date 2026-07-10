@@ -39,7 +39,7 @@ def inject(
             return func(**resolved)
 
         wrapper.__di_inject__ = True  # type: ignore[attr-defined]
-        return wrapper
+        return wrapper  # pyright: ignore[reportReturnType]
 
     return decorator
 

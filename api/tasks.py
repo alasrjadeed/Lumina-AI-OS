@@ -2,14 +2,12 @@
 
 import asyncio
 import json
-import time
-from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core.task_manager import TaskPriority, TaskStep, task_manager
+from core.task_manager import TaskPriority, task_manager
 
 router = APIRouter(prefix="/tasks", tags=["Task Manager"])
 
@@ -54,8 +52,9 @@ async def get_stats():
 
 
 @router.get("")
-async def list_tasks(status: str | None = None, tag: str | None = None,
-                     limit: int = 50, offset: int = 0):
+async def list_tasks(
+    status: str | None = None, tag: str | None = None, limit: int = 50, offset: int = 0
+):
     tasks = task_manager.list_tasks(status=status, tag=tag, limit=limit, offset=offset)
     return {"tasks": [t.to_dict() for t in tasks], "total": len(tasks)}
 
@@ -130,7 +129,9 @@ async def cancel_task(task_id: str):
 
 @router.post("/{task_id}/steps")
 async def add_step(task_id: str, req: StepCreate):
-    step = task_manager.add_step(task_id, req.name, req.agent, req.description, req.params, req.depends_on)
+    step = task_manager.add_step(
+        task_id, req.name, req.agent, req.description, req.params, req.depends_on
+    )
     if not step:
         return {"error": "Task not found"}
     return {"id": step.id, "name": step.name}
@@ -139,36 +140,64 @@ async def add_step(task_id: str, req: StepCreate):
 @router.get("/{task_id}/events")
 async def task_events(task_id: str):
     """SSE endpoint for real-time task updates."""
+
     async def event_stream():
         queue: asyncio.Queue = asyncio.Queue()
+
         def listener(event):
             queue.put_nowait(event)
+
         task_manager.on_event(listener)
         try:
             while True:
                 event = await queue.get()
                 if event.task_id != task_id:
                     continue
-                yield f"data: {json.dumps({'type': event.type, 'status': event.status, 'progress': event.progress, 'progress_label': event.progress_label, 'message': event.message, 'timestamp': event.timestamp})}\n\n"
+                data = json.dumps(
+                    {
+                        "type": event.type,
+                        "status": event.status,
+                        "progress": event.progress,
+                        "progress_label": event.progress_label,
+                        "message": event.message,
+                        "timestamp": event.timestamp,
+                    }
+                )
+                yield f"data: {data}\n\n"
                 if event.type in ("task.completed", "task.failed", "task.cancelled"):
                     break
         except asyncio.CancelledError:
             pass
+
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.get("/events/stream")
 async def events_stream():
     """Global SSE stream for all task events."""
+
     async def event_stream():
         queue: asyncio.Queue = asyncio.Queue()
+
         def listener(event):
             queue.put_nowait(event)
+
         task_manager.on_event(listener)
         try:
             while True:
                 event = await queue.get()
-                yield f"data: {json.dumps({'type': event.type, 'task_id': event.task_id, 'status': event.status, 'progress': event.progress, 'message': event.message, 'timestamp': event.timestamp})}\n\n"
+                data = json.dumps(
+                    {
+                        "type": event.type,
+                        "task_id": event.task_id,
+                        "status": event.status,
+                        "progress": event.progress,
+                        "message": event.message,
+                        "timestamp": event.timestamp,
+                    }
+                )
+                yield f"data: {data}\n\n"
         except asyncio.CancelledError:
             pass
+
     return StreamingResponse(event_stream(), media_type="text/event-stream")

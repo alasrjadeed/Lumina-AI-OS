@@ -14,6 +14,9 @@ try:
 
     _OTEL_AVAILABLE = True
 except ImportError:
+    trace = None  # pyright: ignore[reportAssignmentType]
+    Status = None  # pyright: ignore[reportAssignmentType]
+    StatusCode = None  # pyright: ignore[reportAssignmentType]
     _OTEL_AVAILABLE = False
 
 
@@ -28,6 +31,7 @@ class OpenTelemetryMiddleware(BaseMiddleware):
                 "OpenTelemetryMiddleware requires opentelemetry-api. "
                 "Install with: pip install opentelemetry-api"
             )
+        assert trace is not None
         self._tracer = tracer or trace.get_tracer(__name__)
         self._span_prefix = span_prefix
         self._spans: dict[str, Any] = {}
@@ -107,6 +111,7 @@ class OpenTelemetryMiddleware(BaseMiddleware):
         key = f"handler:{event.correlation_id or event.name}:{subscription.subscription_id}"
         span = self._spans.pop(key, None)
         if span is not None:
+            assert Status is not None and StatusCode is not None
             span.set_status(Status(StatusCode.ERROR, str(exception)))
             span.record_exception(exception)
             span.end()

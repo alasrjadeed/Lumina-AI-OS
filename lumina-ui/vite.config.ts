@@ -12,6 +12,14 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/voice': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/proxy': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
 })

@@ -48,6 +48,16 @@ class MetricsMiddleware(EventMiddleware):
         self._timestamps[event.correlation_id or event.name] = time.time()
         return event
 
+    async def before_handler(
+        self,
+        subscription: Subscription,
+        event: Event,
+    ) -> Event:
+        return event
+
+    async def after_dispatch(self, event: Event) -> None:
+        return
+
     async def after_handler(
         self,
         subscription: Subscription,

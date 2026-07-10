@@ -8,8 +8,12 @@ from typing import Any
 
 class Fact:
     def __init__(
-        self, subject: str, predicate: str, obj: str,
-        confidence: float = 1.0, source: str = "",
+        self,
+        subject: str,
+        predicate: str,
+        obj: str,
+        confidence: float = 1.0,
+        source: str = "",
     ):
         self.subject = subject
         self.predicate = predicate
@@ -62,8 +66,11 @@ class SemanticMemory:
             self._facts[key] = fact
 
     def query(
-        self, subject: str = "", predicate: str = "",
-        obj: str = "", min_confidence: float = 0.0,
+        self,
+        subject: str = "",
+        predicate: str = "",
+        obj: str = "",
+        min_confidence: float = 0.0,
     ) -> list[Fact]:
         results = []
         for f in self._facts.values():

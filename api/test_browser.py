@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from core.browser.test_browser import test_browser, UITestCase
+from core.browser.test_browser import UITestCase, test_browser
 
 router = APIRouter(prefix="/test-browser", tags=["Test Browser"])
 
@@ -83,7 +83,9 @@ async def screenshot(name: str = Query("screenshot"), full_page: bool = Query(Tr
 @router.post("/compare")
 async def compare_screenshots(req: CompareRequest):
     comp = await test_browser.compare_screenshots(
-        req.name, req.url_before, req.url_after,
+        req.name,
+        req.url_before,
+        req.url_after,
     )
     return comp.to_dict()
 
@@ -91,6 +93,7 @@ async def compare_screenshots(req: CompareRequest):
 @router.post("/ui-test")
 async def run_ui_test(req: UITestRequest):
     import uuid
+
     test = UITestCase(
         id=uuid.uuid4().hex[:12],
         name=req.name,

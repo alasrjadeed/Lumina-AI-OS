@@ -52,9 +52,7 @@ async def test_sandbox_restart(tmp_path):
     plugin_dir = tmp_path / "restart_test"
     plugin_dir.mkdir()
     (plugin_dir / "__init__.py").write_text(
-        "class main:\n"
-        "    async def ping(self):\n"
-        "        return 'pong'\n"
+        "class main:\n    async def ping(self):\n        return 'pong'\n"
     )
 
     sandbox = SandboxedPlugin(name="restart_test", plugin_dir=str(plugin_dir))
@@ -79,9 +77,7 @@ async def test_sandbox_error_raises(tmp_path):
     plugin_dir = tmp_path / "error_test"
     plugin_dir.mkdir()
     (plugin_dir / "__init__.py").write_text(
-        "class main:\n"
-        "    async def fail(self):\n"
-        "        raise ValueError('intentional')\n"
+        "class main:\n    async def fail(self):\n        raise ValueError('intentional')\n"
     )
 
     sandbox = SandboxedPlugin(name="error_test", plugin_dir=str(plugin_dir))
@@ -131,16 +127,16 @@ async def test_sandboxed_plugin_loader(tmp_path):
     plugin_dir = tmp_path / "sandbox_loader_test"
     plugin_dir.mkdir()
     (plugin_dir / "__init__.py").write_text(
-        "class main:\n"
-        "    async def on_load(self, container=None):\n"
-        "        return 'loaded'\n"
+        "class main:\n    async def on_load(self, container=None):\n        return 'loaded'\n"
     )
     (plugin_dir / "manifest.json").write_text(
-        json.dumps({
-            "name": "sandbox_loader_test",
-            "version": "1.0.0",
-            "entry_point": "main",
-        }),
+        json.dumps(
+            {
+                "name": "sandbox_loader_test",
+                "version": "1.0.0",
+                "entry_point": "main",
+            }
+        ),
     )
 
     await loader.discover()

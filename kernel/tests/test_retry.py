@@ -110,7 +110,7 @@ def test_envelope_immutable_event():
     """Event inside envelope remains frozen."""
     e = EventEnvelope(event=Event(name="test"))
     with pytest.raises(Exception):
-        e.event.name = "changed"
+        e.event.name = "changed"  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_retry_decision_values():

@@ -56,7 +56,7 @@ class TestToolExecutor:
         ex = ToolExecutor()
         result = await ex.execute("unknown")
         assert not result.success
-        assert "Unknown tool" in result.error
+        assert result.error is not None and "Unknown tool" in result.error
 
     @pytest.mark.asyncio
     async def test_execute_times_out(self):
@@ -65,7 +65,7 @@ class TestToolExecutor:
         ex = ToolExecutor(registry=reg, default_timeout=0.5)
         result = await ex.execute("slow")
         assert not result.success
-        assert "timed out" in result.error
+        assert result.error is not None and "timed out" in result.error
 
     @pytest.mark.asyncio
     async def test_retry_on_failure(self):

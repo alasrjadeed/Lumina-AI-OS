@@ -5,14 +5,12 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any
-
-from core.log import log
 
 
 @dataclass
 class VaultEntry:
     """A single piece of information in the vault."""
+
     key: str
     value: str
     category: str = "personal"
@@ -23,6 +21,7 @@ class VaultEntry:
 @dataclass
 class VaultProfile:
     """A complete profile (personal or business)."""
+
     name: str = ""
     email: str = ""
     phone: str = ""
@@ -44,10 +43,23 @@ class VaultProfile:
 
 
 DEFAULT_KEYS = [
-    "name", "email", "phone",
-    "business_name", "address", "website",
-    "facebook", "instagram", "linkedin", "twitter", "youtube", "tiktok",
-    "logo_url", "gst_vat", "description", "products", "categories",
+    "name",
+    "email",
+    "phone",
+    "business_name",
+    "address",
+    "website",
+    "facebook",
+    "instagram",
+    "linkedin",
+    "twitter",
+    "youtube",
+    "tiktok",
+    "logo_url",
+    "gst_vat",
+    "description",
+    "products",
+    "categories",
 ]
 
 

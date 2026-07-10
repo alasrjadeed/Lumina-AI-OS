@@ -109,7 +109,6 @@ def check_plugin_compatibility(
             continue
         if not version_matches(spec, dv):
             errors.append(
-                f"{plugin_name}: dependency '{dep_name}' version {dep_ver} "
-                f"does not satisfy {spec}"
+                f"{plugin_name}: dependency '{dep_name}' version {dep_ver} does not satisfy {spec}"
             )
     return errors

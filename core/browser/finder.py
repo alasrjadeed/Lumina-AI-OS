@@ -26,14 +26,16 @@ class ElementFinder:
         if selector:
             strategies.append(("css", selector))
         if text:
-            strategies.extend([
-                ("text", text),
-                ("aria_label", text),
-                ("placeholder", text),
-                ("partial_text", text),
-                ("title_attr", text),
-                ("alt_text", text),
-            ])
+            strategies.extend(
+                [
+                    ("text", text),
+                    ("aria_label", text),
+                    ("placeholder", text),
+                    ("partial_text", text),
+                    ("title_attr", text),
+                    ("alt_text", text),
+                ]
+            )
         for name, value in strategies:
             result = await self._try_strategy(name, value, timeout)
             if result:
@@ -50,7 +52,7 @@ class ElementFinder:
     async def find_by_text(self, text: str, exact: bool = False) -> str | None:
         try:
             if exact:
-                el = await self._page.query_selector(f"text=\"{text}\"")
+                el = await self._page.query_selector(f'text="{text}"')
             else:
                 el = await self._page.query_selector(f"text={text}")
             if el:
@@ -61,9 +63,9 @@ class ElementFinder:
 
     async def find_by_role(self, role: str, name: str = "") -> str | None:
         try:
-            attr = f"[role=\"{role}\"]"
+            attr = f'[role="{role}"]'
             if name:
-                attr += f"[aria-label*=\"{name}\"]"
+                attr += f'[aria-label*="{name}"]'
             el = await self._page.query_selector(attr)
             if el:
                 return await self._get_unique_selector(el)
@@ -73,7 +75,7 @@ class ElementFinder:
 
     async def find_by_placeholder(self, text: str) -> str | None:
         try:
-            el = await self._page.query_selector(f"[placeholder*=\"{text}\"]")
+            el = await self._page.query_selector(f'[placeholder*="{text}"]')
             if el:
                 return await self._get_unique_selector(el)
         except Exception:
@@ -82,7 +84,7 @@ class ElementFinder:
 
     async def find_by_aria_label(self, label: str) -> str | None:
         try:
-            el = await self._page.query_selector(f"[aria-label*=\"{label}\"]")
+            el = await self._page.query_selector(f'[aria-label*="{label}"]')
             if el:
                 return await self._get_unique_selector(el)
         except Exception:
@@ -144,7 +146,7 @@ class ElementFinder:
             """)
             if info:
                 key_map = {"boundingBox": "bounding_box"}
-                mapped = {key_map.get(k, k): v for k, v in info.items()}
+                mapped = {str(key_map.get(k, k)): v for k, v in info.items()}
                 return ElementInfo(**mapped)
         except Exception:
             pass
@@ -165,12 +167,12 @@ class ElementFinder:
     async def _try_strategy(self, name: str, value: str, timeout: float) -> str | None:
         method_map = {
             "css": lambda: self._page.query_selector(value),
-            "text": lambda: self._page.query_selector(f"text=\"{value}\""),
-            "aria_label": lambda: self._page.query_selector(f"[aria-label=\"{value}\"]"),
-            "placeholder": lambda: self._page.query_selector(f"[placeholder*=\"{value}\"]"),
+            "text": lambda: self._page.query_selector(f'text="{value}"'),
+            "aria_label": lambda: self._page.query_selector(f'[aria-label="{value}"]'),
+            "placeholder": lambda: self._page.query_selector(f'[placeholder*="{value}"]'),
             "partial_text": lambda: self._page.query_selector(f"text={value}"),
-            "title_attr": lambda: self._page.query_selector(f"[title*=\"{value}\"]"),
-            "alt_text": lambda: self._page.query_selector(f"[alt*=\"{value}\"]"),
+            "title_attr": lambda: self._page.query_selector(f'[title*="{value}"]'),
+            "alt_text": lambda: self._page.query_selector(f'[alt*="{value}"]'),
         }
         fn = method_map.get(name)
         if not fn:

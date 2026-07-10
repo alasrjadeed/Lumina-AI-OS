@@ -75,66 +75,122 @@ class RemoteControl:
         self._register_default_handlers()
 
     def _register_default_handlers(self) -> None:
-        self.register(CommandType.TAP, lambda c: CommandResult(
-            success=True,
-            data=self.client.device.input_tap(
-                c.params.get("x", 0), c.params.get("y", 0),
+        self.register(
+            CommandType.TAP,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.input_tap(
+                    c.params.get("x", 0),
+                    c.params.get("y", 0),
+                ),
             ),
-        ))
-        self.register(CommandType.SWIPE, lambda c: CommandResult(
-            success=True,
-            data=self.client.device.swipe(
-                c.params.get("x1", 0), c.params.get("y1", 0),
-                c.params.get("x2", 0), c.params.get("y2", 0),
-                c.params.get("duration", 300),
+        )
+        self.register(
+            CommandType.SWIPE,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.swipe(
+                    c.params.get("x1", 0),
+                    c.params.get("y1", 0),
+                    c.params.get("x2", 0),
+                    c.params.get("y2", 0),
+                    c.params.get("duration", 300),
+                ),
             ),
-        ))
-        self.register(CommandType.TEXT, lambda c: CommandResult(
-            success=True,
-            data=self.client.device.input_text(c.params.get("text", "")),
-        ))
-        self.register(CommandType.KEYEVENT, lambda c: CommandResult(
-            success=True,
-            data=self.client.device.input_keyevent(c.params.get("keycode", 0)),
-        ))
-        self.register(CommandType.SCREENSHOT, lambda c: CommandResult(
-            success=True,
-            data=self.client.take_screenshot(c.params.get("path", "screenshot.png")),
-        ))
-        self.register(CommandType.SHELL, lambda c: CommandResult(
-            success=True,
-            data=self.client.device.shell(c.params.get("command", "")),
-        ))
-        self.register(CommandType.OPEN_APP, lambda c: CommandResult(
-            success=self.client.app_launch(
-                c.params.get("package", ""), c.params.get("activity", ""),
+        )
+        self.register(
+            CommandType.TEXT,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.input_text(c.params.get("text", "")),
             ),
-        ))
-        self.register(CommandType.CLOSE_APP, lambda c: CommandResult(
-            success=True,
-            data=self.client.app_force_stop(c.params.get("package", "")),
-        ))
-        self.register(CommandType.GO_BACK, lambda c: CommandResult(
-            success=True, data=self.client.device.press_back(),
-        ))
-        self.register(CommandType.GO_HOME, lambda c: CommandResult(
-            success=True, data=self.client.device.press_home(),
-        ))
-        self.register(CommandType.WAKE, lambda c: CommandResult(
-            success=True, data=self.client.wake(),
-        ))
-        self.register(CommandType.LOCK, lambda c: CommandResult(
-            success=True, data=self.client.lock(),
-        ))
-        self.register(CommandType.INFO, lambda c: CommandResult(
-            success=True, data=self.client.device.get_device_info(),
-        ))
-        self.register(CommandType.BATTERY, lambda c: CommandResult(
-            success=True, data={"level": self.client.battery_level()},
-        ))
-        self.register(CommandType.PING, lambda c: CommandResult(
-            success=True, data={"pong": True, "timestamp": time.time()},
-        ))
+        )
+        self.register(
+            CommandType.KEYEVENT,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.input_keyevent(c.params.get("keycode", 0)),
+            ),
+        )
+        self.register(
+            CommandType.SCREENSHOT,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.take_screenshot(c.params.get("path", "screenshot.png")),
+            ),
+        )
+        self.register(
+            CommandType.SHELL,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.shell(c.params.get("command", "")),
+            ),
+        )
+        self.register(
+            CommandType.OPEN_APP,
+            lambda c: CommandResult(
+                success=self.client.app_launch(
+                    c.params.get("package", ""),
+                    c.params.get("activity", ""),
+                ),
+            ),
+        )
+        self.register(
+            CommandType.CLOSE_APP,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.app_force_stop(c.params.get("package", "")),
+            ),
+        )
+        self.register(
+            CommandType.GO_BACK,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.press_back(),
+            ),
+        )
+        self.register(
+            CommandType.GO_HOME,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.press_home(),
+            ),
+        )
+        self.register(
+            CommandType.WAKE,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.wake(),
+            ),
+        )
+        self.register(
+            CommandType.LOCK,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.lock(),
+            ),
+        )
+        self.register(
+            CommandType.INFO,
+            lambda c: CommandResult(
+                success=True,
+                data=self.client.device.get_device_info(),
+            ),
+        )
+        self.register(
+            CommandType.BATTERY,
+            lambda c: CommandResult(
+                success=True,
+                data={"level": self.client.battery_level()},
+            ),
+        )
+        self.register(
+            CommandType.PING,
+            lambda c: CommandResult(
+                success=True,
+                data={"pong": True, "timestamp": time.time()},
+            ),
+        )
 
     def register(self, command_type: CommandType, handler: CommandHandler) -> None:
         self._handlers[command_type] = handler
@@ -168,9 +224,11 @@ class RemoteControl:
                 if cmd:
                     commands.append(cmd)
                 else:
-                    return json.dumps([
-                        {"success": False, "error": f"Unknown type: {d.get('type')}"},
-                    ])
+                    return json.dumps(
+                        [
+                            {"success": False, "error": f"Unknown type: {d.get('type')}"},
+                        ]
+                    )
             results = self.execute_batch(commands)
         else:
             cmd = self._parse_command(data)
@@ -179,8 +237,12 @@ class RemoteControl:
                     [{"success": False, "error": f"Unknown type: {data.get('type')}"}]
                 )
             results = [self.execute(cmd)]
-        return json.dumps([{"success": r.success, "data": r.data, "error": r.error,
-                            "command_id": r.command_id} for r in results])
+        return json.dumps(
+            [
+                {"success": r.success, "data": r.data, "error": r.error, "command_id": r.command_id}
+                for r in results
+            ]
+        )
 
     # ── TCP Server ──
 
@@ -212,9 +274,12 @@ class RemoteControl:
     def _server_loop(self) -> None:
         while self._running:
             try:
+                assert self._server_socket is not None
                 client, addr = self._server_socket.accept()
                 t = threading.Thread(
-                    target=self._handle_client, args=(client, addr), daemon=True,
+                    target=self._handle_client,
+                    args=(client, addr),
+                    daemon=True,
                 )
                 t.start()
             except TimeoutError:

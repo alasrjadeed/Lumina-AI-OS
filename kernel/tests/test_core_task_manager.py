@@ -43,7 +43,7 @@ class TestTaskManager:
     def test_list_tasks_filter_status(self, tm: TaskManager):
         t = tm.create_task("Pending")
         t.status = TaskStatus.RUNNING
-        pending = tm.list_tasks(status="pending")
+        tm.list_tasks(status="pending")
         running = tm.list_tasks(status="running")
         assert len(running) == 1
         assert running[0].name == "Pending"
@@ -80,8 +80,9 @@ class TestTaskManager:
     def test_add_step_with_deps(self, tm: TaskManager):
         t = tm.create_task("Dep")
         s1 = tm.add_step(t.id, "First")
+        assert s1 is not None and s1.id is not None
         s2 = tm.add_step(t.id, "Second", depends_on=[s1.id])
-        assert s2.depends_on == [s1.id]
+        assert s2 is not None and s2.depends_on == [s1.id]
 
     def test_pause_and_resume(self, tm: TaskManager):
         t = tm.create_task("Pausable")
@@ -122,6 +123,7 @@ class TestTaskManager:
     def test_update_step_progress(self, tm: TaskManager):
         t = tm.create_task("Steps")
         s = tm.add_step(t.id, "Step A")
+        assert s is not None and s.id is not None
         tm.update_step_progress(t.id, s.id, 75, "Almost done")
         assert s.progress == 75
 
@@ -134,7 +136,6 @@ class TestTaskManager:
 
         tm.register_handler("test_handler", handler)
 
-        import asyncio
         # We're just testing registration, not full execution
         assert "test_handler" in tm._handlers
 
@@ -175,12 +176,14 @@ class TestTaskManager:
 
     def test_run_task_not_found(self, tm: TaskManager):
         import asyncio
+
         result = asyncio.run(tm.run_task("bad"))
         assert "error" in result
 
     def test_run_task_empty(self, tm: TaskManager):
         t = tm.create_task("Empty")
         import asyncio
+
         result = asyncio.run(tm.run_task(t.id))
         assert result["status"] == "completed"
 

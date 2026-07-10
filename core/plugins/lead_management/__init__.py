@@ -80,31 +80,55 @@ def _load_data() -> None:
 
 def _save_data() -> None:
     with open(_storage_path, "w") as f:
-        json.dump({
-            "leads": {
-                lid: {
-                    "id": lead.id, "name": lead.name, "email": lead.email,
-                    "phone": lead.phone, "source": lead.source,
-                    "status": lead.status, "score": lead.score,
-                    "company": lead.company, "notes": lead.notes,
-                    "created": lead.created,
-                    "last_contacted": lead.last_contacted,
-                }
-                for lid, lead in _leads.items()
+        json.dump(
+            {
+                "leads": {
+                    lid: {
+                        "id": lead.id,
+                        "name": lead.name,
+                        "email": lead.email,
+                        "phone": lead.phone,
+                        "source": lead.source,
+                        "status": lead.status,
+                        "score": lead.score,
+                        "company": lead.company,
+                        "notes": lead.notes,
+                        "created": lead.created,
+                        "last_contacted": lead.last_contacted,
+                    }
+                    for lid, lead in _leads.items()
+                },
+                "score_rules": [
+                    {"field": r.field, "operator": r.operator, "value": r.value, "points": r.points}
+                    for r in _score_rules
+                ],
             },
-            "score_rules": [{"field": r.field, "operator": r.operator,
-                             "value": r.value, "points": r.points} for r in _score_rules],
-        }, f, indent=2)
+            f,
+            indent=2,
+        )
 
 
 def _next_id() -> str:
     return f"lead_{int(time.time())}_{len(_leads)}"
 
 
-def add_lead(name: str, email: str = "", phone: str = "", source: str = "website",
-             company: str = "", notes: str = "") -> Lead:
-    lead = Lead(id=_next_id(), name=name, email=email, phone=phone,
-                source=source, company=company, notes=notes)
+def add_lead(
+    name: str,
+    email: str = "",
+    phone: str = "",
+    source: str = "website",
+    company: str = "",
+    notes: str = "",
+) -> Lead:
+    lead = Lead(
+        id=_next_id(),
+        name=name,
+        email=email,
+        phone=phone,
+        source=source,
+        company=company,
+        notes=notes,
+    )
     lead.score = _calculate_score(lead)
     _leads[lead.id] = lead
     _save_data()
@@ -153,8 +177,11 @@ def list_leads(status: str = "", source: str = "", limit: int = 100) -> list[Lea
 
 def search_leads(query: str) -> list[Lead]:
     q = query.lower()
-    return [lead for lead in _leads.values()
-            if q in lead.name.lower() or q in lead.email.lower() or q in lead.company.lower()]
+    return [
+        lead
+        for lead in _leads.values()
+        if q in lead.name.lower() or q in lead.email.lower() or q in lead.company.lower()
+    ]
 
 
 def delete_lead(lead_id: str) -> bool:
@@ -177,9 +204,12 @@ def _calculate_score(lead: Lead) -> int:
     for rule in _score_rules:
         val = getattr(lead, rule.field, "")
         if (
-            rule.operator == "equals" and str(val) == rule.value
-            or rule.operator == "contains" and rule.value.lower() in str(val).lower()
-            or rule.operator == "not_empty" and str(val).strip()
+            rule.operator == "equals"
+            and str(val) == rule.value
+            or rule.operator == "contains"
+            and rule.value.lower() in str(val).lower()
+            or rule.operator == "not_empty"
+            and str(val).strip()
         ):
             score += rule.points
     return score

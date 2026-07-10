@@ -78,7 +78,7 @@ def test_iter():
     h = EventHistory()
     h.store(Event(name="a"))
     h.store(Event(name="b"))
-    names = [e.name for e in h]
+    names = [e.name for e in h]  # pyright: ignore[reportGeneralTypeIssues]
     assert names == ["a", "b"]
 
 

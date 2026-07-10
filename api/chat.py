@@ -1,3 +1,4 @@
+import asyncio
 import json
 import subprocess
 
@@ -82,19 +83,22 @@ async def handle_slash_command(message: str) -> str:
             idx = args.index("-l")
             lang = args[idx + 1] if idx + 1 < len(args) else "python"
             desc_parts = [
-                a for a in args
-                if a != "-l" and (
-                    args.index(a) != idx + 1
-                    or args.index("-l") == args.index(a)
-                )
+                a
+                for a in args
+                if a != "-l" and (args.index(a) != idx + 1 or args.index("-l") == args.index(a))
             ]
             desc = " ".join(desc_parts)
-        res = await engine.chat([
-            {"role": "system", "content": (
-                f"Generate {lang} code. Return only the code block, no extra text."
-            )},
-            {"role": "user", "content": desc},
-        ])
+        res = await engine.chat(
+            [
+                {
+                    "role": "system",
+                    "content": (
+                        f"Generate {lang} code. Return only the code block, no extra text."
+                    ),
+                },
+                {"role": "user", "content": desc},
+            ]
+        )
         code = res.get("message", {}).get("content", "")
         return f"```{lang}\n{code}\n```"
 
@@ -194,10 +198,19 @@ async def chat(req: ChatRequest):
     memory.add_conversation("user", msg, thread_id=req.thread_id)
     context = memory.get_recent_context(5, thread_id=req.thread_id)
 
-    result = await ceo.run(
-        task=f"Context:\n{context}\n\nUser message: {msg}",
-        context={"agent": req.agent},
-    )
+    if not engine.providers:
+        raise HTTPException(status_code=503, detail="No AI providers available")
+
+    try:
+        result = await asyncio.wait_for(
+            ceo.run(
+                task=f"Context:\n{context}\n\nUser message: {msg}",
+                context={"agent": req.agent},
+            ),
+            timeout=30.0,
+        )
+    except TimeoutError:
+        raise HTTPException(status_code=504, detail="AI provider timed out")
 
     if result.status == "error":
         raise HTTPException(status_code=500, detail=result.error)

@@ -29,9 +29,13 @@ class CLI:
     def command(self, name: str, help: str = "", args: list[dict] | None = None):
         def decorator(func: Callable) -> Callable:
             self._commands[name] = CLICommand(
-                name=name, help=help or func.__doc__ or "", handler=func, args=args or [],
+                name=name,
+                help=help or func.__doc__ or "",
+                handler=func,
+                args=args or [],
             )
             return func
+
         return decorator
 
     def register(self, cmd: CLICommand) -> None:
@@ -86,16 +90,19 @@ class CLI:
         lines.append(header)
         lines.append("-" * len(header))
         lines.extend(
-            "  ".join(str(c).ljust(col_widths[i]) for i, c in enumerate(row))
-            for row in rows
+            "  ".join(str(c).ljust(col_widths[i]) for i, c in enumerate(row)) for row in rows
         )
         return "\n".join(lines)
 
     @staticmethod
     def color(text: str, color: str = "blue") -> str:
         colors = {
-            "red": "31", "green": "32", "yellow": "33",
-            "blue": "34", "magenta": "35", "cyan": "36",
+            "red": "31",
+            "green": "32",
+            "yellow": "33",
+            "blue": "34",
+            "magenta": "35",
+            "cyan": "36",
         }
         code = colors.get(color, "0")
         return f"\033[{code}m{text}\033[0m"

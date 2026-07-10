@@ -40,7 +40,5 @@ class ValidationMiddleware(BaseMiddleware):
         validators = self._validators.get(event.name, [])
         for validator in validators:
             if not validator(event):
-                raise EventValidationError(
-                    f"Validation failed for event '{event.name}'"
-                )
+                raise EventValidationError(f"Validation failed for event '{event.name}'")
         return event

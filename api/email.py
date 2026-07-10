@@ -61,8 +61,12 @@ async def set_config(req: SMTPConfig):
 
 @router.get("/templates")
 async def templates():
-    return {"templates": [{"name": t.name, "subject": t.subject, "is_html": t.is_html,
-                           "variables": t.variables} for t in list_templates()]}
+    return {
+        "templates": [
+            {"name": t.name, "subject": t.subject, "is_html": t.is_html, "variables": t.variables}
+            for t in list_templates()
+        ]
+    }
 
 
 @router.post("/templates")
@@ -78,10 +82,19 @@ async def delete_template_route(name: str):
 
 @router.get("/campaigns")
 async def campaigns():
-    return {"campaigns": [{"name": c.name, "template": c.template,
-                           "recipients_count": len(c.recipients),
-                           "sent": c.sent, "failed": c.failed, "status": c.status}
-                          for c in list_campaigns()]}
+    return {
+        "campaigns": [
+            {
+                "name": c.name,
+                "template": c.template,
+                "recipients_count": len(c.recipients),
+                "sent": c.sent,
+                "failed": c.failed,
+                "status": c.status,
+            }
+            for c in list_campaigns()
+        ]
+    }
 
 
 @router.post("/campaigns")

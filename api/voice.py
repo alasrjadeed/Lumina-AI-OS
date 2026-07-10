@@ -1,16 +1,17 @@
 """Voice Control API — audio upload, WebSocket streaming, and command execution."""
 
 import asyncio
-import json
-import time
+import contextlib
 
 from fastapi import APIRouter, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from core.log import log
-from core.provider import engine
 from core.voice import stt, tts, voice_controller
+from jarvis.jarvis_settings import JarvisSettings
+
+jarvis_settings = JarvisSettings()
 
 router = APIRouter(prefix="/voice", tags=["Voice Control"])
 
@@ -112,21 +113,25 @@ async def voice_websocket(websocket: WebSocket):
                     cmd_result = await voice_controller.process_command(text)
                     reply = cmd_result.get("reply", "Done.")
 
-                    await websocket.send_json({
-                        "type": "transcription",
-                        "text": text,
-                        "confidence": stt_result.confidence,
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "transcription",
+                            "text": text,
+                            "confidence": stt_result.confidence,
+                        }
+                    )
 
                     # Speak reply
                     tts_result = await tts.speak(reply, play=False)
                     with open(tts_result.path, "rb") as f:
                         audio_response = f.read()
 
-                    await websocket.send_json({
-                        "type": "reply",
-                        "text": reply,
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "reply",
+                            "text": reply,
+                        }
+                    )
                     await websocket.send_bytes(audio_response)
 
     except WebSocketDisconnect:
@@ -134,18 +139,14 @@ async def voice_websocket(websocket: WebSocket):
     except Exception as e:
         log.error("Voice WebSocket error: %s", e)
     finally:
-        try:
+        with contextlib.suppress(Exception):
             await websocket.close()
-        except Exception:
-            pass
 
 
 @router.get("/listen/start")
 async def start_listening(wake_word: bool = True):
     """Start continuous voice listening in background."""
-    task = asyncio.create_task(
-        voice_controller.start_continuous(wake_word_mode=wake_word)
-    )
+    asyncio.create_task(voice_controller.start_continuous(wake_word_mode=wake_word))
     return {
         "status": "listening",
         "wake_word": wake_word,
@@ -160,16 +161,65 @@ async def stop_listening():
     return {"status": "stopped"}
 
 
+@router.get("/listen/command")
+async def listen_one_command():
+    """One-shot push-to-talk: record → transcribe → process → speak reply."""
+    text = await voice_controller.listen_for_command(timeout=10.0)
+    if not text:
+        return {"status": "no_speech", "text": ""}
+    result = await voice_controller.process_command(text)
+    reply = result.get("reply", "Done.")
+    await tts.speak(reply)
+    return {"status": "ok", "text": text, "reply": reply}
+
+
 @router.get("/status")
 async def voice_status():
     """Get voice system status and available voices."""
+    providers = []
+    for p in voice_controller.stt._providers:
+        d = {"type": type(p).__name__}
+        if hasattr(p, "model"):
+            d["model"] = p.model if isinstance(p.model, str) else ""  # pyright: ignore[reportAttributeAccessIssue]
+        if hasattr(p, "api_key"):
+            d["api_key"] = "***" if p.api_key else None  # pyright: ignore[reportAttributeAccessIssue,reportArgumentType]
+        if hasattr(p, "model_size"):
+            d["model_size"] = getattr(p, "model_size", "")
+        providers.append(d)
     return {
         "listening": voice_controller.listening,
         "recorder_available": voice_controller.recorder.is_available(),
-        "stt_providers": voice_controller.stt._providers,
+        "stt_providers": providers,
         "tts_voices": tts.list_voices(),
         "conversation_history": voice_controller.get_conversation_history(limit=5),
     }
+
+
+@router.get("/settings")
+async def get_voice_settings():
+    """Get all Jarvis voice settings."""
+    return jarvis_settings.all
+
+
+class SettingsUpdate(BaseModel):
+    key: str
+    value: str | bool | int | float
+
+
+@router.put("/settings")
+async def update_voice_settings(update: SettingsUpdate):
+    """Update a single Jarvis setting."""
+    jarvis_settings.set(update.key, update.value)
+    return {"status": "ok", "key": update.key, "value": update.value}
+
+
+@router.post("/relisten")
+async def restart_listening():
+    """Restart the continuous voice loop."""
+    voice_controller.stop()
+    await asyncio.sleep(0.1)
+    asyncio.create_task(voice_controller.start_continuous(wake_word_mode=True))
+    return {"status": "restarted"}
 
 
 @router.get("/test")
@@ -224,7 +274,8 @@ async def voice_test_page():
                 if (ws) { ws.close(); ws = null;
                     document.getElementById('status').textContent = 'Disconnected'; return; }
                 ws = new WebSocket('ws://' + location.host + '/voice/stream');
-                ws.onopen = () => document.getElementById('status').textContent = 'WebSocket connected';
+                ws.onopen = () =>
+                    document.getElementById('status').textContent = 'WebSocket connected';
                 ws.onmessage = e => {
                     if (typeof e.data === 'string') {
                         const d = JSON.parse(e.data);
@@ -240,7 +291,9 @@ async def voice_test_page():
                 const r = await fetch('/voice/speak', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({text: 'Lumina AI OS voice system is operational.', play: true})
+                    body: JSON.stringify({
+                        text: 'Lumina AI OS voice system is operational.', play: true
+                    })
                 });
                 const d = await r.json();
                 document.getElementById('result').textContent = `Spoken: ${d.provider}`;

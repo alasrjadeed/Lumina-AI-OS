@@ -3,8 +3,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from core.whatsapp.client import whatsapp
 from core.whatsapp.business import waba
+from core.whatsapp.client import whatsapp
 
 router = APIRouter(prefix="/whatsapp", tags=["WhatsApp"])
 
@@ -84,9 +84,16 @@ async def list_products(category: str = "", status: str = ""):
     products = waba.list_products(category, status)
     return {
         "products": [
-            {"id": p.id, "name": p.name, "description": p.description[:100],
-             "price": p.price, "currency": p.currency, "image_url": p.image_url,
-             "category": p.category, "status": p.status}
+            {
+                "id": p.id,
+                "name": p.name,
+                "description": p.description[:100],
+                "price": p.price,
+                "currency": p.currency,
+                "image_url": p.image_url,
+                "category": p.category,
+                "status": p.status,
+            }
             for p in products
         ],
         "total": len(products),
@@ -95,7 +102,9 @@ async def list_products(category: str = "", status: str = ""):
 
 @router.post("/business/products")
 async def create_product(req: ProductCreate):
-    p = waba.add_product(req.name, req.description, req.price, req.image_url, req.category, req.sku, req.stock)
+    p = waba.add_product(
+        req.name, req.description, req.price, req.image_url, req.category, req.sku, req.stock
+    )
     return {"id": p.id, "name": p.name, "price": p.price}
 
 

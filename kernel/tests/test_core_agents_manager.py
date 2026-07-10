@@ -60,7 +60,9 @@ class TestAgentManager:
         meta = AgentMetadata(name="Bot")
         mgr.register(BaseAgent(name="Bot"), metadata=meta)
         await mgr.run("Bot", "say hello")
-        assert mgr.get_metadata("Bot").task_count == 1
+        meta = mgr.get_metadata("Bot")
+        assert meta is not None
+        assert meta.task_count == 1
 
     def test_health_all_healthy(self):
         mgr = AgentManager()

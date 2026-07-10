@@ -23,27 +23,136 @@ class AgentMetadata:
 
 CAPABILITY_MAP: dict[str, list[str]] = {
     "planner": ["plan", "strategy", "roadmap", "milestone", "decomposition", "sprint", "timeline"],
-    "programmer": ["code", "program", "develop", "software", "backend", "frontend", "api", "fullstack",
-                   "python", "typescript", "javascript", "rust", "golang", "algorithm"],
-    "tester": ["test", "qa", "quality", "bug", "validation", "verify", "assert", "pytest", "coverage"],
-    "designer": ["design", "ui", "ux", "visual", "layout", "css", "tailwind", "figma", "brand",
-                 "typography", "color", "accessible", "responsive"],
-    "browser_operator": ["browser", "web", "scrape", "automation", "navigate", "form", "screenshot"],
-    "devops_engineer": ["devops", "deploy", "ci/cd", "docker", "kubernetes", "infrastructure",
-                        "terraform", "monitoring", "pipeline"],
-    "security_auditor": ["security", "audit", "vulnerability", "owasp", "compliance", "gdpr",
-                         "encrypt", "authentication", "penetration"],
-    "database_engineer": ["database", "sql", "schema", "query", "migration", "postgresql",
-                          "mongodb", "redis", "data model", "index"],
+    "programmer": [
+        "code",
+        "program",
+        "develop",
+        "software",
+        "backend",
+        "frontend",
+        "api",
+        "fullstack",
+        "python",
+        "typescript",
+        "javascript",
+        "rust",
+        "golang",
+        "algorithm",
+    ],
+    "tester": [
+        "test",
+        "qa",
+        "quality",
+        "bug",
+        "validation",
+        "verify",
+        "assert",
+        "pytest",
+        "coverage",
+    ],
+    "designer": [
+        "design",
+        "ui",
+        "ux",
+        "visual",
+        "layout",
+        "css",
+        "tailwind",
+        "figma",
+        "brand",
+        "typography",
+        "color",
+        "accessible",
+        "responsive",
+    ],
+    "browser_operator": [
+        "browser",
+        "web",
+        "scrape",
+        "automation",
+        "navigate",
+        "form",
+        "screenshot",
+    ],
+    "devops_engineer": [
+        "devops",
+        "deploy",
+        "ci/cd",
+        "docker",
+        "kubernetes",
+        "infrastructure",
+        "terraform",
+        "monitoring",
+        "pipeline",
+    ],
+    "security_auditor": [
+        "security",
+        "audit",
+        "vulnerability",
+        "owasp",
+        "compliance",
+        "gdpr",
+        "encrypt",
+        "authentication",
+        "penetration",
+    ],
+    "database_engineer": [
+        "database",
+        "sql",
+        "schema",
+        "query",
+        "migration",
+        "postgresql",
+        "mongodb",
+        "redis",
+        "data model",
+        "index",
+    ],
     "mobile_developer": ["mobile", "flutter", "react native", "android", "ios", "dart", "kotlin"],
-    "marketing_agent": ["marketing", "seo", "campaign", "social media", "content", "growth",
-                        "brand", "advertising", "analytics"],
-    "finance_agent": ["finance", "budget", "forecast", "revenue", "cost", "pricing", "invoice",
-                      "financial", "roi"],
-    "documentation_writer": ["document", "docs", "readme", "guide", "tutorial", "api reference",
-                             "changelog", "wiki", "manual"],
-    "voice_assistant": ["voice", "speech", "tts", "stt", "audio", "narration", "conversation",
-                        "vui", "dialog"],
+    "marketing_agent": [
+        "marketing",
+        "seo",
+        "campaign",
+        "social media",
+        "content",
+        "growth",
+        "brand",
+        "advertising",
+        "analytics",
+    ],
+    "finance_agent": [
+        "finance",
+        "budget",
+        "forecast",
+        "revenue",
+        "cost",
+        "pricing",
+        "invoice",
+        "financial",
+        "roi",
+    ],
+    "documentation_writer": [
+        "document",
+        "docs",
+        "readme",
+        "guide",
+        "tutorial",
+        "api reference",
+        "changelog",
+        "wiki",
+        "manual",
+    ],
+    "voice_assistant": [
+        "voice",
+        "speech",
+        "tts",
+        "stt",
+        "audio",
+        "narration",
+        "conversation",
+        "vui",
+        "dialog",
+    ],
 }
 
 CAPABILITY_ALIASES: dict[str, str] = {
@@ -112,8 +221,10 @@ class AgentManager:
         agent = self.get(name)
         if not agent:
             return AgentResult(
-                agent_name=name, status="error",
-                output="", error=f"Unknown agent: {name}",
+                agent_name=name,
+                status="error",
+                output="",
+                error=f"Unknown agent: {name}",
             )
         meta = self._metadata.get(name)
         if meta:
@@ -128,7 +239,9 @@ class AgentManager:
                     meta.error_count += 1
                 dur = (time.time() - start) * 1000
                 prev = meta.avg_duration_ms * (meta.task_count - 1)
-                meta.avg_duration_ms = (prev + dur) / meta.task_count if meta.task_count > 1 else dur
+                meta.avg_duration_ms = (
+                    (prev + dur) / meta.task_count if meta.task_count > 1 else dur
+                )
             return result
         finally:
             if meta:
@@ -141,8 +254,10 @@ class AgentManager:
         if best:
             return await self.run(best, task)
         return AgentResult(
-            agent_name="none", status="error",
-            output="", error="No suitable agent found for task",
+            agent_name="none",
+            status="error",
+            output="",
+            error="No suitable agent found for task",
         )
 
     def _find_best_agent(self, task: str) -> str | None:
@@ -160,7 +275,9 @@ class AgentManager:
         for name in agents_list:
             meta = self._metadata.get(name)
             caps = meta.capabilities if meta else []
-            score = sum(2 if f" {c} " in f" {task_lower} " else 1 if c in task_lower else 0 for c in caps)
+            score = sum(
+                2 if f" {c} " in f" {task_lower} " else 1 if c in task_lower else 0 for c in caps
+            )
             if meta:
                 score -= meta.error_count
                 if meta.avg_duration_ms > 0 and meta.task_count > 0:
@@ -171,10 +288,7 @@ class AgentManager:
         return scores[0][0] if scores[0][1] >= 0 else agents_list[0]
 
     def get_team_agents(self, team: str) -> list[str]:
-        return sorted(
-            name for name, meta in self._metadata.items()
-            if meta.team == team
-        )
+        return sorted(name for name, meta in self._metadata.items() if meta.team == team)
 
     def health(self) -> dict[str, str]:
         result = {}

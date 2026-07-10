@@ -4,12 +4,9 @@ import json
 import re
 import time
 import traceback
-from typing import Any
 
 from core.agents.base import AgentResult, BaseAgent
 from core.agents.manager import AgentManager
-from core.agents.languages import language_engine
-from core.agents.approval import approval_gate
 from core.log import log
 from core.provider import engine as ai_engine
 
@@ -66,14 +63,16 @@ Your workflow:
 8. LEARN — Store what worked and what didn't for future improvement
 
 MULTI-LANGUAGE: Always detect the user's language and respond in that language.
-APPROVAL GATES: For sensitive actions (payments, deployment, contract signing), request human approval.
+APPROVAL GATES: For sensitive actions (payments, deployment, contract signing), \
+request human approval.
 
 Always think step by step. Be decisive, clear, and proactive."""
 
 
 class TaskStep:
-    def __init__(self, id: str, agent: str, task: str, description: str,
-                 depends_on: list[str] | None = None):
+    def __init__(
+        self, id: str, agent: str, task: str, description: str, depends_on: list[str] | None = None
+    ):
         self.id = id
         self.agent = agent
         self.task = task
@@ -134,6 +133,7 @@ class CEOAgent(BaseAgent):
 
     async def orchestrate(self, task: str, context: dict | None = None) -> OrchestrationRun:
         import uuid
+
         run = OrchestrationRun(run_id=uuid.uuid4().hex[:12], task=task)
         run.status = "running"
         start = time.time()
@@ -183,16 +183,18 @@ class CEOAgent(BaseAgent):
 
             failed_phases = [s for s in run.phases if s.status == "failed"]
             if failed_phases:
-                run.status = "partial" if any(
-                    s.status == "success" for s in run.phases
-                ) else "failed"
-                run.error = f"{len(failed_phases)} phase(s) failed: {', '.join(s.agent for s in failed_phases)}"
+                run.status = (
+                    "partial" if any(s.status == "success" for s in run.phases) else "failed"
+                )
+                failed_names = ", ".join(s.agent for s in failed_phases)
+                run.error = f"{len(failed_phases)} phase(s) failed: {failed_names}"
             else:
                 run.status = "success"
 
             run.output = await self._synthesize(task, run.phases, start)
             if not run.output:
-                run.output = f"Completed {len([s for s in run.phases if s.status == 'success'])}/{len(run.phases)} phases."
+                ok_count = len([s for s in run.phases if s.status == "success"])
+                run.output = f"Completed {ok_count}/{len(run.phases)} phases."
 
         except Exception as e:
             run.status = "failed"
@@ -203,25 +205,36 @@ class CEOAgent(BaseAgent):
         return run
 
     async def _decompose(
-        self, task: str, context: dict,
+        self,
+        task: str,
+        context: dict,
     ) -> list[TaskStep] | None:
-        agents_desc = "\n".join(
-            f"- {name}: {meta.capabilities}"
-            for name, meta in self.agent_manager._metadata.items()
-        ) if hasattr(self.agent_manager, '_metadata') else ""
+        agents_desc = (
+            "\n".join(
+                f"- {name}: {meta.capabilities}"
+                for name, meta in self.agent_manager._metadata.items()
+            )
+            if hasattr(self.agent_manager, "_metadata")
+            else ""
+        )
 
         prompt = (
             f"Break this task into a sequence of phases, each assigned to one specialist agent.\n\n"
             f"Available agents:\n{agents_desc}\n\n"
             f"Return valid JSON ONLY — an object with a 'phases' array. "
             f"Each phase has: id (short string), agent (agent name), task (detailed instruction), "
-            f"description (one-line summary), depends_on (list of phase IDs that must complete first, or []).\n\n"
+            f"description (one-line summary), depends_on (list of phase IDs that must "
+            f"complete first, or []).\n\n"
             f"Example:\n"
-            r'{{"phases": [{{"id":"p1","agent":"Planner","task":"Create plan for...","description":"Plan the work","depends_on":[]}}]}}'
+            r'{{"phases": [{{"id":"p1","agent":"Planner","task":"Create plan for...",'
+            r'"description":"Plan the work","depends_on":[]}}]}}'
         )
 
         messages = [
-            {"role": "system", "content": "You are a precise task decomposition engine. Output ONLY valid JSON."},
+            {
+                "role": "system",
+                "content": "You are a precise task decomposition engine. Output ONLY valid JSON.",
+            },
             {"role": "user", "content": f"{prompt}\n\nTask: {task}"},
         ]
 
@@ -251,7 +264,10 @@ class CEOAgent(BaseAgent):
             log.info("CEO: Delegating to %s: %s", agent_name, task[:60])
             return await self.agent_manager.run(agent_name, task)
         messages = [
-            {"role": "system", "content": f"You are acting as {agent_name}. Complete the following task."},
+            {
+                "role": "system",
+                "content": f"You are acting as {agent_name}. Complete the following task.",
+            },
             {"role": "user", "content": task},
         ]
         try:
@@ -270,7 +286,10 @@ class CEOAgent(BaseAgent):
             )
 
     async def _synthesize(
-        self, task: str, phases: list[TaskStep], start: float,
+        self,
+        task: str,
+        phases: list[TaskStep],
+        start: float,
     ) -> str:
         duration = (time.time() - start) * 1000
         completed = [s for s in phases if s.status == "success"]
@@ -280,7 +299,7 @@ class CEOAgent(BaseAgent):
             return ""
 
         results_text = "\n\n".join(
-            f"Phase {i+1} ({s.agent}):\n{s.result[:2000] if s.result else '(no output)'}"
+            f"Phase {i + 1} ({s.agent}):\n{s.result[:2000] if s.result else '(no output)'}"
             for i, s in enumerate(completed)
         )
 
@@ -314,8 +333,9 @@ class CEOAgent(BaseAgent):
 
 def _init_default_manager() -> AgentManager:
     from core.agents.specialized import SPECIALIZED_AGENTS
+
     mgr = AgentManager()
-    for name, agent in SPECIALIZED_AGENTS.items():
+    for agent in SPECIALIZED_AGENTS.values():
         mgr.register(agent)
     return mgr
 

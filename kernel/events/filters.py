@@ -8,8 +8,7 @@ from kernel.events.event import Event
 
 class EventFilter(ABC):
     @abstractmethod
-    def matches(self, event: Event) -> bool:
-        ...
+    def matches(self, event: Event) -> bool: ...
 
 
 class SourceFilter(EventFilter):

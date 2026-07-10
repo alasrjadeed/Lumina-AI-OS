@@ -48,6 +48,7 @@ class PageMonitor:
                 line=msg.location.get("lineNumber", 0),
             )
             self._console_log.append(entry)
+
         self._page.on("console", on_console)
         self._console_handler = on_console
 
@@ -127,6 +128,7 @@ class PageMonitor:
     async def start_mutation_tracking(self) -> None:
         async def on_mutation(entries):
             pass
+
         await self._page.evaluate("""
             window.__mutationCount = 0;
             window.__observer = new MutationObserver(() => {

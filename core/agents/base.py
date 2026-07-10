@@ -46,12 +46,15 @@ class BaseAgent:
                     fn = tc.get("function", {})
                     name = fn.get("name", "")
                     args = fn.get("arguments", "{}")
+                    assert self.tool_registry is not None
                     tool_result = await self.tool_registry.execute_call(name, args)
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tc.get("id", ""),
-                        "content": tool_result.output or tool_result.error or "",
-                    })
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tc.get("id", ""),
+                            "content": tool_result.output or tool_result.error or "",
+                        }
+                    )
                 final = await engine.chat(messages)
                 output = final["message"]["content"]
             else:

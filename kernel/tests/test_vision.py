@@ -9,11 +9,11 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 from core.vision.camera import CameraInfo, CameraProperty, Frame, list_cameras
+from core.vision.cortex import VisualCortex, WatchMode
+from core.vision.description import SceneDescriber, SceneDescription
 from core.vision.detector import Detection, DetectionResult, ObjectDetector
 from core.vision.face import Face, FaceDetector, FaceResult
-from core.vision.description import SceneDescriber, SceneDescription
 from core.vision.memory import Observation, VisualShortTermMemory
-from core.vision.cortex import VisualCortex, WatchMode
 
 
 class TestCameraInfo:
@@ -23,7 +23,9 @@ class TestCameraInfo:
         assert info.available is False
 
     def test_custom_info(self):
-        info = CameraInfo(device_id=1, name="Test Cam", width=1280, height=720, fps=30, available=True)
+        info = CameraInfo(
+            device_id=1, name="Test Cam", width=1280, height=720, fps=30, available=True
+        )
         assert info.device_id == 1
         assert info.name == "Test Cam"
         assert info.width == 1280
@@ -51,7 +53,6 @@ class TestFrame:
         assert f.timestamp == 1234567890.0
 
     def test_frame_datetime(self):
-        import datetime
         f = Frame(data=b"", width=1, height=1, timestamp=0)
         assert f.datetime.year >= 1970
 
@@ -81,9 +82,17 @@ class TestCameraProperty:
     def test_all_properties_covered(self):
         props = set(CameraProperty)
         expected = {
-            "brightness", "contrast", "saturation", "hue",
-            "gain", "exposure", "width", "height", "fps",
-            "auto_focus", "auto_white_balance",
+            "brightness",
+            "contrast",
+            "saturation",
+            "hue",
+            "gain",
+            "exposure",
+            "width",
+            "height",
+            "fps",
+            "auto_focus",
+            "auto_white_balance",
         }
         assert {p.value for p in props} == expected
 
@@ -140,8 +149,10 @@ class TestDetectionResult:
                 Detection(label="person", confidence=0.8, bbox=(0.5, 0.5, 0.1, 0.1)),
                 Detection(label="car", confidence=0.7, bbox=(0.2, 0.3, 0.3, 0.2)),
             ],
-            image_width=640, image_height=480,
-            inference_ms=45.0, provider="yolov8",
+            image_width=640,
+            image_height=480,
+            inference_ms=45.0,
+            provider="yolov8",
         )
         assert r.count == 3
         assert "person" in r.labels
@@ -149,7 +160,9 @@ class TestDetectionResult:
         assert "2 persons" in r.summary() or "2 people" in r.summary() or "person" in r.summary()
 
     def test_to_dict(self):
-        r = DetectionResult(detections=[Detection(label="face", confidence=0.7, bbox=(0, 0, 0.5, 0.5))])
+        r = DetectionResult(
+            detections=[Detection(label="face", confidence=0.7, bbox=(0, 0, 0.5, 0.5))]
+        )
         d = r.to_dict()
         assert d["count"] == 1
         assert "detections" in d
@@ -287,6 +300,7 @@ class TestObjectDetector:
     def test_close(self):
         od = ObjectDetector()
         import asyncio
+
         asyncio.run(od.close())
         assert od._model is None
 
@@ -301,12 +315,14 @@ class TestAPIEndpoints:
     @pytest.mark.asyncio
     async def test_vision_status(self):
         from api.vision import router
+
         assert router.prefix == "/vision"
         assert len(router.routes) > 0
 
     def test_routes_exist(self):
         from api.vision import router
-        paths = [r.path for r in router.routes]
+
+        paths = [r.path for r in router.routes]  # pyright: ignore[reportAttributeAccessIssue]
         assert "/vision/cameras" in paths
         assert "/vision/capture" in paths
         assert "/vision/detect" in paths
@@ -322,9 +338,10 @@ class TestAPIEndpoints:
 
     @pytest.mark.asyncio
     async def test_cameras_endpoint_response(self):
-        from fastapi.testclient import TestClient
-        from api.vision import router
         from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.vision import router
 
         app = FastAPI()
         app.include_router(router)
@@ -341,6 +358,7 @@ class TestAPIEndpoints:
 class TestConfigSettings:
     def test_vision_settings_defaults(self):
         from config.settings import settings
+
         assert hasattr(settings, "vision_camera_id")
         assert settings.vision_camera_id == 0
         assert settings.vision_camera_width == 640
@@ -351,11 +369,13 @@ class TestConfigSettings:
 class TestMainIntegration:
     def test_vision_router_registered(self):
         import main as main_module
+
         assert hasattr(main_module, "vision_router")
         assert main_module.vision_router.prefix == "/vision"
 
     def test_vision_imports_exist(self):
         import main as main_module
+
         assert hasattr(main_module, "CameraDevice")
         assert hasattr(main_module, "ObjectDetector")
         assert hasattr(main_module, "SceneDescriber")
@@ -363,27 +383,32 @@ class TestMainIntegration:
 
     def test_vision_router_prefix(self):
         from api.vision import router
+
         assert router.prefix == "/vision"
 
     def test_vision_routes_count(self):
         from api.vision import router
+
         assert len(router.routes) >= 15
 
 
 class TestAssistantIntegration:
     def test_vision_in_capabilities(self):
         from core.assistant.agent import CAPABILITIES
+
         assert "vision" in CAPABILITIES
         assert "camera" in CAPABILITIES["vision"]
 
     def test_vision_in_routing_prompt(self):
         from core.assistant.agent import CAPABILITIES
+
         assert "vision" in CAPABILITIES
 
 
 class TestVoiceIntegration:
     def test_vision_in_intent_categories(self):
         from core.voice.controller import VoiceController
+
         vc = VoiceController()
         assert hasattr(vc, "_understand_intent")
 
@@ -433,7 +458,9 @@ class TestVisualShortTermMemory:
     def test_change_detected_new_labels(self):
         mem = VisualShortTermMemory(capacity=10, ttl_seconds=60)
         mem.push(Observation(timestamp=time.time(), labels=["chair", "table"]))
-        result = mem.change_detected(Observation(timestamp=time.time(), labels=["chair", "table", "person"]))
+        result = mem.change_detected(
+            Observation(timestamp=time.time(), labels=["chair", "table", "person"])
+        )
         assert result is not None
         assert "person" in result
 
@@ -460,8 +487,10 @@ class TestVisualShortTermMemory:
 
     def test_observation_to_dict(self):
         obs = Observation(
-            timestamp=1234567890, summary="test scene",
-            labels=["person", "car"], people_count=1,
+            timestamp=1234567890,
+            summary="test scene",
+            labels=["person", "car"],
+            people_count=1,
         )
         d = obs.to_dict()
         assert d["summary"] == "test scene"
@@ -511,6 +540,7 @@ class TestVisualCortex:
 
     def test_status(self):
         import asyncio
+
         cortex = VisualCortex(enable_faces=False, enable_description=False)
         status = asyncio.run(cortex.get_status())
         assert status["mode"] == "idle"
@@ -525,7 +555,8 @@ class TestVisualCortex:
 class TestCortexAPIEndpoints:
     def test_cortex_routes_exist(self):
         from api.vision import router
-        paths = [r.path for r in router.routes]
+
+        paths = [r.path for r in router.routes]  # pyright: ignore[reportAttributeAccessIssue]
         assert "/vision/think" in paths
         assert "/vision/watch" in paths
         assert "/vision/watch/stop" in paths
@@ -549,10 +580,12 @@ class TestWatchMode:
 class TestMainCortexIntegration:
     def test_visual_cortex_imported(self):
         import main as main_module
+
         assert hasattr(main_module, "VisualCortex")
 
     def test_visual_cortex_constructable(self):
         from core.vision.cortex import VisualCortex
+
         vc = VisualCortex(enable_detection=False, enable_faces=False, enable_description=False)
         assert vc is not None
         assert vc.mode == WatchMode.IDLE
@@ -574,4 +607,4 @@ class TestEdgeCases:
 
     def test_face_no_bbox(self):
         with pytest.raises(TypeError):
-            Face()
+            Face()  # pyright: ignore[reportCallIssue]

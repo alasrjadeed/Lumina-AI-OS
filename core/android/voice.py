@@ -105,8 +105,9 @@ class AndroidVoiceInterface:
                 with open(local_path, "wb") as f:
                     f.write(result.audio_data)
                 self.device.push(local_path, remote_path)
-                self.device.shell(f"play {remote_path} 2>/dev/null || "
-                                  f"mediaplayer {remote_path} 2>/dev/null")
+                self.device.shell(
+                    f"play {remote_path} 2>/dev/null || mediaplayer {remote_path} 2>/dev/null"
+                )
                 log.info("TTS: %s", text[:100])
                 return True
             except Exception as e:
@@ -115,8 +116,7 @@ class AndroidVoiceInterface:
         else:
             safe_text = text.replace("'", "\\'")
             cmd = (
-                f"am broadcast -a com.lumina.SPEAK"
-                f" -e text '{safe_text}' --es language '{language}'"
+                f"am broadcast -a com.lumina.SPEAK -e text '{safe_text}' --es language '{language}'"
             )
             self.device.shell(cmd)
             return True

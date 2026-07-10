@@ -6,8 +6,7 @@ from typing import Any
 DEFAULT_TEMPLATES: dict[str, dict[str, str]] = {
     "chat": {
         "system": (
-            "You are a helpful AI assistant. "
-            "Answer the user's questions accurately and concisely."
+            "You are a helpful AI assistant. Answer the user's questions accurately and concisely."
         ),
         "user": "{message}",
     },
@@ -20,8 +19,7 @@ DEFAULT_TEMPLATES: dict[str, dict[str, str]] = {
     },
     "agent": {
         "system": (
-            "You are {agent_name}. {agent_description}\n"
-            "Complete the following task thoroughly."
+            "You are {agent_name}. {agent_description}\nComplete the following task thoroughly."
         ),
         "user": "{task}",
     },
@@ -60,11 +58,13 @@ class PromptManager:
             self._templates[name] = tmpl
             self._versions[name] = self._versions.get(name, 0) + 1
             version = self._versions[name]
-            self._history.setdefault(name, []).append({
-                "version": version,
-                "template": tmpl,
-                "timestamp": datetime.now().isoformat(),
-            })
+            self._history.setdefault(name, []).append(
+                {
+                    "version": version,
+                    "template": tmpl,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
 
     def get(self, name: str, version: int | None = None) -> dict[str, str] | None:
         if version is None:
@@ -76,7 +76,8 @@ class PromptManager:
         return None
 
     def render(
-        self, name: str,
+        self,
+        name: str,
         variables: dict[str, str] | None = None,
         version: int | None = None,
     ) -> list[dict[str, str]]:
@@ -95,11 +96,13 @@ class PromptManager:
     def register(self, name: str, template: dict[str, str]) -> None:
         self._templates[name] = template
         self._versions[name] = self._versions.get(name, 0) + 1
-        self._history.setdefault(name, []).append({
-            "version": self._versions[name],
-            "template": template,
-            "timestamp": datetime.now().isoformat(),
-        })
+        self._history.setdefault(name, []).append(
+            {
+                "version": self._versions[name],
+                "template": template,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     def list_templates(self) -> list[str]:
         return sorted(self._templates.keys())

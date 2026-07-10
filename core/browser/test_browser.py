@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import os
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from core.log import log
 
@@ -25,10 +24,14 @@ class ScreenshotComparison:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "name": self.name,
-            "before_path": self.before_path, "after_path": self.after_path,
-            "diff_path": self.diff_path, "match_percent": self.match_percent,
-            "passed": self.passed, "timestamp": self.timestamp,
+            "id": self.id,
+            "name": self.name,
+            "before_path": self.before_path,
+            "after_path": self.after_path,
+            "diff_path": self.diff_path,
+            "match_percent": self.match_percent,
+            "passed": self.passed,
+            "timestamp": self.timestamp,
         }
 
 
@@ -45,9 +48,13 @@ class UITestCase:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "name": self.name, "steps": self.steps,
-            "expected": self.expected, "result": self.result,
-            "passed": self.passed, "duration_ms": self.duration_ms,
+            "id": self.id,
+            "name": self.name,
+            "steps": self.steps,
+            "expected": self.expected,
+            "result": self.result,
+            "passed": self.passed,
+            "duration_ms": self.duration_ms,
             "timestamp": self.timestamp,
         }
 
@@ -64,9 +71,13 @@ class NetworkRequest:
 
     def to_dict(self) -> dict:
         return {
-            "url": self.url, "method": self.method, "status": self.status,
-            "duration_ms": self.duration_ms, "size_bytes": self.size_bytes,
-            "error": self.error, "timestamp": self.timestamp,
+            "url": self.url,
+            "method": self.method,
+            "status": self.status,
+            "duration_ms": self.duration_ms,
+            "size_bytes": self.size_bytes,
+            "error": self.error,
+            "timestamp": self.timestamp,
         }
 
 
@@ -89,7 +100,10 @@ class TestBrowser:
 
     async def launch(self):
         try:
-            from playwright.async_api import async_playwright
+            from playwright.async_api import (  # pyright: ignore[reportMissingImports]
+                async_playwright,
+            )
+
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(headless=self.headless)
             self._context = await self._browser.new_context(
@@ -121,11 +135,16 @@ class TestBrowser:
         log.info("TestBrowser: closed")
 
     async def _on_request(self, request):
-        self._network_requests.append(NetworkRequest(
-            url=request.url, method=request.method,
-            status=0, duration_ms=0, size_bytes=0,
-            timestamp=time.time(),
-        ))
+        self._network_requests.append(
+            NetworkRequest(
+                url=request.url,
+                method=request.method,
+                status=0,
+                duration_ms=0,
+                size_bytes=0,
+                timestamp=time.time(),
+            )
+        )
 
     async def _on_response(self, response):
         matching = [r for r in self._network_requests if r.url == response.url and r.status == 0]
@@ -168,7 +187,10 @@ class TestBrowser:
             if element:
                 text = await element.inner_text()
                 html = await element.inner_html()
-                attrs = await element.evaluate("el => Array.from(el.attributes).reduce((o, a) => ({...o, [a.name]: a.value}), {})")
+                attrs = await element.evaluate(
+                    "el => Array.from(el.attributes).reduce((o, a) => "
+                    "({...o, [a.name]: a.value}), {})"
+                )
                 return {
                     "selector": selector,
                     "found": True,
@@ -186,7 +208,9 @@ class TestBrowser:
             return {"error": "Browser not launched"}
 
         try:
-            styles = await self._page.eval_on_selector(selector, """el => {
+            styles = await self._page.eval_on_selector(
+                selector,
+                """el => {
                 const computed = getComputedStyle(el);
                 const relevant = [
                     'display', 'position', 'width', 'height', 'margin', 'padding',
@@ -197,7 +221,8 @@ class TestBrowser:
                 const result = {};
                 relevant.forEach(p => result[p] = computed.getPropertyValue(p));
                 return result;
-            }""")
+            }""",
+            )
             return {"selector": selector, "computed_styles": styles}
         except Exception as e:
             return {"error": str(e)}
@@ -246,14 +271,16 @@ class TestBrowser:
         self._screenshots[name] = path
         return path
 
-    async def compare_screenshots(self, name: str, url_before: str,
-                                  url_after: str) -> ScreenshotComparison:
+    async def compare_screenshots(
+        self, name: str, url_before: str, url_after: str
+    ) -> ScreenshotComparison:
         await self.navigate(url_before)
         before_path = await self.screenshot(f"{name}_before")
         await self.navigate(url_after)
         after_path = await self.screenshot(f"{name}_after")
 
         import uuid
+
         comp = ScreenshotComparison(
             id=uuid.uuid4().hex[:12],
             name=name,
@@ -264,12 +291,13 @@ class TestBrowser:
 
         try:
             from PIL import Image
+
             before_img = Image.open(before_path).convert("RGB")
             after_img = Image.open(after_path).convert("RGB")
             if before_img.size != after_img.size:
                 after_img = after_img.resize(before_img.size)
-            bd = before_img.getdata()
-            ad = after_img.getdata()
+            bd = list(before_img.getdata())  # pyright: ignore[reportArgumentType]
+            ad = list(after_img.getdata())  # pyright: ignore[reportArgumentType]
             total = len(bd)
             same = sum(1 for b, a in zip(bd, ad) if b == a)
             comp.match_percent = round(same / total * 100, 2)
@@ -277,7 +305,7 @@ class TestBrowser:
 
             diff_path = os.path.join(TEST_BROWSER_DIR, f"{name}_diff_{int(time.time())}.png")
             diff_img = Image.new("RGB", before_img.size, (255, 0, 0))
-            diff_img.putdata([b if b == a else (255, 0, 0) for b, a in zip(bd, ad)])
+            diff_img.putdata(tuple(b if b == a else (255, 0, 0) for b, a in zip(bd, ad)))
             diff_img.save(diff_path)
             comp.diff_path = diff_path
         except ImportError:
@@ -297,18 +325,24 @@ class TestBrowser:
             step_start = time.time()
             try:
                 await self._page.evaluate(f"() => {{ {step} }}")
-                results.append({
-                    "index": i, "step": step,
-                    "status": "success",
-                    "duration_ms": int((time.time() - step_start) * 1000),
-                })
+                results.append(
+                    {
+                        "index": i,
+                        "step": step,
+                        "status": "success",
+                        "duration_ms": int((time.time() - step_start) * 1000),
+                    }
+                )
             except Exception as e:
-                results.append({
-                    "index": i, "step": step,
-                    "status": "failed",
-                    "error": str(e),
-                    "duration_ms": int((time.time() - step_start) * 1000),
-                })
+                results.append(
+                    {
+                        "index": i,
+                        "step": step,
+                        "status": "failed",
+                        "error": str(e),
+                        "duration_ms": int((time.time() - step_start) * 1000),
+                    }
+                )
 
         return {"flow": name, "steps": results, "total": len(results)}
 
@@ -346,9 +380,7 @@ class TestBrowser:
                 elif action == "assert_text":
                     content = await self._page.text_content(target)
                     if value not in (content or ""):
-                        raise AssertionError(
-                            f"Text '{value}' not found in '{content}'"
-                        )
+                        raise AssertionError(f"Text '{value}' not found in '{content}'")
 
             test.passed = True
             test.result = "All steps passed"
@@ -388,9 +420,13 @@ class TestBrowser:
                 "has_errors": console["has_errors"],
             },
             "screenshot": screenshot_path,
-            "score": max(0, 100 - (network["total"] > 50) * 10
-                         - (len(network["errors"]) * 5)
-                         - (console["count"] * 3)),
+            "score": max(
+                0,
+                100
+                - (network["total"] > 50) * 10
+                - (len(network["errors"]) * 5)
+                - (console["count"] * 3),
+            ),
         }
 
     def get_stats(self) -> dict:

@@ -37,23 +37,29 @@ class TestSqliteDeadLetterQueue:
 
     def test_add_multiple(self, dlq):
         for i in range(5):
-            dlq.add(DeadLetterEntry(
-                event=Event(name=f"e{i}"),
-                exception=f"err{i}",
-            ))
+            dlq.add(
+                DeadLetterEntry(
+                    event=Event(name=f"e{i}"),
+                    exception=f"err{i}",
+                )
+            )
         assert dlq.count() == 5
 
     def test_all_returns_entries(self, dlq):
-        dlq.add(DeadLetterEntry(
-            event=Event(name="a"),
-            exception="err",
-            subscriber="h1",
-        ))
-        dlq.add(DeadLetterEntry(
-            event=Event(name="b"),
-            exception="err2",
-            subscriber="h2",
-        ))
+        dlq.add(
+            DeadLetterEntry(
+                event=Event(name="a"),
+                exception="err",
+                subscriber="h1",
+            )
+        )
+        dlq.add(
+            DeadLetterEntry(
+                event=Event(name="b"),
+                exception="err2",
+                subscriber="h2",
+            )
+        )
         entries = dlq.all()
         assert len(entries) == 2
         assert entries[0].event.name == "a"
@@ -61,10 +67,12 @@ class TestSqliteDeadLetterQueue:
 
     def test_latest_returns_most_recent(self, dlq):
         for i in range(5):
-            dlq.add(DeadLetterEntry(
-                event=Event(name=f"e{i}"),
-                exception=f"err{i}",
-            ))
+            dlq.add(
+                DeadLetterEntry(
+                    event=Event(name=f"e{i}"),
+                    exception=f"err{i}",
+                )
+            )
         latest = dlq.latest(limit=2)
         assert len(latest) == 2
         assert latest[0].event.name == "e4"
@@ -78,10 +86,12 @@ class TestSqliteDeadLetterQueue:
     def test_max_entries_respected(self, db_path):
         dlq = SqliteDeadLetterQueue(db_path, max_entries=3)
         for i in range(5):
-            dlq.add(DeadLetterEntry(
-                event=Event(name=f"e{i}"),
-                exception=f"err{i}",
-            ))
+            dlq.add(
+                DeadLetterEntry(
+                    event=Event(name=f"e{i}"),
+                    exception=f"err{i}",
+                )
+            )
         assert dlq.count() == 3
 
     def test_event_fields_preserved(self, dlq):
@@ -94,13 +104,15 @@ class TestSqliteDeadLetterQueue:
             is_replay=True,
             timestamp=1000.0,
         )
-        dlq.add(DeadLetterEntry(
-            event=ev,
-            exception="timeout",
-            exception_type="TimeoutError",
-            subscriber="order_handler",
-            attempts=3,
-        ))
+        dlq.add(
+            DeadLetterEntry(
+                event=ev,
+                exception="timeout",
+                exception_type="TimeoutError",
+                subscriber="order_handler",
+                attempts=3,
+            )
+        )
         entries = dlq.all()
         e = entries[0]
         assert e.event.name == "order.created"

@@ -44,6 +44,7 @@ def test(name, method, path, status=200, body=None, check=None):
 def has_keys(*keys):
     def check(data):
         return all(k in data for k in keys)
+
     return check
 
 
@@ -51,6 +52,7 @@ def field_contains(key, substr):
     def check(data):
         val = data.get(key, "")
         return substr.lower() in val.lower()
+
     return check
 
 
@@ -67,21 +69,34 @@ def main():
 
     print()
     print("  --- CEO AI Chat ---")
-    test("Chat - simple query", "POST", "/chat", body={"message": "Say hello in 3 words"},
-         check=field_contains("reply", "hello"))
+    test(
+        "Chat - simple query",
+        "POST",
+        "/chat",
+        body={"message": "Say hello in 3 words"},
+        check=field_contains("reply", "hello"),
+    )
 
     print()
     print("  --- Code Generation ---")
-    test("Code - hello world", "POST", "/code/generate",
-         body={"description": "print hello world", "language": "python"},
-         check=lambda d: len(d.get("code", "")) >= 10)
+    test(
+        "Code - hello world",
+        "POST",
+        "/code/generate",
+        body={"description": "print hello world", "language": "python"},
+        check=lambda d: len(d.get("code", "")) >= 10,
+    )
 
     print()
     print("  --- Agents ---")
     test("Agents list", "GET", "/agents", check=lambda d: len(d.get("agents", [])) >= 5)
-    test("Agent - software_engineer", "POST", "/agents/run",
-         body={"agent": "software_engineer", "task": "say hi"},
-         check=lambda d: d.get("status") == "success")
+    test(
+        "Agent - software_engineer",
+        "POST",
+        "/agents/run",
+        body={"agent": "software_engineer", "task": "say hi"},
+        check=lambda d: d.get("status") == "success",
+    )
 
     print()
     print("  --- Memory ---")

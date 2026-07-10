@@ -28,9 +28,18 @@ async def get_stats():
 
 @router.get("/pipelines")
 async def list_pipelines():
-    return {"pipelines": [{"id": p.id, "name": p.name, "status": p.status,
-                           "tasks": len(p.tasks), "created": p.created}
-                          for p in queue.list_pipelines()]}
+    return {
+        "pipelines": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "status": p.status,
+                "tasks": len(p.tasks),
+                "created": p.created,
+            }
+            for p in queue.list_pipelines()
+        ]
+    }
 
 
 @router.post("/pipelines")
@@ -46,11 +55,24 @@ async def get_pipeline(pipeline_id: str):
     p = queue.get_pipeline(pipeline_id)
     if not p:
         return {"error": "Not found"}
-    return {"id": p.id, "name": p.name, "status": p.status,
-            "tasks": [{"id": t.id, "name": t.name, "action": t.action, "module": t.module,
-                       "status": t.status.value, "error": t.error[:100],
-                       "duration_ms": t.duration_ms, "retries": t.retries}
-                      for t in p.tasks]}
+    return {
+        "id": p.id,
+        "name": p.name,
+        "status": p.status,
+        "tasks": [
+            {
+                "id": t.id,
+                "name": t.name,
+                "action": t.action,
+                "module": t.module,
+                "status": t.status.value,
+                "error": t.error[:100],
+                "duration_ms": t.duration_ms,
+                "retries": t.retries,
+            }
+            for t in p.tasks
+        ],
+    }
 
 
 @router.delete("/pipelines/{pipeline_id}")

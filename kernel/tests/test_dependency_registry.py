@@ -159,10 +159,12 @@ def test_register_or_replace_existing():
 
 def test_bulk_register():
     reg = ServiceRegistry()
-    reg.bulk_register([
-        ServiceRegistration(service="a", provider=InstanceProvider(1)),
-        ServiceRegistration(service="b", provider=InstanceProvider(2)),
-    ])
+    reg.bulk_register(
+        [
+            ServiceRegistration(service="a", provider=InstanceProvider(1)),
+            ServiceRegistration(service="b", provider=InstanceProvider(2)),
+        ]
+    )
     assert reg.count() == 2
     assert reg.has("a")
     assert reg.has("b")
@@ -172,22 +174,36 @@ def test_bulk_register_duplicate_raises():
     reg = ServiceRegistry()
     reg.register(ServiceRegistration(service="a", provider=InstanceProvider(1)))
     with pytest.raises(ServiceRegistrationError):
-        reg.bulk_register([
-            ServiceRegistration(service="a", provider=InstanceProvider(2)),
-        ])
+        reg.bulk_register(
+            [
+                ServiceRegistration(service="a", provider=InstanceProvider(2)),
+            ]
+        )
 
 
 def test_find_by_lifetime():
     reg = ServiceRegistry()
-    reg.register(ServiceRegistration(
-        service="s1", provider=InstanceProvider(1), lifetime=Lifetime.SINGLETON,
-    ))
-    reg.register(ServiceRegistration(
-        service="s2", provider=InstanceProvider(2), lifetime=Lifetime.SCOPED,
-    ))
-    reg.register(ServiceRegistration(
-        service="t1", provider=InstanceProvider(3), lifetime=Lifetime.TRANSIENT,
-    ))
+    reg.register(
+        ServiceRegistration(
+            service="s1",
+            provider=InstanceProvider(1),
+            lifetime=Lifetime.SINGLETON,
+        )
+    )
+    reg.register(
+        ServiceRegistration(
+            service="s2",
+            provider=InstanceProvider(2),
+            lifetime=Lifetime.SCOPED,
+        )
+    )
+    reg.register(
+        ServiceRegistration(
+            service="t1",
+            provider=InstanceProvider(3),
+            lifetime=Lifetime.TRANSIENT,
+        )
+    )
     assert len(reg.find_by_lifetime(Lifetime.SINGLETON)) == 1
     assert len(reg.find_by_lifetime(Lifetime.SCOPED)) == 1
     assert len(reg.find_by_lifetime(Lifetime.TRANSIENT)) == 1

@@ -112,7 +112,7 @@ class PluginLoader:
                     plugin_instance: Any = plugin_cls
                     if inspect.isclass(plugin_cls):
                         try:
-                            plugin_instance = plugin_cls(container=self._container)
+                            plugin_instance = plugin_cls(container=self._container)  # pyright: ignore[reportCallIssue]
                         except TypeError:
                             plugin_instance = plugin_cls()
 

@@ -36,18 +36,33 @@ class Authorization:
         self._register_defaults()
 
     def _register_defaults(self) -> None:
-        self.add_role(Role(name="admin", permissions=[
-            Permission(resource="*", action="*"),
-        ]))
-        self.add_role(Role(name="user", permissions=[
-            Permission(resource="chat", action="create"),
-            Permission(resource="chat", action="read"),
-            Permission(resource="profile", action="*"),
-        ]))
-        self.add_role(Role(name="viewer", permissions=[
-            Permission(resource="chat", action="read"),
-            Permission(resource="profile", action="read"),
-        ]))
+        self.add_role(
+            Role(
+                name="admin",
+                permissions=[
+                    Permission(resource="*", action="*"),
+                ],
+            )
+        )
+        self.add_role(
+            Role(
+                name="user",
+                permissions=[
+                    Permission(resource="chat", action="create"),
+                    Permission(resource="chat", action="read"),
+                    Permission(resource="profile", action="*"),
+                ],
+            )
+        )
+        self.add_role(
+            Role(
+                name="viewer",
+                permissions=[
+                    Permission(resource="chat", action="read"),
+                    Permission(resource="profile", action="read"),
+                ],
+            )
+        )
 
     def add_role(self, role: Role) -> None:
         self._roles[role.name] = role
@@ -65,8 +80,13 @@ class Authorization:
         role.permissions.append(permission)
         return True
 
-    def check_permission(self, user_roles: list[str], resource: str, action: str,
-                         context: dict[str, Any] | None = None) -> bool:
+    def check_permission(
+        self,
+        user_roles: list[str],
+        resource: str,
+        action: str,
+        context: dict[str, Any] | None = None,
+    ) -> bool:
         resolved = self._resolve_permissions(user_roles)
         return any(self._matches(perm, resource, action, context or {}) for perm in resolved)
 
@@ -107,16 +127,18 @@ class Authorization:
             resolve(r)
         return resolved
 
-    def _matches(self, perm: Permission, resource: str, action: str,
-                 context: dict[str, Any]) -> bool:
+    def _matches(
+        self, perm: Permission, resource: str, action: str, context: dict[str, Any]
+    ) -> bool:
         if perm.resource != "*" and perm.resource != resource:
             return False
         if perm.action != "*" and perm.action != action:
             return False
         return all(context.get(key) == value for key, value in perm.conditions.items())
 
-    def _policy_matches(self, policy: Policy, user_roles: list[str],
-                        resource: str, action: str) -> bool:
+    def _policy_matches(
+        self, policy: Policy, user_roles: list[str], resource: str, action: str
+    ) -> bool:
         if "*" not in policy.subjects and not any(r in policy.subjects for r in user_roles):
             return False
         if "*" not in policy.resources and not any(

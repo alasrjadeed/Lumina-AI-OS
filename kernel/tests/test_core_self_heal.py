@@ -42,9 +42,13 @@ class TestSelfHealingLoop:
                 raise ValueError("LLM unavailable")
             return {"message": {"content": "NO_ISSUES"}}
 
-        with patch("core.self_heal.engine.chat", new=mock_chat), \
-             patch.object(loop, "_plan", new=AsyncMock(return_value={"summary": "t", "steps": ["s"]})), \
-             patch.object(loop, "_execute_plan", new=AsyncMock(return_value="result")):
+        with (
+            patch("core.self_heal.engine.chat", new=mock_chat),
+            patch.object(
+                loop, "_plan", new=AsyncMock(return_value={"summary": "t", "steps": ["s"]})
+            ),
+            patch.object(loop, "_execute_plan", new=AsyncMock(return_value="result")),
+        ):
             result = await loop.execute("retry test")
             assert result["status"] in ("success", "failed")
 

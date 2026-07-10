@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import os
-
-from core.agents.ceo import CEOAgent
 from core.agents.runner import runner
 from core.core_ai import core_ai
-from core.log import log
 from core.projects import project_manager
 
 
@@ -15,9 +11,10 @@ class ProjectAgent:
     """AI agent that works on a specific project — reads files, writes code, runs commands."""
 
     def __init__(self, project_id: str):
-        self.project = project_manager.get(project_id)
-        if not self.project:
+        proj = project_manager.get(project_id)
+        if not proj:
             raise ValueError(f"Project not found: {project_id}")
+        self.project = proj
         self.project_id = project_id
 
     def _project_context(self) -> str:
@@ -46,7 +43,7 @@ class ProjectAgent:
 
         if result.get("status") == "success" and result.get("phases"):
             for phase in result["phases"]:
-                agent_name = phase.get("agent", "")
+                phase.get("agent", "")
                 phase_result = phase.get("result", "")
                 if not phase_result:
                     continue

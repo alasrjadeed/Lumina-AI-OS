@@ -34,7 +34,8 @@ class LoggingMiddleware(BaseMiddleware):
     ) -> Event:
         self._log(
             "Running handler for %s on topic=%s",
-            event.name, subscription.topic,
+            event.name,
+            subscription.topic,
         )
         return event
 
@@ -45,7 +46,8 @@ class LoggingMiddleware(BaseMiddleware):
     ) -> None:
         self._log(
             "Handler completed for %s on topic=%s",
-            event.name, subscription.topic,
+            event.name,
+            subscription.topic,
         )
 
     async def on_exception(
@@ -56,7 +58,9 @@ class LoggingMiddleware(BaseMiddleware):
     ) -> None:
         self._log(
             "Handler exception for %s on topic=%s: %s",
-            event.name, subscription.topic, exception,
+            event.name,
+            subscription.topic,
+            exception,
         )
 
     async def after_dispatch(self, event: Event) -> None:

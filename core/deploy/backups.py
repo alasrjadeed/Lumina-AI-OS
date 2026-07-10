@@ -56,14 +56,23 @@ class Backups:
                 pass
 
     def _save_index(self) -> None:
-        data = [{"name": s.name, "path": s.path, "size": s.size,
-                 "checksum": s.checksum, "created": s.created,
-                 "metadata": s.metadata} for s in self._snapshots]
+        data = [
+            {
+                "name": s.name,
+                "path": s.path,
+                "size": s.size,
+                "checksum": s.checksum,
+                "created": s.created,
+                "metadata": s.metadata,
+            }
+            for s in self._snapshots
+        ]
         with open(self._index_path(), "w") as f:
             json.dump(data, f, indent=2)
 
-    def create_snapshot(self, name: str = "", paths: list[str] | None = None,
-                        metadata: dict[str, Any] | None = None) -> BackupSnapshot:
+    def create_snapshot(
+        self, name: str = "", paths: list[str] | None = None, metadata: dict[str, Any] | None = None
+    ) -> BackupSnapshot:
         snapshot_name = name or f"backup_{int(time.time())}"
         snapshot_dir = os.path.join(self.config.backup_dir, snapshot_name)
         os.makedirs(snapshot_dir, exist_ok=True)
@@ -79,8 +88,10 @@ class Backups:
                 total_size += self._dir_size(dest) if os.path.isdir(dest) else os.path.getsize(dest)
         checksum = self._compute_checksum(snapshot_dir) if backup_paths else ""
         snapshot = BackupSnapshot(
-            name=snapshot_name, path=snapshot_dir,
-            size=total_size, checksum=checksum,
+            name=snapshot_name,
+            path=snapshot_dir,
+            size=total_size,
+            checksum=checksum,
             metadata=metadata or {},
         )
         self._snapshots.append(snapshot)
@@ -138,6 +149,7 @@ class Backups:
                     self.create_snapshot(paths=paths)
                 except Exception as e:
                     log.error("Scheduled backup failed: %s", e)
+
         thread = threading.Thread(target=run_scheduled, daemon=True)
         thread.start()
         log.info("Backup scheduled every %d hours", interval_hours)
@@ -156,8 +168,7 @@ class Backups:
         before = len(self._snapshots)
         now = time.time()
         self._snapshots = [
-            s for s in self._snapshots
-            if (now - s.created) <= self.config.retention_days * 86400
+            s for s in self._snapshots if (now - s.created) <= self.config.retention_days * 86400
         ]
         while len(self._snapshots) > self.config.max_snapshots:
             oldest = min(self._snapshots, key=lambda s: s.created)

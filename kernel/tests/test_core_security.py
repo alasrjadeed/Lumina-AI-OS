@@ -35,7 +35,7 @@ class TestAuthentication:
         auth.register_user("dave", "mypassword")
         session = auth.authenticate("dave", "mypassword")
         assert session is not None
-        assert session.token.startswith("l_ses_")
+        assert session is not None and session.token.startswith("l_ses_")
 
     def test_authenticate_wrong_password(self):
         auth = Authentication()
@@ -52,6 +52,7 @@ class TestAuthentication:
         auth = Authentication()
         auth.register_user("frank", "password")
         session = auth.authenticate("frank", "password")
+        assert session is not None
         user = auth.validate_session(session.token)
         assert user is not None
         assert user.username == "frank"
@@ -60,6 +61,7 @@ class TestAuthentication:
         auth = Authentication(config=AuthConfig(session_expiry=-1))
         auth.register_user("grace", "password")
         session = auth.authenticate("grace", "password")
+        assert session is not None
         user = auth.validate_session(session.token)
         assert user is None
 
@@ -67,6 +69,7 @@ class TestAuthentication:
         auth = Authentication()
         auth.register_user("heidi", "password")
         session = auth.authenticate("heidi", "password")
+        assert session is not None
         assert auth.logout(session.token)
         assert auth.validate_session(session.token) is None
 
@@ -165,14 +168,14 @@ class TestAuthorization:
 
     def test_policy_allow(self):
         az = Authorization()
-        az.add_policy(Policy(name="allow_chat", effect="allow",
-                             resources=["chat"], actions=["read"]))
+        az.add_policy(
+            Policy(name="allow_chat", effect="allow", resources=["chat"], actions=["read"])
+        )
         assert az.check_policy(["user"], "chat", "read")
 
     def test_policy_deny(self):
         az = Authorization()
-        az.add_policy(Policy(name="deny_admin", effect="deny",
-                             resources=["admin"], actions=["*"]))
+        az.add_policy(Policy(name="deny_admin", effect="deny", resources=["admin"], actions=["*"]))
         assert not az.check_policy(["admin"], "admin", "delete")
 
     def test_list_roles(self):
@@ -183,7 +186,8 @@ class TestAuthorization:
 class TestSecretsManager:
     def test_set_and_get(self, tmp_path: Path):
         sm = SecretsManager(
-            storage_path=str(tmp_path / "secrets.json"), master_key="test-master-key",
+            storage_path=str(tmp_path / "secrets.json"),
+            master_key="test-master-key",
         )
         sm.set("api_key", "sk-12345")
         assert sm.get("api_key") == "sk-12345"
@@ -211,7 +215,8 @@ class TestSecretsManager:
         sm.set("key", "old_value")
         sm.rotate("key", "new_value")
         assert sm.get("key") == "new_value"
-        assert sm.get_metadata("key").version == 2
+        meta = sm.get_metadata("key")
+        assert meta is not None and meta.version == 2
 
     def test_search_by_tag(self, tmp_path: Path):
         sm = SecretsManager(storage_path=str(tmp_path / "secrets.json"))

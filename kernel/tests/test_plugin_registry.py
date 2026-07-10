@@ -12,8 +12,9 @@ def registry(tmp_path):
     return PluginRegistry(plugin_dirs=[str(tmp_path)])
 
 
-def make_plugin(tmp_path, name, version="0.1.0", deps=None, reqs=None,
-                entry_point="main", plugin_type=None):
+def make_plugin(
+    tmp_path, name, version="0.1.0", deps=None, reqs=None, entry_point="main", plugin_type=None
+):
     d = tmp_path / name
     d.mkdir()
     (d / "__init__.py").write_text("main = None\n")
@@ -66,8 +67,7 @@ class TestRegistryLoad:
     @pytest.mark.asyncio
     async def test_load_checks_version_compatibility(self, registry, tmp_path):
         make_plugin(tmp_path, "dep_b", version="1.0.0")
-        make_plugin(tmp_path, "main_b", version="2.0.0",
-                    deps=["dep_b"], reqs={"dep_b": ">=2.0.0"})
+        make_plugin(tmp_path, "main_b", version="2.0.0", deps=["dep_b"], reqs={"dep_b": ">=2.0.0"})
         await registry.discover()
         with pytest.raises(PluginDependencyError):
             await registry.load("main_b")
@@ -171,8 +171,9 @@ class TestRegistryIncompat:
     @pytest.mark.asyncio
     async def test_list_incompatible(self, registry, tmp_path):
         make_plugin(tmp_path, "good_dep", version="2.0.0")
-        make_plugin(tmp_path, "bad_plugin", version="1.0.0",
-                    deps=["good_dep"], reqs={"good_dep": ">=3.0.0"})
+        make_plugin(
+            tmp_path, "bad_plugin", version="1.0.0", deps=["good_dep"], reqs={"good_dep": ">=3.0.0"}
+        )
         await registry.discover()
         bad = registry.list_incompatible_plugins()
         assert "bad_plugin" in bad

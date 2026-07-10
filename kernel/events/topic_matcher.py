@@ -34,17 +34,14 @@ class TopicMatcher:
 
         if subscription.endswith(".**"):
             prefix = subscription[:-3]
-            return (
-                topic == prefix
-                or topic.startswith(prefix + ".")
-            )
+            return topic == prefix or topic.startswith(prefix + ".")
 
         if subscription.endswith(".*"):
             prefix = subscription[:-2]
             if topic == prefix:
                 return True
             if topic.startswith(prefix + "."):
-                suffix = topic[len(prefix) + 1:]
+                suffix = topic[len(prefix) + 1 :]
                 return "." not in suffix
             return False
 

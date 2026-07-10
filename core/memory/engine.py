@@ -104,7 +104,10 @@ class MemoryEngine:
         return ctx.to_prompt(max_turns=max_turns)
 
     def remember_long_term(
-        self, key: str, value: str, namespace: str = "default",
+        self,
+        key: str,
+        value: str,
+        namespace: str = "default",
         tags: list[str] | None = None,
     ) -> None:
         self.long_term.remember(key, value, namespace=namespace, tags=tags)
@@ -113,7 +116,10 @@ class MemoryEngine:
         return self.long_term.recall(key, namespace=namespace)
 
     def vector_add(
-        self, id: str, vector: list[float], content: str = "",
+        self,
+        id: str,
+        vector: list[float],
+        content: str = "",
         metadata: dict[str, Any] | None = None,
     ) -> None:
         self.vector_store.add(

@@ -3,16 +3,35 @@
 from __future__ import annotations
 
 LANGUAGE_NAMES: dict[str, str] = {
-    "en": "English", "ar": "Arabic (العربية)", "hi": "Hindi (हिन्दी)",
-    "ur": "Urdu (اردو)", "bn": "Bengali (বাংলা)", "ml": "Malayalam (മലയാളം)",
-    "fr": "French (Français)", "es": "Spanish (Español)", "zh": "Chinese (中文)",
-    "ja": "Japanese (日本語)", "ko": "Korean (한국어)", "de": "German (Deutsch)",
-    "pt": "Portuguese (Português)", "ru": "Russian (Русский)", "it": "Italian (Italiano)",
-    "nl": "Dutch (Nederlands)", "tr": "Turkish (Türkçe)", "fa": "Persian (فارسی)",
-    "sw": "Swahili", "th": "Thai (ไทย)", "vi": "Vietnamese (Tiếng Việt)",
-    "id": "Indonesian (Bahasa)", "ms": "Malay (Bahasa Melayu)", "ta": "Tamil (தமிழ்)",
-    "te": "Telugu (తెలుగు)", "mr": "Marathi (मराठी)", "gu": "Gujarati (ગુજરાતી)",
-    "kn": "Kannada (ಕನ್ನಡ)", "pa": "Punjabi (ਪੰਜਾਬੀ)",
+    "en": "English",
+    "ar": "Arabic (العربية)",
+    "hi": "Hindi (हिन्दी)",
+    "ur": "Urdu (اردو)",
+    "bn": "Bengali (বাংলা)",
+    "ml": "Malayalam (മലയാളം)",
+    "fr": "French (Français)",
+    "es": "Spanish (Español)",
+    "zh": "Chinese (中文)",
+    "ja": "Japanese (日本語)",
+    "ko": "Korean (한국어)",
+    "de": "German (Deutsch)",
+    "pt": "Portuguese (Português)",
+    "ru": "Russian (Русский)",
+    "it": "Italian (Italiano)",
+    "nl": "Dutch (Nederlands)",
+    "tr": "Turkish (Türkçe)",
+    "fa": "Persian (فارسی)",
+    "sw": "Swahili",
+    "th": "Thai (ไทย)",
+    "vi": "Vietnamese (Tiếng Việt)",
+    "id": "Indonesian (Bahasa)",
+    "ms": "Malay (Bahasa Melayu)",
+    "ta": "Tamil (தமிழ்)",
+    "te": "Telugu (తెలుగు)",
+    "mr": "Marathi (मराठी)",
+    "gu": "Gujarati (ગુજરાતી)",
+    "kn": "Kannada (ಕನ್ನಡ)",
+    "pa": "Punjabi (ਪੰਜਾਬੀ)",
 }
 
 DETECTION_KEYWORDS: dict[str, list[str]] = {
@@ -55,10 +74,18 @@ class LanguageEngine:
             has_latin = any(c.isascii() and c.isalpha() for c in text_sample)
             if not has_latin and any(ord(c) > 127 for c in text_sample):
                 char_ranges = {
-                    "\u0600": "ar", "\u0900": "hi", "\u0980": "bn",
-                    "\u0d00": "ml", "\u4e00": "zh", "\u3040": "ja",
-                    "\uac00": "ko", "\u0c00": "te", "\u0a00": "pa",
-                    "\u0b00": "ta", "\u0a80": "gu", "\u0c80": "kn",
+                    "\u0600": "ar",
+                    "\u0900": "hi",
+                    "\u0980": "bn",
+                    "\u0d00": "ml",
+                    "\u4e00": "zh",
+                    "\u3040": "ja",
+                    "\uac00": "ko",
+                    "\u0c00": "te",
+                    "\u0a00": "pa",
+                    "\u0b00": "ta",
+                    "\u0a80": "gu",
+                    "\u0c80": "kn",
                 }
                 for text_char in text_sample:
                     for range_start, code in char_ranges.items():
@@ -67,7 +94,7 @@ class LanguageEngine:
                 return "en"
             return "en"
 
-        return max(lang_scores, key=lang_scores.get)
+        return max(lang_scores, key=lambda k: lang_scores.get(k, 0))
 
     def get_name(self, lang_code: str) -> str:
         return LANGUAGE_NAMES.get(lang_code, f"Unknown ({lang_code})")
@@ -91,10 +118,7 @@ class LanguageEngine:
         )
 
     def list_languages(self) -> list[dict]:
-        return [
-            {"code": code, "name": name}
-            for code, name in sorted(LANGUAGE_NAMES.items())
-        ]
+        return [{"code": code, "name": name} for code, name in sorted(LANGUAGE_NAMES.items())]
 
     def set_working_language(self, lang: str):
         if lang in LANGUAGE_NAMES:

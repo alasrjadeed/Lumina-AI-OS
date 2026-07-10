@@ -15,6 +15,7 @@ from core.log import log
 @dataclass
 class Product:
     """A WhatsApp Business catalog product."""
+
     id: str = ""
     name: str = ""
     description: str = ""
@@ -30,6 +31,7 @@ class Product:
 @dataclass
 class Catalog:
     """A WhatsApp Business catalog."""
+
     id: str = ""
     name: str = ""
     products: list[Product] = field(default_factory=list)
@@ -60,20 +62,37 @@ class WhatsAppBusinessManager:
 
     def _save(self) -> None:
         with open(self.storage_path, "w") as f:
-            json.dump({
-                "products": [p.__dict__ for p in self._products.values()],
-                "catalogs": [c.__dict__ for c in self._catalogs.values()],
-            }, f, indent=2)
+            json.dump(
+                {
+                    "products": [p.__dict__ for p in self._products.values()],
+                    "catalogs": [c.__dict__ for c in self._catalogs.values()],
+                },
+                f,
+                indent=2,
+            )
 
     # ── Products ──
 
-    def add_product(self, name: str, description: str = "", price: float = 0.0,
-                    image_url: str = "", category: str = "", sku: str = "",
-                    stock: int = 0) -> Product:
+    def add_product(
+        self,
+        name: str,
+        description: str = "",
+        price: float = 0.0,
+        image_url: str = "",
+        category: str = "",
+        sku: str = "",
+        stock: int = 0,
+    ) -> Product:
         pid = f"prod_{int(time.time())}_{len(self._products)}"
         product = Product(
-            id=pid, name=name, description=description, price=price,
-            image_url=image_url, category=category, sku=sku, stock=stock,
+            id=pid,
+            name=name,
+            description=description,
+            price=price,
+            image_url=image_url,
+            category=category,
+            sku=sku,
+            stock=stock,
         )
         self._products[pid] = product
         self._save()
@@ -141,11 +160,33 @@ class WhatsAppBusinessManager:
         """Export all products to CSV."""
         with open(path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["name", "description", "price", "currency", "image_url",
-                            "category", "sku", "stock", "status"])
+            writer.writerow(
+                [
+                    "name",
+                    "description",
+                    "price",
+                    "currency",
+                    "image_url",
+                    "category",
+                    "sku",
+                    "stock",
+                    "status",
+                ]
+            )
             for p in self._products.values():
-                writer.writerow([p.name, p.description, p.price, p.currency,
-                                p.image_url, p.category, p.sku, p.stock, p.status])
+                writer.writerow(
+                    [
+                        p.name,
+                        p.description,
+                        p.price,
+                        p.currency,
+                        p.image_url,
+                        p.category,
+                        p.sku,
+                        p.stock,
+                        p.status,
+                    ]
+                )
         log.info("Exported %d products to CSV", len(self._products))
         return path
 
@@ -172,14 +213,21 @@ class WhatsAppBusinessManager:
     async def auto_upload_products(self, headless: bool = False) -> dict:
         """Use Browser Agent to log into WhatsApp Business and upload products."""
         from core.browser.agent import browser_agent
+
         if not self._products:
             return {"error": "No products to upload"}
 
         products = list(self._products.values())[:5]  # Upload first 5
-        task = "Go to business.facebook.com, log into WhatsApp Business Manager, navigate to the catalog section, add the following products one by one:\n"
+        task = (
+            "Go to business.facebook.com, log into WhatsApp Business Manager, "
+            "navigate to the catalog section, add the following products one by one:\n"
+        )
         for p in products:
             task += f"- Product: {p.name}, Price: ${p.price}, Description: {p.description[:100]}\n"
-        task += "For each product, click 'Add Product', fill in the name, description, price, upload image if available, and save."
+        task += (
+            "For each product, click 'Add Product', fill in the name, "
+            "description, price, upload image if available, and save."
+        )
 
         result = await browser_agent.execute(task, headless=headless)
         for p in products:

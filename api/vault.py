@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from core.vault.store import DataVault, VaultProfile, vault
+from core.vault.store import VaultProfile, vault
 
 router = APIRouter(prefix="/vault", tags=["Vault"])
 

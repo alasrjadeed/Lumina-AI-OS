@@ -188,7 +188,7 @@ async def test_middleware_clear_via_clear(started_bus):
 async def test_base_middleware_defaults():
     """BaseMiddleware provides no-op defaults for all hooks."""
     mw = BaseMiddleware()
-    sub = Subscription(topic="t", handler=lambda e: None)
+    sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
     event = Event(name="test")
 
     result = await mw.before_publish(event)

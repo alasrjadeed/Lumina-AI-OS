@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -80,7 +79,11 @@ class Task:
         return len(self.steps)
 
     def completed_steps(self) -> int:
-        return sum(1 for s in self.steps if s.status in (TaskStatus.COMPLETED, TaskStatus.SKIPPED, TaskStatus.FAILED))
+        return sum(
+            1
+            for s in self.steps
+            if s.status in (TaskStatus.COMPLETED, TaskStatus.SKIPPED, TaskStatus.FAILED)
+        )
 
     def failed_steps(self) -> int:
         return sum(1 for s in self.steps if s.status == TaskStatus.FAILED)
@@ -117,7 +120,9 @@ class Task:
             "metadata": self.metadata,
         }
 
-    def emit_event(self, type: str = "task.update", step_id: str = "", message: str = "") -> TaskEvent:
+    def emit_event(
+        self, type: str = "task.update", step_id: str = "", message: str = ""
+    ) -> TaskEvent:
         return TaskEvent(
             type=type,
             task_id=self.id,

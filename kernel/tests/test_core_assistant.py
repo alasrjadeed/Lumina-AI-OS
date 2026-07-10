@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.assistant.agent import AssistantAgent, CAPABILITIES
+from core.assistant.agent import CAPABILITIES, AssistantAgent
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ class TestAssistantAgent:
 
     @pytest.mark.asyncio
     async def test_handle_vault_set(self, agent: AssistantAgent, tmp_path):
-        with patch("core.assistant.agent.vault") as mock_vault:
+        with patch("core.assistant.agent.vault"):
             result = await agent._handle_vault({"sub_action": "set", "key": "test", "value": "val"})
             assert result["action"] == "vault"
 
@@ -67,11 +67,16 @@ class TestAssistantAgent:
 
     @pytest.mark.asyncio
     async def test_process_routes_to_content(self, agent: AssistantAgent):
-        with patch("core.assistant.agent.engine.chat", new=AsyncMock()) as mock_chat, \
-             patch("core.writer.generator.writer") as mock_writer:
+        with (
+            patch("core.assistant.agent.engine.chat", new=AsyncMock()) as mock_chat,
+            patch("core.writer.generator.writer") as mock_writer,
+        ):
             mock_chat.return_value = {
                 "message": {
-                    "content": '{"action": "content", "params": {"type": "blog", "topic": "AI"}, "summary": "write a blog"}'
+                    "content": (
+                        '{"action": "content", "params": {"type": "blog", "topic": "AI"},'
+                        ' "summary": "write a blog"}'
+                    )
                 }
             }
             mock_writer.generate = AsyncMock(return_value={"content": "Blog content"})
@@ -81,6 +86,8 @@ class TestAssistantAgent:
     @pytest.mark.asyncio
     async def test_process_returns_chat_for_unknown_action(self, agent: AssistantAgent):
         with patch("core.assistant.agent.engine.chat", new=AsyncMock()) as mock_chat:
-            mock_chat.return_value = {"message": {"content": '{"action": "unknown_action", "params": {}}'}}
+            mock_chat.return_value = {
+                "message": {"content": '{"action": "unknown_action", "params": {}}'}
+            }
             result = await agent.process("do something weird")
             assert isinstance(result, dict)

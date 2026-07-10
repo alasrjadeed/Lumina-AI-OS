@@ -33,13 +33,23 @@ class AuditLogger:
         self._events: list[AuditEvent] = []
         self._load()
 
-    def log(self, action: str, actor: str = "", resource: str = "",
-            result: str = "success", details: dict[str, Any] | None = None,
-            ip: str = "") -> AuditEvent:
+    def log(
+        self,
+        action: str,
+        actor: str = "",
+        resource: str = "",
+        result: str = "success",
+        details: dict[str, Any] | None = None,
+        ip: str = "",
+    ) -> AuditEvent:
         previous_hash = self._events[-1].hash if self._events else ""
         event = AuditEvent(
-            action=action, actor=actor, resource=resource,
-            result=result, details=details or {}, ip=ip,
+            action=action,
+            actor=actor,
+            resource=resource,
+            result=result,
+            details=details or {},
+            ip=ip,
             id=f"evt_{int(time.time() * 1000)}_{len(self._events)}",
         )
         event.previous_hash = previous_hash
@@ -52,8 +62,14 @@ class AuditLogger:
             log.info("Audit: %s by %s on %s", action, actor, resource)
         return event
 
-    def query(self, action: str = "", actor: str = "", resource: str = "",
-              result: str = "", limit: int = 100) -> list[AuditEvent]:
+    def query(
+        self,
+        action: str = "",
+        actor: str = "",
+        resource: str = "",
+        result: str = "",
+        limit: int = 100,
+    ) -> list[AuditEvent]:
         results = list(self._events)
         if action:
             results = [e for e in results if e.action == action]
@@ -87,21 +103,32 @@ class AuditLogger:
     def export(self, path: str = "", format: str = "json") -> str:
         export_path = path or f"audit_export.{format}"
         if format == "json":
-            data = [{"id": e.id, "action": e.action, "actor": e.actor,
-                     "resource": e.resource, "result": e.result,
-                     "details": e.details, "timestamp": e.timestamp,
-                     "ip": e.ip, "hash": e.hash}
-                    for e in self._events]
+            data = [
+                {
+                    "id": e.id,
+                    "action": e.action,
+                    "actor": e.actor,
+                    "resource": e.resource,
+                    "result": e.result,
+                    "details": e.details,
+                    "timestamp": e.timestamp,
+                    "ip": e.ip,
+                    "hash": e.hash,
+                }
+                for e in self._events
+            ]
             with open(export_path, "w") as f:
                 json.dump(data, f, indent=2)
         elif format == "csv":
             with open(export_path, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["id", "action", "actor", "resource", "result",
-                                 "timestamp", "ip", "hash"])
+                writer.writerow(
+                    ["id", "action", "actor", "resource", "result", "timestamp", "ip", "hash"]
+                )
                 for e in self._events:
-                    writer.writerow([e.id, e.action, e.actor, e.resource,
-                                     e.result, e.timestamp, e.ip, e.hash])
+                    writer.writerow(
+                        [e.id, e.action, e.actor, e.resource, e.result, e.timestamp, e.ip, e.hash]
+                    )
         return export_path
 
     def count(self) -> int:
@@ -119,11 +146,21 @@ class AuditLogger:
         return hashlib.sha256(data.encode()).hexdigest()
 
     def _save(self) -> None:
-        data = [{"id": e.id, "action": e.action, "actor": e.actor,
-                 "resource": e.resource, "result": e.result,
-                 "details": e.details, "timestamp": e.timestamp,
-                 "ip": e.ip, "previous_hash": e.previous_hash, "hash": e.hash}
-                for e in self._events]
+        data = [
+            {
+                "id": e.id,
+                "action": e.action,
+                "actor": e.actor,
+                "resource": e.resource,
+                "result": e.result,
+                "details": e.details,
+                "timestamp": e.timestamp,
+                "ip": e.ip,
+                "previous_hash": e.previous_hash,
+                "hash": e.hash,
+            }
+            for e in self._events
+        ]
         with open(self.storage_path, "w") as f:
             json.dump(data, f, indent=2)
 

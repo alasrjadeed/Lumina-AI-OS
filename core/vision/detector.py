@@ -21,15 +21,14 @@ except ImportError:
     CV2_AVAILABLE = False
 
 try:
-    from ultralytics import YOLO
+    from ultralytics import YOLO  # pyright: ignore[reportMissingImports]
 
     ULTRALYTICS_AVAILABLE = True
 except ImportError:
     ULTRALYTICS_AVAILABLE = False
 
 
-class DetectionError(Exception):
-    ...
+class DetectionError(Exception): ...
 
 
 @dataclass
@@ -110,20 +109,86 @@ class DetectionResult:
 
 class ObjectDetector:
     COCO_CLASSES: list[str] = [
-        "person", "bicycle", "car", "motorcycle", "airplane", "bus",
-        "train", "truck", "boat", "traffic light", "fire hydrant",
-        "stop sign", "parking meter", "bench", "bird", "cat", "dog",
-        "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
-        "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-        "skis", "snowboard", "sports ball", "kite", "baseball bat",
-        "baseball glove", "skateboard", "surfboard", "tennis racket",
-        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-        "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-        "hot dog", "pizza", "donut", "cake", "chair", "couch",
-        "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
-        "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
-        "toaster", "sink", "refrigerator", "book", "clock", "vase",
-        "scissors", "teddy bear", "hair drier", "toothbrush",
+        "person",
+        "bicycle",
+        "car",
+        "motorcycle",
+        "airplane",
+        "bus",
+        "train",
+        "truck",
+        "boat",
+        "traffic light",
+        "fire hydrant",
+        "stop sign",
+        "parking meter",
+        "bench",
+        "bird",
+        "cat",
+        "dog",
+        "horse",
+        "sheep",
+        "cow",
+        "elephant",
+        "bear",
+        "zebra",
+        "giraffe",
+        "backpack",
+        "umbrella",
+        "handbag",
+        "tie",
+        "suitcase",
+        "frisbee",
+        "skis",
+        "snowboard",
+        "sports ball",
+        "kite",
+        "baseball bat",
+        "baseball glove",
+        "skateboard",
+        "surfboard",
+        "tennis racket",
+        "bottle",
+        "wine glass",
+        "cup",
+        "fork",
+        "knife",
+        "spoon",
+        "bowl",
+        "banana",
+        "apple",
+        "sandwich",
+        "orange",
+        "broccoli",
+        "carrot",
+        "hot dog",
+        "pizza",
+        "donut",
+        "cake",
+        "chair",
+        "couch",
+        "potted plant",
+        "bed",
+        "dining table",
+        "toilet",
+        "tv",
+        "laptop",
+        "mouse",
+        "remote",
+        "keyboard",
+        "cell phone",
+        "microwave",
+        "oven",
+        "toaster",
+        "sink",
+        "refrigerator",
+        "book",
+        "clock",
+        "vase",
+        "scissors",
+        "teddy bear",
+        "hair drier",
+        "toothbrush",
     ]
 
     def __init__(
@@ -146,8 +211,8 @@ class ObjectDetector:
         if ULTRALYTICS_AVAILABLE and self._yolo_enabled:
             try:
                 model_path = self._model_path or "yolov8n.pt"
-                self._model = YOLO(model_path)
-                self._provider = f"yolov8"
+                self._model = YOLO(model_path)  # pyright: ignore[reportPossiblyUnboundVariable]
+                self._provider = "yolov8"
                 log.info("Vision: YOLOv8 detector loaded (%s)", model_path)
                 return
             except Exception as e:
@@ -174,11 +239,15 @@ class ObjectDetector:
             return await self._detect_haar(frame_np, width, height, start)
 
     async def _detect_yolo(
-        self, frame_np: np.ndarray,
-        threshold: float, img_w: int, img_h: int,
+        self,
+        frame_np: np.ndarray,
+        threshold: float,
+        img_w: int,
+        img_h: int,
         start: float,
     ) -> DetectionResult:
         try:
+            assert self._model is not None
             results = self._model(frame_np, verbose=False)
             elapsed = (time.time() - start) * 1000
             detections: list[Detection] = []
@@ -192,55 +261,79 @@ class ObjectDetector:
                     if conf < threshold:
                         continue
                     cls_id = int(box.cls[0])
-                    label = self.CLASS_MAP.get(cls_id, self.COCO_CLASSES[cls_id]) if cls_id < len(
-                        self.COCO_CLASSES) else f"class_{cls_id}"
+                    label = (
+                        self.CLASS_MAP.get(cls_id, self.COCO_CLASSES[cls_id])
+                        if cls_id < len(self.COCO_CLASSES)
+                        else f"class_{cls_id}"
+                    )
                     x1, y1, x2, y2 = box.xyxy[0].tolist()
                     norm_bbox = (
-                        x1 / img_w, y1 / img_h,
-                        (x2 - x1) / img_w, (y2 - y1) / img_h,
+                        x1 / img_w,
+                        y1 / img_h,
+                        (x2 - x1) / img_w,
+                        (y2 - y1) / img_h,
                     )
-                    detections.append(Detection(
-                        label=label, confidence=conf, bbox=norm_bbox,
-                    ))
+                    detections.append(
+                        Detection(
+                            label=label,
+                            confidence=conf,
+                            bbox=norm_bbox,
+                        )
+                    )
 
             return DetectionResult(
                 detections=detections,
-                image_width=img_w, image_height=img_h,
-                inference_ms=elapsed, provider=self._provider,
+                image_width=img_w,
+                image_height=img_h,
+                inference_ms=elapsed,
+                provider=self._provider,
             )
 
         except Exception as e:
             log.error("Vision: YOLO detection error: %s", e)
             return DetectionResult(
-                image_width=img_w, image_height=img_h,
+                image_width=img_w,
+                image_height=img_h,
                 provider=self._provider,
             )
 
     async def _detect_haar(
-        self, frame_np: np.ndarray,
-        img_w: int, img_h: int, start: float,
+        self,
+        frame_np: np.ndarray,
+        img_w: int,
+        img_h: int,
+        start: float,
     ) -> DetectionResult:
         detections: list[Detection] = []
 
-        gray = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)
-        face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        gray = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)  # pyright: ignore[reportPossiblyUnboundVariable]
+        face_cascade = cv2.CascadeClassifier(  # pyright: ignore[reportAttributeAccessIssue, reportPossiblyUnboundVariable]
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"  # pyright: ignore[reportAttributeAccessIssue, reportPossiblyUnboundVariable]
         )
         faces = face_cascade.detectMultiScale(
-            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
         )
 
         for x, y, w, h in faces:
             norm_bbox = (x / img_w, y / img_h, w / img_w, h / img_h)
-            detections.append(Detection(
-                label="face", confidence=0.7, bbox=norm_bbox,
-            ))
+            detections.append(
+                Detection(
+                    label="face",
+                    confidence=0.7,
+                    bbox=norm_bbox,
+                )
+            )
 
         elapsed = (time.time() - start) * 1000
         return DetectionResult(
             detections=detections,
-            image_width=img_w, image_height=img_h,
-            inference_ms=elapsed, provider=self._provider,
+            image_width=img_w,
+            image_height=img_h,
+            inference_ms=elapsed,
+            provider=self._provider,
         )
 
     CLASS_MAP: dict[int, str] = {}

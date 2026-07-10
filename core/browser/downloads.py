@@ -45,6 +45,7 @@ class DownloadManager:
             info.size = Path(path).stat().st_size if Path(path).exists() else 0
             info.end_time = time.time()
             self._pending.pop(download.url, None)
+
         self._page.on("download", on_download)
 
     async def stop_tracking(self) -> None:
@@ -65,7 +66,9 @@ class DownloadManager:
         return [d for d in self._downloads if mime_type in d.mime_type]
 
     async def wait_for_download(
-        self, url_pattern: str = "", timeout: float = 30000,
+        self,
+        url_pattern: str = "",
+        timeout: float = 30000,
     ) -> DownloadInfo | None:
         deadline = time.time() + timeout / 1000
         while time.time() < deadline:

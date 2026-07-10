@@ -110,6 +110,5 @@ class AutomationAPI:
 
     async def get_console_log(self) -> list[dict]:
         return [
-            {"level": e.level, "text": e.text, "url": e.url}
-            for e in self.monitor.get_console_log()
+            {"level": e.level, "text": e.text, "url": e.url} for e in self.monitor.get_console_log()
         ]

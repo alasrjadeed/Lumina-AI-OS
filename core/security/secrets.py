@@ -6,10 +6,12 @@ import json
 import os
 import secrets
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 try:
     from cryptography.fernet import Fernet
+
     HAS_FERNET = True
 except ImportError:
     Fernet = None
@@ -32,21 +34,25 @@ class Secret:
 class SecretsManager:
     """Secure storage for API keys, tokens, passwords with encryption at rest."""
 
-    def __init__(self, storage_path: str = "lumina_secrets.json",
-                 master_key: str | None = None):
+    def __init__(self, storage_path: str = "lumina_secrets.json", master_key: str | None = None):
         self.storage_path = storage_path
         self._master_key = master_key or os.environ.get("LUMINA_MASTER_KEY", "")
         self._secrets: dict[str, Secret] = {}
         self._load()
 
-    def set(self, key: str, value: str, tags: list[str] | None = None,
-            encrypt: bool = True) -> Secret:
+    def set(
+        self, key: str, value: str, tags: list[str] | None = None, encrypt: bool = True
+    ) -> Secret:
         if key in self._secrets:
             existing = self._secrets[key]
             secret = Secret(
-                key=key, value=value, encrypted=encrypt,
-                created=existing.created, version=existing.version + 1,
-                rotated=time.time(), tags=tags or existing.tags,
+                key=key,
+                value=value,
+                encrypted=encrypt,
+                created=existing.created,
+                version=existing.version + 1,
+                rotated=time.time(),
+                tags=tags or existing.tags,
             )
         else:
             secret = Secret(key=key, value=value, encrypted=encrypt, tags=tags or [])
@@ -88,7 +94,7 @@ class SecretsManager:
         self.set(key, new_value, encrypt=self._secrets[key].encrypted)
         return True
 
-    def rotate_all(self, generator: callable) -> int:
+    def rotate_all(self, generator: Callable[..., str]) -> int:
         count = 0
         for key in list(self._secrets.keys()):
             try:
@@ -107,9 +113,15 @@ class SecretsManager:
 
     def export(self, path: str = "") -> str:
         export_path = path or self.storage_path + ".export"
-        data = {k: {"key": s.key, "value": s.value if not s.encrypted else "",
-                     "version": s.version, "encrypted": s.encrypted}
-                for k, s in self._secrets.items()}
+        data = {
+            k: {
+                "key": s.key,
+                "value": s.value if not s.encrypted else "",
+                "version": s.version,
+                "encrypted": s.encrypted,
+            }
+            for k, s in self._secrets.items()
+        }
         with open(export_path, "w") as f:
             json.dump(data, f, indent=2)
         return export_path
@@ -123,9 +135,8 @@ class SecretsManager:
 
     def _encrypt(self, value: str) -> str:
         if HAS_FERNET:
-            key = base64.urlsafe_b64encode(
-                hashlib.sha256(self._master_key.encode()).digest()
-            )
+            key = base64.urlsafe_b64encode(hashlib.sha256(self._master_key.encode()).digest())
+            assert Fernet is not None
             f = Fernet(key)
             return f.encrypt(value.encode()).decode()
         log.warning("cryptography not installed, using base64 encoding")
@@ -133,19 +144,26 @@ class SecretsManager:
 
     def _decrypt(self, value: str) -> str:
         if HAS_FERNET:
-            key = base64.urlsafe_b64encode(
-                hashlib.sha256(self._master_key.encode()).digest()
-            )
+            key = base64.urlsafe_b64encode(hashlib.sha256(self._master_key.encode()).digest())
+            assert Fernet is not None
             f = Fernet(key)
             return f.decrypt(value.encode()).decode()
         log.warning("cryptography not installed, using base64 decoding")
         return base64.b64decode(value.encode()).decode()
 
     def _save(self) -> None:
-        data = {k: {"key": s.key, "value": s.value, "encrypted": s.encrypted,
-                    "created": s.created, "rotated": s.rotated,
-                    "version": s.version, "tags": s.tags}
-                for k, s in self._secrets.items()}
+        data = {
+            k: {
+                "key": s.key,
+                "value": s.value,
+                "encrypted": s.encrypted,
+                "created": s.created,
+                "rotated": s.rotated,
+                "version": s.version,
+                "tags": s.tags,
+            }
+            for k, s in self._secrets.items()
+        }
         with open(self.storage_path, "w") as f:
             json.dump(data, f, indent=2)
 

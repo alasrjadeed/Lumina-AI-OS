@@ -3,12 +3,12 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from core.agents.runner import runner, AGENT_METADATA
-from core.agents.approval import approval_gate, ApprovalLevel
+from core.agents.approval import ApprovalLevel, approval_gate
+from core.agents.employee import employee
 from core.agents.languages import language_engine
 from core.agents.learning import learning_engine
 from core.agents.routine import autonomous_routine
-from core.agents.employee import employee
+from core.agents.runner import AGENT_METADATA, runner
 
 router = APIRouter(prefix="/multiagent", tags=["Multi-Agent"])
 
@@ -40,12 +40,13 @@ class LanguageRequest(BaseModel):
 
 # ── Agent listing ──
 
+
 @router.get("/agents")
 async def list_agents():
-    agents = sorted(runner.list_agents(), key=lambda a: (
-        0 if a.get("category") == "orchestrator" else 1,
-        a.get("name", "")
-    ))
+    agents = sorted(
+        runner.list_agents(),
+        key=lambda a: (0 if a.get("category") == "orchestrator" else 1, a.get("name", "")),
+    )
     return {"agents": agents, "total": len(agents)}
 
 
@@ -73,9 +74,11 @@ async def get_agent(agent_id: str):
 
 # ── Orchestration ──
 
+
 @router.post("/orchestrate")
 async def orchestrate(req: OrchestrateRequest):
-    """Run a task through the CEO orchestrator — breaks it into phases, assigns specialists, synthesizes results."""
+    """Run a task through the CEO orchestrator — breaks it into phases,
+    assigns specialists, synthesizes results."""
     run = await runner.orchestrate(req.task, req.context)
     return run.to_dict()
 
@@ -95,6 +98,7 @@ async def get_orch_run(run_id: str):
 
 
 # ── Single / Batch execution ──
+
 
 @router.post("/run")
 async def run_agent(req: AgentTask):
@@ -139,6 +143,7 @@ async def list_teams():
 
 # ── Autonomous Employee ──
 
+
 @router.post("/employee/handle")
 async def employee_handle(req: OrchestrateRequest):
     """Process a natural language request through the full autonomous pipeline."""
@@ -152,6 +157,7 @@ async def employee_status():
 
 
 # ── Approval Gates ──
+
 
 @router.get("/approval/pending")
 async def get_pending_approvals():
@@ -179,7 +185,11 @@ async def approve_request(req: ApprovalAction):
     result = approval_gate.approve(req.request_id, req.note)
     if not result:
         raise HTTPException(404, f"Approval request not found: {req.request_id}")
-    return {"status": "approved", "request": result.to_dict(), "message": f"Action '{result.action}' approved."}
+    return {
+        "status": "approved",
+        "request": result.to_dict(),
+        "message": f"Action '{result.action}' approved.",
+    }
 
 
 @router.post("/approval/deny")
@@ -187,16 +197,23 @@ async def deny_request(req: ApprovalAction):
     result = approval_gate.deny(req.request_id, req.note)
     if not result:
         raise HTTPException(404, f"Approval request not found: {req.request_id}")
-    return {"status": "denied", "request": result.to_dict(), "message": f"Action '{result.action}' denied."}
+    return {
+        "status": "denied",
+        "request": result.to_dict(),
+        "message": f"Action '{result.action}' denied.",
+    }
 
 
 @router.put("/approval/levels/{action}")
-async def set_approval_level(action: str, level: str = Query(..., pattern="^(auto|notify|confirm|require)$")):
+async def set_approval_level(
+    action: str, level: str = Query(..., pattern="^(auto|notify|confirm|require)$")
+):
     approval_gate.set_level(action, ApprovalLevel(level))
     return {"action": action, "level": level}
 
 
 # ── Language ──
+
 
 @router.post("/language/detect")
 async def detect_language(req: LanguageRequest):
@@ -210,6 +227,7 @@ async def list_languages():
 
 
 # ── Learning ──
+
 
 @router.get("/learning/stats")
 async def learning_stats():
@@ -231,6 +249,7 @@ async def get_knowledge(task: str = Query("")):
 
 
 # ── Routine ──
+
 
 @router.post("/routine/morning")
 async def morning_routine():

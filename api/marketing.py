@@ -43,11 +43,21 @@ class TrackRequest(BaseModel):
 
 @router.get("/campaigns")
 async def campaigns(status: str = ""):
-    return {"campaigns": [{"name": c.name, "channel": c.channel.value,
-                           "budget": c.budget, "spent": c.spent,
-                           "impressions": c.impressions, "clicks": c.clicks,
-                           "conversions": c.conversions, "status": c.status}
-                          for c in list_campaigns(status)]}
+    return {
+        "campaigns": [
+            {
+                "name": c.name,
+                "channel": c.channel.value,
+                "budget": c.budget,
+                "spent": c.spent,
+                "impressions": c.impressions,
+                "clicks": c.clicks,
+                "conversions": c.conversions,
+                "status": c.status,
+            }
+            for c in list_campaigns(status)
+        ]
+    }
 
 
 @router.post("/campaigns")
@@ -61,9 +71,16 @@ async def get(name: str):
     c = get_campaign(name)
     if not c:
         return {"error": "Campaign not found"}
-    return {"name": c.name, "channel": c.channel.value, "budget": c.budget,
-            "spent": c.spent, "impressions": c.impressions, "clicks": c.clicks,
-            "conversions": c.conversions, "status": c.status}
+    return {
+        "name": c.name,
+        "channel": c.channel.value,
+        "budget": c.budget,
+        "spent": c.spent,
+        "impressions": c.impressions,
+        "clicks": c.clicks,
+        "conversions": c.conversions,
+        "status": c.status,
+    }
 
 
 @router.post("/campaigns/{name}/launch")
@@ -110,8 +127,12 @@ async def conversion(req: TrackRequest):
 @router.get("/content")
 async def content(status: str = "", channel: str = ""):
     items = get_content_calendar(status, channel)
-    return {"items": [{"title": c.title, "channel": c.channel,
-                       "status": c.status, "tags": c.tags} for c in items]}
+    return {
+        "items": [
+            {"title": c.title, "channel": c.channel, "status": c.status, "tags": c.tags}
+            for c in items
+        ]
+    }
 
 
 @router.post("/content")

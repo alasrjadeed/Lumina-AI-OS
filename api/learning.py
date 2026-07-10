@@ -40,8 +40,12 @@ async def record_action(req: RecordAction):
 
 @router.get("/patterns")
 async def get_patterns():
-    return {"patterns": [{"sequence": p.sequence, "frequency": p.frequency}
-                        for p in agent.get_frequent_patterns(10)]}
+    return {
+        "patterns": [
+            {"sequence": p.sequence, "frequency": p.frequency}
+            for p in agent.get_frequent_patterns(10)
+        ]
+    }
 
 
 @router.get("/suggest/{action}")

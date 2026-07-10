@@ -1,7 +1,7 @@
 import json
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # pyright: ignore[reportMissingImports]
 
 BASE = "http://localhost:8000"
 mcp = FastMCP(
@@ -16,6 +16,7 @@ async def api_get(path: str) -> dict:
         r = await c.get(f"{BASE}{path}")
         r.raise_for_status()
         return r.json()
+
 
 async def api_post(path: str, body: dict) -> dict:
     async with httpx.AsyncClient(timeout=120) as c:

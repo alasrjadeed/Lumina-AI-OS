@@ -28,9 +28,11 @@ def demo_authentication():
 
     # Login
     session = auth.authenticate("demo_user", "SecurePass123!")
+    assert session is not None
     print(f"Login token: {session.token[:16]}...")
 
     # Validate session
+    assert session is not None
     validated = auth.validate_session(session.token)
     print(f"Session valid for: {validated.username if validated else 'INVALID'}")
 
@@ -39,6 +41,7 @@ def demo_authentication():
     print(f"API key: {api_key[:16]}...")
 
     # Logout
+    assert session is not None
     auth.logout(session.token)
     print("Logged out.")
 
@@ -118,8 +121,11 @@ def demo_audit():
         al.log("login", actor="alice", resource="system", result="success")
         al.log("file_read", actor="alice", resource="/etc/config.json", result="success")
         al.log(
-            "login", actor="bob", resource="system",
-            result="failure", details={"reason": "wrong password"},
+            "login",
+            actor="bob",
+            resource="system",
+            result="failure",
+            details={"reason": "wrong password"},
         )
 
         # Query

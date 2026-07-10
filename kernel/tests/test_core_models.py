@@ -4,24 +4,44 @@ from core.models.router import ModelCapability, ModelRouter
 
 MODELS = [
     ModelCapability(
-        name="ollama", provider="ollama", context_window=4096,
-        supports_tools=True, cost_per_1k_input=0, cost_per_1k_output=0,
-        capabilities=["code", "general", "chat"], priority=0,
+        name="ollama",
+        provider="ollama",
+        context_window=4096,
+        supports_tools=True,
+        cost_per_1k_input=0,
+        cost_per_1k_output=0,
+        capabilities=["code", "general", "chat"],
+        priority=0,
     ),
     ModelCapability(
-        name="gpt-4o-mini", provider="openai", context_window=16000,
-        supports_tools=True, cost_per_1k_input=0.15, cost_per_1k_output=0.6,
-        capabilities=["code", "reasoning", "general", "chat"], priority=5,
+        name="gpt-4o-mini",
+        provider="openai",
+        context_window=16000,
+        supports_tools=True,
+        cost_per_1k_input=0.15,
+        cost_per_1k_output=0.6,
+        capabilities=["code", "reasoning", "general", "chat"],
+        priority=5,
     ),
     ModelCapability(
-        name="claude-sonnet", provider="openrouter", context_window=32000,
-        supports_tools=True, cost_per_1k_input=3, cost_per_1k_output=15,
-        capabilities=["reasoning", "creative", "code"], priority=10,
+        name="claude-sonnet",
+        provider="openrouter",
+        context_window=32000,
+        supports_tools=True,
+        cost_per_1k_input=3,
+        cost_per_1k_output=15,
+        capabilities=["reasoning", "creative", "code"],
+        priority=10,
     ),
     ModelCapability(
-        name="gemini-flash", provider="gemini", context_window=32000,
-        supports_tools=False, cost_per_1k_input=0, cost_per_1k_output=0,
-        capabilities=["general", "chat"], priority=3,
+        name="gemini-flash",
+        provider="gemini",
+        context_window=32000,
+        supports_tools=False,
+        cost_per_1k_input=0,
+        cost_per_1k_output=0,
+        capabilities=["general", "chat"],
+        priority=3,
     ),
 ]
 
@@ -46,7 +66,9 @@ class TestModelRouter:
 
     def test_route_picks_capable_for_reasoning(self):
         router = ModelRouter(models=MODELS)
-        model = router.route("perform deep reasoning analysis on the data and research findings", prefer_free=False)  # noqa: E501
+        model = router.route(
+            "perform deep reasoning analysis on the data and research findings", prefer_free=False
+        )  # noqa: E501
         assert model is not None
         assert "reasoning" in model.capabilities
 

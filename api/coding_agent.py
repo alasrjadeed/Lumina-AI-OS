@@ -1,13 +1,11 @@
 """Coding Agent — read project, plan, edit, test, heal, commit. Full autonomous pipeline."""
 
-import asyncio
 import json
 import os
 import re
 import subprocess
 import time
 from pathlib import Path
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -21,14 +19,17 @@ router = APIRouter(prefix="/coding-agent", tags=["Coding Agent"])
 
 # ── Models ──
 
+
 class ProjectRequest(BaseModel):
     path: str = "."
+
 
 class EditRequest(BaseModel):
     task: str
     project_path: str = "."
     language: str = ""
     auto_commit: bool = False
+
 
 class MemoryRequest(BaseModel):
     key: str
@@ -40,13 +41,16 @@ class MemoryRequest(BaseModel):
 
 AGENT_MEMORY_FILE = os.path.expanduser("~/.lumina/coding_agent_memory.json")
 
+
 def _load_memory() -> dict:
     try:
         f = Path(AGENT_MEMORY_FILE)
         if f.exists():
             return json.loads(f.read_text())
-    except: pass
+    except Exception:
+        pass
     return {"projects": {}, "preferences": {}, "bugs": [], "style": {}}
+
 
 def _save_memory(data: dict):
     Path(AGENT_MEMORY_FILE).parent.mkdir(parents=True, exist_ok=True)
@@ -55,9 +59,22 @@ def _save_memory(data: dict):
 
 # ── Project Understanding ──
 
-IGNORE_DIRS = {"node_modules", ".git", "__pycache__", ".venv", "venv",
-               ".next", "dist", "build", ".cache", ".tox", "target",
-               ".lumina_packages", ".codebase-memory"}
+IGNORE_DIRS = {
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".next",
+    "dist",
+    "build",
+    ".cache",
+    ".tox",
+    "target",
+    ".lumina_packages",
+    ".codebase-memory",
+}
+
 
 @router.post("/understand", summary="Read and understand the project structure")
 async def understand_project(req: ProjectRequest):
@@ -75,11 +92,13 @@ async def understand_project(req: ProjectRequest):
         if entry.is_file() and entry.stat().st_size < 50000:
             file_count += 1
             rel = str(entry.relative_to(root))
-            structure.append({
-                "path": rel,
-                "size": entry.stat().st_size,
-                "ext": entry.suffix,
-            })
+            structure.append(
+                {
+                    "path": rel,
+                    "size": entry.stat().st_size,
+                    "ext": entry.suffix,
+                }
+            )
         elif entry.is_dir():
             dir_count += 1
 
@@ -89,9 +108,19 @@ async def understand_project(req: ProjectRequest):
 
     # Package files
     package_files = {}
-    for name in ["package.json", "pyproject.toml", "Cargo.toml",
-                  "go.mod", "composer.json", "Gemfile", "requirements.txt",
-                  "Makefile", "Dockerfile", "tsconfig.json", "vite.config.ts"]:
+    for name in [
+        "package.json",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "composer.json",
+        "Gemfile",
+        "requirements.txt",
+        "Makefile",
+        "Dockerfile",
+        "tsconfig.json",
+        "vite.config.ts",
+    ]:
         if name in files_set:
             package_files[name] = Path(root / name).read_text()[:2000]
 
@@ -115,16 +144,23 @@ async def understand_project(req: ProjectRequest):
 
 
 def _detect_project_type(files: set) -> str:
-    if "pyproject.toml" in files: return "python"
-    if "package.json" in files: return "node"
-    if "Cargo.toml" in files: return "rust"
-    if "go.mod" in files: return "go"
-    if "composer.json" in files: return "php"
-    if "Gemfile" in files: return "ruby"
+    if "pyproject.toml" in files:
+        return "python"
+    if "package.json" in files:
+        return "node"
+    if "Cargo.toml" in files:
+        return "rust"
+    if "go.mod" in files:
+        return "go"
+    if "composer.json" in files:
+        return "php"
+    if "Gemfile" in files:
+        return "ruby"
     return "unknown"
 
 
 # ── Plan ──
+
 
 @router.post("/plan", summary="Plan the implementation steps")
 async def plan_implementation(req: EditRequest):
@@ -140,8 +176,8 @@ async def plan_implementation(req: EditRequest):
 
     prompt = f"""You are a senior software engineer. Plan the implementation for this task.
 
-PROJECT: {root.name} ({context.get('type', 'unknown')})
-FILES: {json.dumps(context.get('key_files', [])[:30], indent=2)}
+PROJECT: {root.name} ({context.get("type", "unknown")})
+FILES: {json.dumps(context.get("key_files", [])[:30], indent=2)}
 
 TASK: {req.task}
 
@@ -152,7 +188,11 @@ Return a JSON plan:
 {{
   "summary": "one-line summary",
   "steps": [
-    {{"action": "read|edit|create|delete|test|install", "file": "relative/path", "reason": "why", "details": "what to change"}}
+    {{
+      "action": "read|edit|create|delete|test|install",
+      "file": "relative/path", "reason": "why",
+      "details": "what to change"
+    }}
   ],
   "test_command": "command to run after changes",
   "risks": ["potential issues"]
@@ -161,22 +201,25 @@ Return a JSON plan:
     resp = await ai_engine.chat([{"role": "user", "content": prompt}])
     text = resp.get("message", {}).get("content", "")
     import re
+
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if match:
         try:
             plan = json.loads(match.group())
             return plan
-        except: pass
+        except Exception:
+            pass
     return {"summary": "Could not parse plan", "steps": [], "test_command": "", "risks": []}
 
 
 # ── Execute ──
 
+
 @router.post("/execute", summary="Execute the planned edits")
 async def execute_plan(req: EditRequest):
     root = Path(req.project_path).expanduser().resolve()
     if not root.exists():
-        raise HTTPException(404, f"Project not found")
+        raise HTTPException(404, "Project not found")
 
     # Get the plan
     plan_resp = await plan_implementation(req)
@@ -202,10 +245,10 @@ async def execute_plan(req: EditRequest):
                 content = file_path.read_text()
                 edit_prompt = f"""Edit this file to implement the required change.
 
-FILE: {step['file']}
+FILE: {step["file"]}
 TASK: {req.task}
-REASON: {step.get('reason', '')}
-DETAILS: {step.get('details', '')}
+REASON: {step.get("reason", "")}
+DETAILS: {step.get("details", "")}
 
 Current content:
 ```{content[:5000]}```
@@ -219,15 +262,21 @@ Return ONLY the new file content wrapped in ```."""
                     file_path.write_text(new_content)
                     results.append({"step": step, "status": "ok", "detail": "File edited"})
                 else:
-                    results.append({"step": step, "status": "error", "error": "Could not extract code from AI response"})
+                    results.append(
+                        {
+                            "step": step,
+                            "status": "error",
+                            "error": "Could not extract code from AI response",
+                        }
+                    )
 
             elif step["action"] == "create":
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 create_prompt = f"""Create this file for the task.
 
-FILE: {step['file']}
+FILE: {step["file"]}
 TASK: {req.task}
-DETAILS: {step.get('details', '')}
+DETAILS: {step.get("details", "")}
 
 Return ONLY the file content wrapped in ```."""
                 resp = await ai_engine.chat([{"role": "user", "content": create_prompt}])
@@ -237,7 +286,9 @@ Return ONLY the file content wrapped in ```."""
                     file_path.write_text(code_match.group(1))
                     results.append({"step": step, "status": "ok", "detail": "File created"})
                 else:
-                    results.append({"step": step, "status": "error", "error": "Could not extract code"})
+                    results.append(
+                        {"step": step, "status": "error", "error": "Could not extract code"}
+                    )
 
             elif step["action"] == "delete":
                 if file_path.exists():
@@ -249,13 +300,20 @@ Return ONLY the file content wrapped in ```."""
             elif step["action"] == "install":
                 install_dir = file_path or root
                 result = subprocess.run(
-                    step.get("details", ""), shell=True, capture_output=True, text=True,
-                    timeout=60, cwd=str(install_dir) if install_dir.exists() else str(root),
+                    step.get("details", ""),
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    cwd=str(install_dir) if install_dir.exists() else str(root),
                 )
-                results.append({
-                    "step": step, "status": "ok" if result.returncode == 0 else "error",
-                    "detail": result.stdout[:500] or result.stderr[:500],
-                })
+                results.append(
+                    {
+                        "step": step,
+                        "status": "ok" if result.returncode == 0 else "error",
+                        "detail": result.stdout[:500] or result.stderr[:500],
+                    }
+                )
 
         except Exception as e:
             results.append({"step": step, "status": "error", "error": str(e)})
@@ -271,11 +329,12 @@ Return ONLY the file content wrapped in ```."""
 
 # ── Test & Heal Loop ──
 
+
 @router.post("/test", summary="Run tests and auto-fix until green")
 async def test_project(req: EditRequest):
     root = Path(req.project_path).expanduser().resolve()
     if not root.exists():
-        raise HTTPException(404, f"Project not found")
+        raise HTTPException(404, "Project not found")
 
     context = _gather_project_context(root)
     test_cmd = context.get("test_command", req.task)
@@ -291,9 +350,9 @@ async def heal_loop(req: EditRequest):
     """Run the full heal loop: test → detect error → AI fix → retry → commit."""
     root = Path(req.project_path).expanduser().resolve()
     if not root.exists():
-        raise HTTPException(404, f"Project not found")
+        raise HTTPException(404, "Project not found")
 
-    context = _gather_project_context(root)
+    _gather_project_context(root)
     test_cmd = _detect_test_command(root)
     max_iterations = 5
     iterations = []
@@ -305,11 +364,13 @@ async def heal_loop(req: EditRequest):
 
         if result.success:
             all_ok = True
-            iterations.append({
-                "iteration": i + 1,
-                "status": "success",
-                "output": result.output[:500],
-            })
+            iterations.append(
+                {
+                    "iteration": i + 1,
+                    "status": "success",
+                    "output": result.output[:500],
+                }
+            )
             break
 
         # AI analyzes error and suggests fix
@@ -343,14 +404,17 @@ Return JSON:
                         fp.write_text(code_diff)
                         fix_applied = True
                         log.info("CodingAgent: Fixed %s", fix_file)
-            except: pass
+            except Exception:
+                pass
 
-        iterations.append({
-            "iteration": i + 1,
-            "status": "fixed" if fix_applied else "failed",
-            "error": result.error[:500],
-            "fix_applied": fix_applied,
-        })
+        iterations.append(
+            {
+                "iteration": i + 1,
+                "status": "fixed" if fix_applied else "failed",
+                "error": result.error[:500],
+                "fix_applied": fix_applied,
+            }
+        )
 
     # Remember the bug
     if not all_ok:
@@ -374,7 +438,10 @@ Return JSON:
 
 # ── Full Pipeline ──
 
-@router.post("/start", summary="Full autonomous pipeline: understand → plan → execute → test → heal → commit")
+
+@router.post(
+    "/start", summary="Full autonomous pipeline: understand → plan → execute → test → heal → commit"
+)
 async def start_coding_agent(req: EditRequest):
     """Run the complete autonomous coding pipeline."""
     phases = []
@@ -384,7 +451,9 @@ async def start_coding_agent(req: EditRequest):
     log.info("CodingAgent: Phase 1/6 — Understanding project...")
     try:
         understand = await understand_project(ProjectRequest(path=req.project_path))
-        phases.append({"phase": "understand", "status": "ok", "project_type": understand.get("project_type")})
+        phases.append(
+            {"phase": "understand", "status": "ok", "project_type": understand.get("project_type")}
+        )
     except Exception as e:
         phases.append({"phase": "understand", "status": "error", "error": str(e)})
         return {"success": False, "phases": phases, "duration": time.time() - start}
@@ -393,8 +462,14 @@ async def start_coding_agent(req: EditRequest):
     log.info("CodingAgent: Phase 2/6 — Planning...")
     try:
         plan = await plan_implementation(req)
-        phases.append({"phase": "plan", "status": "ok", "steps": len(plan.get("steps", [])),
-                       "summary": plan.get("summary", "")})
+        phases.append(
+            {
+                "phase": "plan",
+                "status": "ok",
+                "steps": len(plan.get("steps", [])),
+                "summary": plan.get("summary", ""),
+            }
+        )
     except Exception as e:
         phases.append({"phase": "plan", "status": "error", "error": str(e)})
         return {"success": False, "phases": phases, "duration": time.time() - start}
@@ -403,8 +478,14 @@ async def start_coding_agent(req: EditRequest):
     log.info("CodingAgent: Phase 3/6 — Executing...")
     try:
         execution = await execute_plan(req)
-        phases.append({"phase": "execute", "status": "ok" if execution.get("success") else "partial",
-                       "ok": execution.get("steps_ok", 0), "total": execution.get("steps_total", 0)})
+        phases.append(
+            {
+                "phase": "execute",
+                "status": "ok" if execution.get("success") else "partial",
+                "ok": execution.get("steps_ok", 0),
+                "total": execution.get("steps_total", 0),
+            }
+        )
     except Exception as e:
         phases.append({"phase": "execute", "status": "error", "error": str(e)})
         return {"success": False, "phases": phases, "duration": time.time() - start}
@@ -413,8 +494,13 @@ async def start_coding_agent(req: EditRequest):
     log.info("CodingAgent: Phase 4/6 — Testing...")
     try:
         test_result = await test_project(req)
-        phases.append({"phase": "test", "status": "ok" if test_result.get("success") else "failed",
-                       "attempts": test_result.get("attempts", 0)})
+        phases.append(
+            {
+                "phase": "test",
+                "status": "ok" if test_result.get("success") else "failed",
+                "attempts": test_result.get("attempts", 0),
+            }
+        )
     except Exception as e:
         phases.append({"phase": "test", "status": "error", "error": str(e)})
 
@@ -423,8 +509,13 @@ async def start_coding_agent(req: EditRequest):
         log.info("CodingAgent: Phase 5/6 — Healing...")
         try:
             heal = await heal_loop(req)
-            phases.append({"phase": "heal", "status": "ok" if heal.get("success") else "failed",
-                           "iterations": heal.get("total_iterations", 0)})
+            phases.append(
+                {
+                    "phase": "heal",
+                    "status": "ok" if heal.get("success") else "failed",
+                    "iterations": heal.get("total_iterations", 0),
+                }
+            )
         except Exception as e:
             phases.append({"phase": "heal", "status": "error", "error": str(e)})
     else:
@@ -436,10 +527,19 @@ async def start_coding_agent(req: EditRequest):
         try:
             commit_result = subprocess.run(
                 ["git", "add", "-A", "&&", "git", "commit", "-m", f"AI: {req.task}"],
-                shell=True, capture_output=True, text=True, timeout=30, cwd=str(root),
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=str(Path(req.project_path)),
             )
-            phases.append({"phase": "commit", "status": "ok" if commit_result.returncode == 0 else "error",
-                           "detail": commit_result.stdout[:300] or commit_result.stderr[:300]})
+            phases.append(
+                {
+                    "phase": "commit",
+                    "status": "ok" if commit_result.returncode == 0 else "error",
+                    "detail": commit_result.stdout[:300] or commit_result.stderr[:300],
+                }
+            )
         except Exception as e:
             phases.append({"phase": "commit", "status": "error", "error": str(e)})
     else:
@@ -457,6 +557,7 @@ async def start_coding_agent(req: EditRequest):
 
 
 # ── Memory ──
+
 
 @router.post("/memory", summary="Store or retrieve agent memory")
 async def agent_memory(req: MemoryRequest):
@@ -482,11 +583,13 @@ async def agent_memory(req: MemoryRequest):
         return {"status": "ok", "key": req.key}
 
     elif req.action == "remember_bug":
-        memory.setdefault("bugs", []).append({
-            "project": req.key,
-            "error": req.value[:500],
-            "timestamp": time.time(),
-        })
+        memory.setdefault("bugs", []).append(
+            {
+                "project": req.key,
+                "error": req.value[:500],
+                "timestamp": time.time(),
+            }
+        )
         _save_memory(memory)
         return {"status": "ok", "total_bugs": len(memory["bugs"])}
 
@@ -496,22 +599,28 @@ async def agent_memory(req: MemoryRequest):
             memory["style"] = style
             _save_memory(memory)
             return {"status": "ok", "style": style}
-        except: raise HTTPException(400, "Invalid style JSON")
+        except Exception:
+            raise HTTPException(400, "Invalid style JSON")
 
     return {"status": "error", "error": "Unknown action"}
 
 
 # ── Helpers ──
 
+
 def _gather_project_context(root: Path) -> dict:
-    files_set = {str(f.relative_to(root)) for f in root.rglob("*")
-                 if f.is_file() and not any(ig in f.parts for ig in IGNORE_DIRS)}
+    files_set = {
+        str(f.relative_to(root))
+        for f in root.rglob("*")
+        if f.is_file() and not any(ig in f.parts for ig in IGNORE_DIRS)
+    }
     return {
         "name": root.name,
         "type": _detect_project_type(files_set),
         "key_files": sorted(files_set)[:50],
         "test_command": _detect_test_command(root),
     }
+
 
 def _detect_test_command(root: Path) -> str:
     files = {f.name for f in root.iterdir()}

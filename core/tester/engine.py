@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import subprocess
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from core.log import log
 from core.provider import engine
@@ -50,8 +49,12 @@ class SelfTester:
         start = time.time()
         try:
             result = subprocess.run(
-                command, shell=True, capture_output=True, text=True,
-                timeout=timeout, cwd=cwd or None,
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=cwd or None,
             )
             tr = TestResult(
                 command=command,
@@ -61,27 +64,39 @@ class SelfTester:
                 duration_ms=(time.time() - start) * 1000,
             )
         except subprocess.TimeoutExpired:
-            tr = TestResult(command=command, success=False, error="TIMEOUT", duration_ms=timeout * 1000)
+            tr = TestResult(
+                command=command, success=False, error="TIMEOUT", duration_ms=timeout * 1000
+            )
         except Exception as e:
-            tr = TestResult(command=command, success=False, error=str(e), duration_ms=(time.time() - start) * 1000)
+            tr = TestResult(
+                command=command,
+                success=False,
+                error=str(e),
+                duration_ms=(time.time() - start) * 1000,
+            )
 
         self._history.append(tr)
-        log.info("Tester: %s → %s (%.1fs)", command, "✅" if tr.success else "❌", tr.duration_ms / 1000)
+        log.info(
+            "Tester: %s → %s (%.1fs)", command, "✅" if tr.success else "❌", tr.duration_ms / 1000
+        )
         return tr
 
-    async def run_with_fix(self, command: str, context: str = "",
-                           timeout: int = 60, cwd: str = "") -> dict:
+    async def run_with_fix(
+        self, command: str, context: str = "", timeout: int = 60, cwd: str = ""
+    ) -> dict:
         """Run a command, detect errors, use AI to fix, retry until success."""
         attempts = []
         for attempt in range(1, self.max_attempts + 1):
             log.info("Tester: Attempt %d/%d: %s", attempt, self.max_attempts, command)
             result = await self.run(command, timeout, cwd)
-            attempts.append({
-                "attempt": attempt,
-                "success": result.success,
-                "output": result.output[-500:],
-                "error": result.error[-500:],
-            })
+            attempts.append(
+                {
+                    "attempt": attempt,
+                    "success": result.success,
+                    "output": result.output[-500:],
+                    "error": result.error[-500:],
+                }
+            )
 
             if result.success:
                 log.info("Tester: ✅ Succeeded on attempt %d", attempt)
@@ -121,9 +136,12 @@ class SelfTester:
     async def run_and_monitor(self, command: str, timeout: int = 120) -> dict:
         """Run a long-running command and monitor its output for errors."""
         import asyncio
+
         start = time.time()
         process = await asyncio.create_subprocess_shell(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
         output = stdout.decode() if stdout else ""
@@ -152,7 +170,9 @@ Return JSON:
         try:
             resp = await engine.chat([{"role": "user", "content": prompt}])
             text = resp.get("message", {}).get("content", "")
-            import re, json
+            import json
+            import re
+
             match = re.search(r"\{.*\}", text, re.DOTALL)
             if match:
                 return json.loads(match.group())

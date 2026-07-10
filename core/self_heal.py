@@ -12,6 +12,8 @@ class SelfHealingLoop:
     async def execute(self, task: str, context: dict | None = None) -> dict:
         plan = await self._plan(task, context)
         log.info("Plan: %s", plan.get("summary", task)[:100])
+        result: str = ""
+        issues: list[str] = []
 
         for attempt in range(1, self.max_retries + 1):
             log.info("Execution attempt %d/%d", attempt, self.max_retries)
@@ -25,7 +27,8 @@ class SelfHealingLoop:
                 plan = await self._fix(plan, result, issues, context)
                 log.info("Revised plan for retry %d", attempt + 1)
 
-        return {"status": "failed", "result": result, "attempts": self.max_retries}
+        result_text = result if issues else ""
+        return {"status": "failed", "result": result_text, "attempts": self.max_retries}
 
     async def _plan(self, task: str, context: dict | None = None) -> dict:
         messages = [
@@ -80,7 +83,8 @@ class SelfHealingLoop:
             if "NO_ISSUES" in feedback.upper():
                 return []
             return [
-                line for line in feedback.split("\n")
+                line
+                for line in feedback.split("\n")
                 if line.strip() and not line.startswith("NO_ISSUES")
             ]
         except Exception:

@@ -1,4 +1,5 @@
-"""Autonomous Employee v2 — multi-tool AI employee with persistent memory, web search, code execution, and real-time streaming.
+"""Autonomous Employee v2 — multi-tool AI employee with persistent memory,
+web search, code execution, and real-time streaming.
 
 You say: "Research competitors and write a comparison report"
 It does: web search → read pages → analyze → write report → save file → notify you
@@ -14,7 +15,7 @@ import subprocess
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any
 
 from core.log import log
 from core.provider import engine
@@ -23,6 +24,7 @@ MEMORY_FILE = os.path.expanduser("~/.lumina/employee_memory.json")
 
 
 # ── Data Models ──
+
 
 @dataclass
 class ToolCall:
@@ -33,6 +35,7 @@ class ToolCall:
     error: str = ""
     started: float = 0.0
     completed: float = 0.0
+
 
 @dataclass
 class MissionStep:
@@ -45,6 +48,7 @@ class MissionStep:
     error: str = ""
     started: float = 0.0
     completed: float = 0.0
+
 
 @dataclass
 class Mission:
@@ -60,13 +64,16 @@ class Mission:
 
 # ── Memory ──
 
+
 def load_memory() -> dict:
     try:
         f = Path(MEMORY_FILE)
         if f.exists():
             return json.loads(f.read_text())
-    except: pass
+    except Exception:
+        pass
     return {"missions": [], "knowledge": {}, "preferences": {}, "contexts": {}}
+
 
 def save_memory(data: dict):
     Path(MEMORY_FILE).parent.mkdir(parents=True, exist_ok=True)
@@ -131,6 +138,7 @@ TOOLS = {
 
 # ── Agent ──
 
+
 class AutonomousEmployee:
     """Upgraded autonomous employee with real tool calling, memory, and streaming."""
 
@@ -157,7 +165,9 @@ class AutonomousEmployee:
         mission = Mission(id=f"mission_{int(time.time())}", goal=goal)
         mission.created = time.time()
 
-        await self._emit({"type": "status", "message": "Planning mission...", "mission_id": mission.id})
+        await self._emit(
+            {"type": "status", "message": "Planning mission...", "mission_id": mission.id}
+        )
 
         # Plan
         plan = await self._plan(goal, memory)
@@ -166,79 +176,99 @@ class AutonomousEmployee:
         mission.steps = [MissionStep(**s) for s in steps_data]
         mission.status = "running"
 
-        await self._emit({
-            "type": "plan",
-            "summary": mission.summary,
-            "steps": [{"id": s.id, "name": s.name, "description": s.description} for s in mission.steps],
-            "mission_id": mission.id,
-        })
+        await self._emit(
+            {
+                "type": "plan",
+                "summary": mission.summary,
+                "steps": [
+                    {"id": s.id, "name": s.name, "description": s.description}
+                    for s in mission.steps
+                ],
+                "mission_id": mission.id,
+            }
+        )
 
         # Execute each step
         for step in mission.steps:
             step.status = "running"
             step.started = time.time()
 
-            await self._emit({
-                "type": "step_start",
-                "step_id": step.id,
-                "name": step.name,
-                "description": step.description,
-            })
+            await self._emit(
+                {
+                    "type": "step_start",
+                    "step_id": step.id,
+                    "name": step.name,
+                    "description": step.description,
+                }
+            )
 
             try:
                 result = await self._execute_step(step, memory)
                 step.result = result
                 step.status = "success"
                 step.completed = time.time()
-                await self._emit({
-                    "type": "step_complete",
-                    "step_id": step.id,
-                    "name": step.name,
-                    "status": "success",
-                    "result": str(result)[:500],
-                    "tool_calls": [
-                        {"tool": tc.tool, "args": tc.args, "result": str(tc.result)[:300], "status": tc.status}
-                        for tc in step.tool_calls
-                    ],
-                })
+                await self._emit(
+                    {
+                        "type": "step_complete",
+                        "step_id": step.id,
+                        "name": step.name,
+                        "status": "success",
+                        "result": str(result)[:500],
+                        "tool_calls": [
+                            {
+                                "tool": tc.tool,
+                                "args": tc.args,
+                                "result": str(tc.result)[:300],
+                                "status": tc.status,
+                            }
+                            for tc in step.tool_calls
+                        ],
+                    }
+                )
             except Exception as e:
                 step.status = "failed"
                 step.error = str(e)
                 step.completed = time.time()
-                await self._emit({
-                    "type": "step_complete",
-                    "step_id": step.id,
-                    "name": step.name,
-                    "status": "failed",
-                    "error": str(e),
-                })
+                await self._emit(
+                    {
+                        "type": "step_complete",
+                        "step_id": step.id,
+                        "name": step.name,
+                        "status": "failed",
+                        "error": str(e),
+                    }
+                )
 
         # Report
         mission.status = "completed"
         mission.completed = time.time()
 
         # Save memory
-        memory.setdefault("missions", []).append({
-            "id": mission.id,
-            "goal": mission.goal,
-            "summary": mission.summary,
-            "completed": mission.completed,
-            "success": all(s.status == "success" for s in mission.steps),
-        })
+        memory.setdefault("missions", []).append(
+            {
+                "id": mission.id,
+                "goal": mission.goal,
+                "summary": mission.summary,
+                "completed": mission.completed,
+                "success": all(s.status == "success" for s in mission.steps),
+            }
+        )
         save_memory(memory)
 
         report = await self._generate_report(goal, mission)
         mission.report = report
 
-        await self._emit({
-            "type": "mission_complete",
-            "mission_id": mission.id,
-            "summary": mission.summary,
-            "report": report,
-            "duration": mission.completed - mission.created,
-            "steps_total": len(mission.steps),
-            "steps_ok": sum(1 for s in mission.steps if s.status == "success"),
-        })
+        await self._emit(
+            {
+                "type": "mission_complete",
+                "mission_id": mission.id,
+                "summary": mission.summary,
+                "report": report,
+                "duration": mission.completed - mission.created,
+                "steps_total": len(mission.steps),
+                "steps_ok": sum(1 for s in mission.steps if s.status == "success"),
+            }
+        )
 
         return {
             "id": mission.id,
@@ -246,10 +276,18 @@ class AutonomousEmployee:
             "summary": mission.summary,
             "steps": [
                 {
-                    "id": s.id, "name": s.name, "description": s.description,
-                    "status": s.status, "error": s.error,
+                    "id": s.id,
+                    "name": s.name,
+                    "description": s.description,
+                    "status": s.status,
+                    "error": s.error,
                     "tool_calls": [
-                        {"tool": tc.tool, "args": tc.args, "result": str(tc.result)[:300], "status": tc.status}
+                        {
+                            "tool": tc.tool,
+                            "args": tc.args,
+                            "result": str(tc.result)[:300],
+                            "status": tc.status,
+                        }
                         for tc in s.tool_calls
                     ],
                 }
@@ -261,10 +299,12 @@ class AutonomousEmployee:
         }
 
     async def _plan(self, goal: str, memory: dict) -> dict:
-        tools_desc = "\n".join([
-            f"- {t['name']}: {t['description']} Params: {json.dumps(t['parameters'])}"
-            for t in TOOLS.values()
-        ])
+        tools_desc = "\n".join(
+            [
+                f"- {t['name']}: {t['description']} Params: {json.dumps(t['parameters'])}"
+                for t in TOOLS.values()
+            ]
+        )
         context = memory.get("contexts", {}).get("current", "")
         knowledge = memory.get("knowledge", {})
 
@@ -272,8 +312,8 @@ class AutonomousEmployee:
 
 GOAL: {goal}
 
-CONTEXT: {context or 'None'}
-KNOWN FACTS: {json.dumps(knowledge, indent=2)[:500] or 'None'}
+CONTEXT: {context or "None"}
+KNOWN FACTS: {json.dumps(knowledge, indent=2)[:500] or "None"}
 
 AVAILABLE TOOLS:
 {tools_desc}
@@ -303,49 +343,60 @@ Make 3-8 steps. Be specific with tool arguments."""
                 return json.loads(match.group())
         except Exception as e:
             log.error("Employee: Plan error: %s", e)
-        return {"summary": goal, "steps": [{"id": "1", "name": goal, "description": goal, "tool_calls": []}]}
+        return {
+            "summary": goal,
+            "steps": [{"id": "1", "name": goal, "description": goal, "tool_calls": []}],
+        }
 
     async def _execute_step(self, step: MissionStep, memory: dict) -> Any:
         results = []
-        for tc_data in (step.tool_calls if hasattr(step, 'tool_calls') else []):
-            tool = tc_data.get("tool") if isinstance(tc_data, dict) else tc_data.tool
+        for tc_data in step.tool_calls if hasattr(step, "tool_calls") else []:
+            tool: str | None = tc_data.get("tool") if isinstance(tc_data, dict) else tc_data.tool
             args = tc_data.get("args", {}) if isinstance(tc_data, dict) else tc_data.args
 
+            assert tool is not None
             tc = ToolCall(tool=tool, args=args, started=time.time())
             step.tool_calls.append(tc)
 
-            await self._emit({
-                "type": "tool_call",
-                "step_id": step.id,
-                "tool": tool,
-                "args": args,
-            })
+            await self._emit(
+                {
+                    "type": "tool_call",
+                    "step_id": step.id,
+                    "tool": tool,
+                    "args": args,
+                }
+            )
 
             try:
+                assert tool is not None
                 result = await self._run_tool(tool, args, memory)
                 tc.result = result
                 tc.status = "success"
                 tc.completed = time.time()
                 results.append({"tool": tool, "result": str(result)[:500]})
-                await self._emit({
-                    "type": "tool_result",
-                    "step_id": step.id,
-                    "tool": tool,
-                    "result": str(result)[:500],
-                    "status": "success",
-                })
+                await self._emit(
+                    {
+                        "type": "tool_result",
+                        "step_id": step.id,
+                        "tool": tool,
+                        "result": str(result)[:500],
+                        "status": "success",
+                    }
+                )
             except Exception as e:
                 tc.status = "failed"
                 tc.error = str(e)
                 tc.completed = time.time()
                 results.append({"tool": tool, "error": str(e)})
-                await self._emit({
-                    "type": "tool_result",
-                    "step_id": step.id,
-                    "tool": tool,
-                    "error": str(e),
-                    "status": "failed",
-                })
+                await self._emit(
+                    {
+                        "type": "tool_result",
+                        "step_id": step.id,
+                        "tool": tool,
+                        "error": str(e),
+                        "status": "failed",
+                    }
+                )
 
         return results
 
@@ -377,6 +428,7 @@ Make 3-8 steps. Be specific with tool arguments."""
     async def _web_search(self, query: str, count: int = 5) -> list[dict]:
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.get(
                     "https://html.duckduckgo.com/html/",
@@ -385,14 +437,18 @@ Make 3-8 steps. Be specific with tool arguments."""
                 )
                 results = []
                 for match in re.finditer(
-                    r'<a rel="nofollow" class="result__a" href="(.*?)".*?>(.*?)</a>.*?class="result__snippet".*?>(.*?)</',
-                    resp.text, re.DOTALL,
+                    r'<a rel="nofollow" class="result__a" href="(.*?)".*?>'
+                    r'(.*?)</a>.*?class="result__snippet".*?>(.*?)</',
+                    resp.text,
+                    re.DOTALL,
                 ):
-                    results.append({
-                        "url": match.group(1),
-                        "title": re.sub(r"<.*?>", "", match.group(2)),
-                        "snippet": re.sub(r"<.*?>", "", match.group(3)),
-                    })
+                    results.append(
+                        {
+                            "url": match.group(1),
+                            "title": re.sub(r"<.*?>", "", match.group(2)),
+                            "snippet": re.sub(r"<.*?>", "", match.group(3)),
+                        }
+                    )
                     if len(results) >= count:
                         break
                 return results
@@ -402,6 +458,7 @@ Make 3-8 steps. Be specific with tool arguments."""
     async def _web_fetch(self, url: str) -> str:
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
                 resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
                 text = re.sub(r"<script.*?>.*?</script>", "", resp.text, flags=re.DOTALL)
@@ -416,7 +473,9 @@ Make 3-8 steps. Be specific with tool arguments."""
         try:
             result = subprocess.run(
                 ["python", "-c", code],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             output = result.stdout or result.stderr
             return output[:2000] or "Code executed (no output)"
@@ -454,30 +513,33 @@ Make 3-8 steps. Be specific with tool arguments."""
         p = Path(path).expanduser()
         if not p.exists():
             return [{"error": f"Not found: {path}"}]
-        items = []
-        for e in p.iterdir():
-            items.append({
+        items = [
+            {
                 "name": e.name,
                 "type": "dir" if e.is_dir() else "file",
                 "size": e.stat().st_size if e.is_file() else 0,
-            })
+            }
+            for e in p.iterdir()
+        ]
         return items
 
     async def _notify(self, title: str, message: str) -> str:
         try:
             subprocess.run(
                 ["notify-send", title, message],
-                capture_output=True, timeout=5,
+                capture_output=True,
+                timeout=5,
             )
             return f"Notification sent: {title}"
-        except:
+        except Exception:
             return f"Notification system not available: {title}: {message}"
 
     async def _generate_report(self, goal: str, mission: Mission) -> str:
-        steps_summary = "\n".join([
-            f"{'✅' if s.status == 'success' else '❌'} {s.name}: {str(s.result)[:200] if s.result else s.error}"
+        steps_summary = "\n".join(
+            f"{'✅' if s.status == 'success' else '❌'} {s.name}: "
+            f"{str(s.result)[:200] if s.result else s.error}"
             for s in mission.steps
-        ])
+        )
         prompt = f"""Generate a concise mission report.
 
 GOAL: {goal}
@@ -485,11 +547,12 @@ GOAL: {goal}
 STEPS:
 {steps_summary}
 
-Write a brief 3-5 sentence report covering what was accomplished, any failures, and what was learned."""
+Write a brief 3-5 sentence report covering what was accomplished, any failures, \
+and what was learned."""
         try:
             resp = await engine.chat([{"role": "user", "content": prompt}])
             return resp.get("message", {}).get("content", "Mission completed.")
-        except:
+        except Exception:
             return "Mission completed. Check details above."
 
     def get_history(self, limit: int = 10) -> list[dict]:

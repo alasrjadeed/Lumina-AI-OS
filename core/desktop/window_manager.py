@@ -75,10 +75,14 @@ class WindowManager:
     async def _list_x11(self) -> list[WindowInfo]:
         try:
             output = subprocess.check_output(
-                ["wmctrl", "-lG"], timeout=5, text=True,
+                ["wmctrl", "-lG"],
+                timeout=5,
+                text=True,
             )
             focused_id = subprocess.check_output(
-                ["xdotool", "getactivewindow"], timeout=5, text=True,
+                ["xdotool", "getactivewindow"],
+                timeout=5,
+                text=True,
             ).strip()
             windows = []
             for line in output.strip().split("\n"):
@@ -86,12 +90,17 @@ class WindowManager:
                 if len(parts) >= 6:
                     wid, desktop, x, y, w, h = parts[:6]
                     title = parts[5] if len(parts) > 5 else ""
-                    windows.append(WindowInfo(
-                        id=int(wid, 16) if wid.startswith("0x") else int(wid),
-                        title=title,
-                        x=int(x), y=int(y), width=int(w), height=int(h),
-                        focused=focused_id == wid,
-                    ))
+                    windows.append(
+                        WindowInfo(
+                            id=int(wid, 16) if wid.startswith("0x") else int(wid),
+                            title=title,
+                            x=int(x),
+                            y=int(y),
+                            width=int(w),
+                            height=int(h),
+                            focused=focused_id == wid,
+                        )
+                    )
             return windows
         except (FileNotFoundError, subprocess.CalledProcessError):
             return []
@@ -99,16 +108,16 @@ class WindowManager:
     async def _list_macos(self) -> list[WindowInfo]:
         try:
             script = (
-                "tell application \"System Events\""
+                'tell application "System Events"'
                 " to get the name of every process whose visible is true"
             )
             output = subprocess.check_output(
-                ["osascript", "-e", script], timeout=5, text=True,
+                ["osascript", "-e", script],
+                timeout=5,
+                text=True,
             )
             processes = [p.strip() for p in output.split(",")]
-            return [
-                WindowInfo(id=i, title=p) for i, p in enumerate(processes)
-            ]
+            return [WindowInfo(id=i, title=p) for i, p in enumerate(processes)]
         except (FileNotFoundError, subprocess.CalledProcessError):
             return []
 
@@ -117,7 +126,8 @@ class WindowManager:
             if sys.platform == "linux":
                 subprocess.run(
                     ["xdotool", "windowactivate", str(window_id)],
-                    capture_output=True, timeout=5,
+                    capture_output=True,
+                    timeout=5,
                 )
             return True
         except Exception:
@@ -128,7 +138,8 @@ class WindowManager:
             if sys.platform == "linux":
                 subprocess.run(
                     ["xdotool", "windowsize", str(window_id), str(width), str(height)],
-                    capture_output=True, timeout=5,
+                    capture_output=True,
+                    timeout=5,
                 )
             return True
         except Exception:
@@ -139,7 +150,8 @@ class WindowManager:
             if sys.platform == "linux":
                 subprocess.run(
                     ["xdotool", "windowminimize", str(window_id)],
-                    capture_output=True, timeout=5,
+                    capture_output=True,
+                    timeout=5,
                 )
             return True
         except Exception:
@@ -149,9 +161,15 @@ class WindowManager:
         try:
             if sys.platform == "linux":
                 subprocess.run(
-                    ["xdotool", "windowstate", "--add",
-                     "maximized_vert,maximized_horz", str(window_id)],
-                    capture_output=True, timeout=5,
+                    [
+                        "xdotool",
+                        "windowstate",
+                        "--add",
+                        "maximized_vert,maximized_horz",
+                        str(window_id),
+                    ],
+                    capture_output=True,
+                    timeout=5,
                 )
             return True
         except Exception:
@@ -162,7 +180,8 @@ class WindowManager:
             if sys.platform == "linux":
                 subprocess.run(
                     ["xdotool", "windowclose", str(window_id)],
-                    capture_output=True, timeout=5,
+                    capture_output=True,
+                    timeout=5,
                 )
             return True
         except Exception:

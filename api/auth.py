@@ -69,14 +69,18 @@ async def me(authorization: str = Header(None)):
         user = auth_engine.validate_session(token)
         if user:
             return {
-                "authenticated": True, "sub": user.id,
-                "username": user.username, "roles": user.roles,
+                "authenticated": True,
+                "sub": user.id,
+                "username": user.username,
+                "roles": user.roles,
             }
         key_user = auth_engine.validate_api_key(token)
         if key_user:
             return {
-                "authenticated": True, "sub": key_user.id,
-                "username": key_user.username, "method": "api_key",
+                "authenticated": True,
+                "sub": key_user.id,
+                "username": key_user.username,
+                "method": "api_key",
             }
     return {"authenticated": False}
 

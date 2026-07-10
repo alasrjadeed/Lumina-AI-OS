@@ -1,0 +1,22 @@
+{
+  "wake_word": "jarvis",
+  "language": "en",
+  "stt_provider": "faster_whisper",
+  "tts_provider": "piper",
+  "llm_provider": "ollama",
+  "ollama_model": "qwen2.5-coder:0.5b",
+  "ollama_base_url": "http://localhost:11434",
+  "push_to_talk_key": "<ctrl>+<shift>+j",
+  "mic_device": "",
+  "speaker_device": "",
+  "continuous_listening": true,
+  "wake_word_enabled": true,
+  "silero_vad": true,
+  "offline_mode": true,
+  "cloud_fallback": true,
+  "proactive_notifications": true,
+  "theme": "dark",
+  "overlay_enabled": true,
+  "tts_speed": 1.0,
+  "tts_voice": "amy"
+}

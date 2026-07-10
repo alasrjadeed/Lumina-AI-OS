@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from core.vision.camera import Frame
-from core.vision.detector import DetectionResult
 from core.vision.description import SceneDescription
+from core.vision.detector import DetectionResult
 from core.vision.face import FaceResult
 
 
@@ -81,8 +81,7 @@ class VisualShortTermMemory:
     def has_seen(self, label: str, within_seconds: float = 30.0) -> bool:
         now = time.time()
         return any(
-            label in o.labels and (now - o.timestamp) <= within_seconds
-            for o in self._observations
+            label in o.labels and (now - o.timestamp) <= within_seconds for o in self._observations
         )
 
     def _evict_expired(self) -> None:
@@ -97,7 +96,7 @@ class VisualShortTermMemory:
         parts = []
         for o in recent:
             age = o.age_seconds
-            age_str = f"{age:.0f}s ago" if age < 60 else f"{age/60:.0f}m ago"
+            age_str = f"{age:.0f}s ago" if age < 60 else f"{age / 60:.0f}m ago"
             if o.summary:
                 parts.append(f"[{age_str}] {o.summary}")
             elif o.labels:

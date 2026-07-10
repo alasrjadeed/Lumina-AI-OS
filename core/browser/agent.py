@@ -20,7 +20,9 @@ class BrowserAgent:
 
     Example:
         agent = BrowserAgent()
-        result = await agent.execute("Go to google.com, search for 'Lumina AI', and take a screenshot")
+        result = await agent.execute(
+            "Go to google.com, search for 'Lumina AI', and take a screenshot"
+        )
     """
 
     def __init__(self):
@@ -56,7 +58,7 @@ Task: {task}
 
 Available actions:
 - navigate(url) — Go to a URL
-- click(selector) — Click an element  
+- click(selector) — Click an element
 - fill(selector, value) — Fill an input field
 - select(selector, value) — Select an option
 - screenshot(path) — Take a screenshot
@@ -72,7 +74,8 @@ Return ONLY JSON:
   "summary": "brief description of the plan",
   "steps": [
     {{"action": "navigate", "params": {{"url": "..."}}, "description": "what this step does"}},
-    {{"action": "fill", "params": {{"selector": "#search", "value": "query"}}, "description": "..."}}
+    {{"action": "fill", "params": {{"selector": "#search", "value": "query"}}, \
+"description": "..."}}
   ]
 }}"""
         try:
@@ -83,7 +86,10 @@ Return ONLY JSON:
                 return json.loads(match.group())
         except Exception as e:
             log.error("Browser Agent: Planning failed: %s", e)
-        return {"summary": "Direct execution", "steps": [{"action": "navigate", "params": {"url": task}}]}
+        return {
+            "summary": "Direct execution",
+            "steps": [{"action": "navigate", "params": {"url": task}}],
+        }
 
     async def _execute_step(self, step: dict) -> Any:
         """Execute a single plan step."""
@@ -97,10 +103,12 @@ Return ONLY JSON:
             if not url.startswith("http"):
                 url = "https://" + url
             await browser.navigate(url)
+            assert browser._page is not None
             return {"title": await browser._page.title(), "url": url}
 
         if action == "click":
             selector = params.get("selector", "")
+            assert browser._page is not None
             await browser._page.wait_for_selector(selector, timeout=10000)
             await browser.click(selector)
             return {"clicked": selector}
@@ -108,11 +116,13 @@ Return ONLY JSON:
         if action == "fill":
             selector = params.get("selector", "")
             value = params.get("value", "")
+            assert browser._page is not None
             await browser._page.wait_for_selector(selector, timeout=10000)
             await browser.fill(selector, value)
             return {"filled": selector, "value": value[:50]}
 
         if action == "select":
+            assert browser._page is not None
             await browser._page.select_option(params["selector"], params["value"])
             return {"selected": params["selector"]}
 
@@ -127,24 +137,29 @@ Return ONLY JSON:
             return {"text": text[:500]}
 
         if action == "extract_all":
+            assert browser._page is not None
             els = await browser._page.query_selector_all(params["selector"])
             texts = [await el.inner_text() for el in els]
             return {"items": texts[:50]}
 
         if action == "wait":
             import asyncio
+
             await asyncio.sleep(params.get("ms", 1000) / 1000)
             return {"waited": params.get("ms", 1000)}
 
         if action == "scroll":
+            assert browser._page is not None
             await browser._page.evaluate(f"window.scrollBy(0, {params.get('amount', 500)})")
             return {"scrolled": True}
 
         if action == "press_key":
+            assert browser._page is not None
             await browser._page.keyboard.press(params["key"])
             return {"pressed": params["key"]}
 
         if action == "hover":
+            assert browser._page is not None
             await browser._page.hover(params["selector"])
             return {"hovered": params["selector"]}
 

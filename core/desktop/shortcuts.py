@@ -8,6 +8,7 @@ from pathlib import Path
 try:
     import pythoncom
     from win32com.client import Dispatch
+
     HAS_PYWIN32 = True
 except ImportError:
     pythoncom = None
@@ -94,7 +95,9 @@ class ShortcutManager:
         if not HAS_PYWIN32:
             log.warning("pywin32 not installed, skipping shortcut")
             return False
+        assert pythoncom is not None
         pythoncom.CoInitialize()
+        assert Dispatch is not None
         shell = Dispatch("WScript.Shell")
         lnk_path = os.path.join(self._shortcuts_dir, f"{shortcut.name}.lnk")
         lnk = shell.CreateShortCut(lnk_path)

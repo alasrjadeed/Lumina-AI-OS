@@ -15,6 +15,7 @@ from kernel.services.registry import ServiceRegistry
 # Registration & resolution
 # ---------------------------------------------------------------------------
 
+
 def test_register_and_resolve():
     registry = ServiceRegistry()
     registry.register("config", {"key": "value"})
@@ -45,6 +46,7 @@ def test_register_type():
     class MyService:
         def __init__(self):
             self.value = 99
+
     registry = ServiceRegistry()
     registry.register_type("myservice", MyService, lifetime=Lifetime.SINGLETON)
     instance = registry.resolve("myservice")
@@ -70,6 +72,7 @@ def test_register_returns_record():
 # ---------------------------------------------------------------------------
 # has / list / count / get
 # ---------------------------------------------------------------------------
+
 
 def test_has_and_list():
     registry = ServiceRegistry()
@@ -99,6 +102,7 @@ def test_count():
 # ---------------------------------------------------------------------------
 # Removal
 # ---------------------------------------------------------------------------
+
 
 def test_remove():
     registry = ServiceRegistry()
@@ -134,6 +138,7 @@ def test_clear():
 # ---------------------------------------------------------------------------
 # Tags
 # ---------------------------------------------------------------------------
+
 
 def test_tag_and_find():
     registry = ServiceRegistry()
@@ -197,6 +202,7 @@ def test_register_factory_with_tags():
 def test_register_type_with_tags():
     class Foo:
         pass
+
     registry = ServiceRegistry()
     registry.register_type("foo", Foo, lifetime=Lifetime.SINGLETON, tags={"type"})
     assert registry.find_by_tag("type") == ["foo"]
@@ -205,6 +211,7 @@ def test_register_type_with_tags():
 # ---------------------------------------------------------------------------
 # Discovery
 # ---------------------------------------------------------------------------
+
 
 def test_find_by_status():
     registry = ServiceRegistry()
@@ -219,8 +226,10 @@ def test_find_by_status():
 def test_find_by_type():
     class Base:
         pass
+
     class Impl(Base):
         pass
+
     registry = ServiceRegistry()
     registry.register("impl", Impl())
     registry.register("other", "string")
@@ -253,6 +262,7 @@ def test_get_record():
 # Health checks
 # ---------------------------------------------------------------------------
 
+
 def test_health_no_checkers():
     registry = ServiceRegistry()
     registry.register("svc", "x")
@@ -276,8 +286,10 @@ def test_health_unhealthy():
 def test_health_checker_exception():
     registry = ServiceRegistry()
     registry.register("svc", "x")
+
     def crash():
         raise RuntimeError("boom")
+
     registry.add_health_check("svc", crash)
     assert registry.health("svc") is HealthStatus.UNHEALTHY
 
@@ -295,8 +307,10 @@ def test_health_aggregates_worst():
 def test_remove_health_check():
     registry = ServiceRegistry()
     registry.register("svc", "x")
+
     def check():
         return HealthStatus.HEALTHY
+
     registry.add_health_check("svc", check)
     assert registry.remove_health_check("svc", check) is True
     assert registry.remove_health_check("svc", check) is False
@@ -322,6 +336,7 @@ def test_health_all():
 # ---------------------------------------------------------------------------
 # Lifecycle: start / stop
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_start_simple():
@@ -370,12 +385,16 @@ async def test_stop_before_start_raises():
 @pytest.mark.asyncio
 async def test_start_calls_initialize_on_iservice():
     calls = []
+
     class MyService:
         service_name = "test"
+
         async def initialize(self):
             calls.append("init")
+
         async def shutdown(self):
             calls.append("shutdown")
+
     registry = ServiceRegistry()
     registry.register("mysvc", MyService())
     await registry.start("mysvc")
@@ -389,13 +408,17 @@ async def test_start_calls_initialize_on_iservice():
 @pytest.mark.asyncio
 async def test_start_failure_sets_failed():
     calls = []
+
     class BadService:
         service_name = "bad"
+
         async def initialize(self):
             calls.append("init")
             raise RuntimeError("init failed")
+
         async def shutdown(self):
             calls.append("shutdown")
+
     registry = ServiceRegistry()
     registry.register("bad", BadService())
     with pytest.raises(ServiceLifecycleError):
@@ -407,13 +430,17 @@ async def test_start_failure_sets_failed():
 @pytest.mark.asyncio
 async def test_shutdown_failure_sets_failed():
     calls = []
+
     class BadShutdown:
         service_name = "bad"
+
         async def initialize(self):
             calls.append("init")
+
         async def shutdown(self):
             calls.append("shutdown")
             raise RuntimeError("shutdown failed")
+
     registry = ServiceRegistry()
     registry.register("bad", BadShutdown())
     await registry.start("bad")
@@ -426,6 +453,7 @@ async def test_shutdown_failure_sets_failed():
 # ---------------------------------------------------------------------------
 # Lifecycle: start_all / stop_all
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_start_all_starts_created():
@@ -451,13 +479,17 @@ async def test_stop_all_stops_running():
 @pytest.mark.asyncio
 async def test_start_all_respects_dependencies():
     order: list[str] = []
+
     class OrderedService:
         def __init__(self, name):
             self.service_name = name
+
         async def initialize(self):
             order.append(self.service_name)
+
         async def shutdown(self):
             order.append(f"stop:{self.service_name}")
+
     registry = ServiceRegistry()
     registry.register("db", OrderedService("db"), dependencies=[])
     registry.register("cache", OrderedService("cache"), dependencies=["db"])
@@ -472,13 +504,17 @@ async def test_start_all_respects_dependencies():
 @pytest.mark.asyncio
 async def test_stop_all_reverses_dependencies():
     order: list[str] = []
+
     class OrderedService:
         def __init__(self, name):
             self.service_name = name
+
         async def initialize(self):
             order.append(f"start:{self.service_name}")
+
         async def shutdown(self):
             order.append(f"stop:{self.service_name}")
+
     registry = ServiceRegistry()
     registry.register("db", OrderedService("db"), dependencies=[])
     registry.register("cache", OrderedService("cache"), dependencies=["db"])
@@ -498,6 +534,7 @@ async def test_stop_all_reverses_dependencies():
 # ---------------------------------------------------------------------------
 # Dependency ordering / circular detection
 # ---------------------------------------------------------------------------
+
 
 def test_topological_sort():
     registry = ServiceRegistry()
@@ -531,6 +568,7 @@ def test_no_dependencies_order():
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 async def _start(registry, name):
     await registry.start(name)

@@ -22,13 +22,16 @@ def demo_chat():
 
 def demo_code_generation():
     """Generate code from a description."""
-    resp = httpx.post(f"{BASE}/code/generate", json={
-        "description": "a function to calculate fibonacci numbers",
-        "language": "python",
-    })
+    resp = httpx.post(
+        f"{BASE}/code/generate",
+        json={
+            "description": "a function to calculate fibonacci numbers",
+            "language": "python",
+        },
+    )
     data = resp.json()
     print(f"Generated code ({data['language']}):")
-    print(data['code'][:300])
+    print(data["code"][:300])
     return data
 
 
@@ -46,7 +49,7 @@ def demo_list_agents():
     resp = httpx.get(f"{BASE}/agents")
     data = resp.json()
     print(f"Available agents ({len(data['agents'])}):")
-    for agent in data['agents']:
+    for agent in data["agents"]:
         print(f"  - {agent}")
     return data
 
@@ -54,11 +57,14 @@ def demo_list_agents():
 def demo_crm():
     """CRM operations."""
     # Add a contact
-    resp = httpx.post(f"{BASE}/crm/contacts", json={
-        "name": "Alice Smith",
-        "email": "alice@example.com",
-        "phone": "+1234567890",
-    })
+    resp = httpx.post(
+        f"{BASE}/crm/contacts",
+        json={
+            "name": "Alice Smith",
+            "email": "alice@example.com",
+            "phone": "+1234567890",
+        },
+    )
     print(f"Added contact: {resp.json()}")
 
     # Get summary
@@ -68,10 +74,13 @@ def demo_crm():
 
 def demo_seo():
     """SEO site management."""
-    resp = httpx.post(f"{BASE}/seo/sites", json={
-        "url": "https://example.com",
-        "name": "Example Site",
-    })
+    resp = httpx.post(
+        f"{BASE}/seo/sites",
+        json={
+            "url": "https://example.com",
+            "name": "Example Site",
+        },
+    )
     print(f"Added site: {resp.json()}")
 
     resp = httpx.get(f"{BASE}/seo/sites")

@@ -3,9 +3,7 @@ from __future__ import annotations
 import math
 import struct
 import time
-from collections.abc import Callable
 from dataclasses import dataclass, field
-
 
 MIN_INT16 = -32768
 MAX_INT16 = 32767
@@ -65,7 +63,8 @@ class EnergyVAD:
 
         return VADResult(
             is_speech=self._is_speech,
-            energy=energy, rms=rms,
+            energy=energy,
+            rms=rms,
             duration_sec=len(audio_chunk) / (self.sample_rate * 2),
         )
 

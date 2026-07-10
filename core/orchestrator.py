@@ -55,7 +55,8 @@ Think step by step. Be thorough and practical."""
 
 class TaskDecomposition:
     def __init__(
-        self, summary: str,
+        self,
+        summary: str,
         steps: list[dict[str, str]],
         dependencies: list[list[int]] | None = None,
     ):
@@ -66,8 +67,11 @@ class TaskDecomposition:
 
 class OrchestrationResult:
     def __init__(
-        self, status: str, output: str,
-        error: str = "", steps: int = 0,
+        self,
+        status: str,
+        output: str,
+        error: str = "",
+        steps: int = 0,
         duration_ms: float = 0.0,
     ):
         self.status = status
@@ -114,7 +118,9 @@ class MultiAgentOrchestrator(BaseAgent):
             )
 
     async def orchestrate(
-        self, task: str, parallel: bool = True,
+        self,
+        task: str,
+        parallel: bool = True,
     ) -> OrchestrationResult:
         start = time.time()
 
@@ -140,10 +146,9 @@ class MultiAgentOrchestrator(BaseAgent):
 
         step_results: list[str] = []
         if parallel and not decomposition.dependencies:
-            results = await asyncio.gather(*[
-                self._execute_step(step, i)
-                for i, step in enumerate(decomposition.steps)
-            ])
+            results = await asyncio.gather(
+                *[self._execute_step(step, i) for i, step in enumerate(decomposition.steps)]
+            )
             step_results.extend(r for r in results if r)
         else:
             for i, step in enumerate(decomposition.steps):
@@ -152,7 +157,10 @@ class MultiAgentOrchestrator(BaseAgent):
                     step_results.append(result)
 
         synthesis = await self._synthesize(
-            task, decomposition.summary, step_results, start,
+            task,
+            decomposition.summary,
+            step_results,
+            start,
         )
 
         if self.memory:
@@ -174,7 +182,9 @@ class MultiAgentOrchestrator(BaseAgent):
         )
 
     async def _decompose(
-        self, task: str, context: str = "",
+        self,
+        task: str,
+        context: str = "",
         similar: list | None = None,
         lessons: list | None = None,
     ) -> TaskDecomposition | None:
@@ -212,7 +222,9 @@ class MultiAgentOrchestrator(BaseAgent):
         return None
 
     async def _execute_step(
-        self, step: dict[str, str], index: int,
+        self,
+        step: dict[str, str],
+        index: int,
     ) -> str | None:
         agent_name = step.get("agent", "")
         step_task = step.get("task", step.get("description", ""))
@@ -237,13 +249,14 @@ class MultiAgentOrchestrator(BaseAgent):
             return f"[Step {index + 1} failed: {e}]"
 
     async def _synthesize(
-        self, task: str, summary: str,
-        step_results: list[str], start: float,
+        self,
+        task: str,
+        summary: str,
+        step_results: list[str],
+        start: float,
     ) -> str:
         duration = (time.time() - start) * 1000
-        results_text = "\n\n".join(
-            f"Step {i + 1}:\n{r[:1000]}" for i, r in enumerate(step_results)
-        )
+        results_text = "\n\n".join(f"Step {i + 1}:\n{r[:1000]}" for i, r in enumerate(step_results))
         messages = [
             {
                 "role": "system",
@@ -261,8 +274,7 @@ class MultiAgentOrchestrator(BaseAgent):
             resp = await ai_engine.chat(messages)
             synthesis = resp["message"]["content"]
             synthesis += (
-                f"\n\n---\n*Orchestrated in {duration:.0f}ms "
-                f"across {len(step_results)} steps*"
+                f"\n\n---\n*Orchestrated in {duration:.0f}ms across {len(step_results)} steps*"
             )
             return synthesis
         except Exception as e:

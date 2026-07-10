@@ -1,9 +1,8 @@
-import json
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from core.browser.automation import browser
 from core.browser.agent import browser_agent
+from core.browser.automation import browser
 from core.browser.form_filler import form_filler
 
 router = APIRouter(prefix="/browser", tags=["Browser"])

@@ -76,8 +76,9 @@ class Compose:
         log.info("Compose file generated: %s", path)
         return path
 
-    def up(self, path: str = "docker-compose.yml", detach: bool = True,
-           build: bool = False) -> dict:
+    def up(
+        self, path: str = "docker-compose.yml", detach: bool = True, build: bool = False
+    ) -> dict:
         cmd = ["docker-compose", "-f", path, "up"]
         if detach:
             cmd.append("-d")
@@ -85,8 +86,11 @@ class Compose:
             cmd.append("--build")
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            return {"success": result.returncode == 0, "output": result.stdout[-500:],
-                    "error": result.stderr[-500:]}
+            return {
+                "success": result.returncode == 0,
+                "output": result.stdout[-500:],
+                "error": result.stderr[-500:],
+            }
         except FileNotFoundError:
             return {"success": False, "error": "docker-compose not found"}
 
@@ -104,7 +108,9 @@ class Compose:
         try:
             result = subprocess.run(
                 ["docker-compose", "-f", path, "ps", "--format", "json"],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             if result.returncode != 0:
                 return []
@@ -112,8 +118,7 @@ class Compose:
         except (FileNotFoundError, json.JSONDecodeError):
             return []
 
-    def logs(self, path: str = "docker-compose.yml", service: str = "",
-             tail: int = 100) -> str:
+    def logs(self, path: str = "docker-compose.yml", service: str = "", tail: int = 100) -> str:
         cmd = ["docker-compose", "-f", path, "logs", "--tail", str(tail)]
         if service:
             cmd.append(service)
@@ -128,15 +133,22 @@ class Compose:
         return ComposeConfig(
             services=[
                 ServiceConfig(
-                    name="api", build=".", ports=["8000:8000"],
+                    name="api",
+                    build=".",
+                    ports=["8000:8000"],
                     env={"LUMINA_ENV": "production"},
-                    depends_on=["redis"], healthcheck={
+                    depends_on=["redis"],
+                    healthcheck={
                         "test": ["CMD", "curl", "-f", "http://localhost:8000/health"],
-                        "interval": "30s", "timeout": "10s", "retries": 3,
+                        "interval": "30s",
+                        "timeout": "10s",
+                        "retries": 3,
                     },
                 ),
                 ServiceConfig(
-                    name="redis", image="redis:7-alpine", ports=["6379:6379"],
+                    name="redis",
+                    image="redis:7-alpine",
+                    ports=["6379:6379"],
                 ),
             ],
             volumes=["redis_data"],

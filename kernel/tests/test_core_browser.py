@@ -15,6 +15,7 @@ from core.browser.session import Cookie, SessionManager
 
 class AsyncPageMock:
     """Mock that returns the same AsyncMock per attribute (preserving call tracking)."""
+
     def __init__(self):
         self._mocks: dict[str, AsyncMock] = {}
         self.context = MagicMock()
@@ -154,22 +155,34 @@ class TestPageInteractor:
 
     @pytest.mark.asyncio
     async def test_get_dimensions(self, mock_page):
-        mock_page.evaluate = AsyncMock(return_value={
-            "viewport": {"width": 1920, "height": 1080},
-            "document": {"width": 1920, "height": 3000},
-        })
+        mock_page.evaluate = AsyncMock(
+            return_value={
+                "viewport": {"width": 1920, "height": 1080},
+                "document": {"width": 1920, "height": 3000},
+            }
+        )
         pi = PageInteractor(mock_page)
         dims = await pi.get_dimensions()
-        assert dims["viewport"]["width"] == 1920
+        assert dims["viewport"]["width"] == 1920  # pyright: ignore[reportIndexIssue]
 
 
 class TestSessionManager:
     @pytest.mark.asyncio
     async def test_get_cookies(self, mock_page):
-        mock_page.context.cookies = AsyncMock(return_value=[
-            {"name": "session", "value": "abc", "domain": ".example.com",
-             "path": "/", "expires": -1, "httpOnly": True, "secure": True, "sameSite": "Lax"},
-        ])
+        mock_page.context.cookies = AsyncMock(
+            return_value=[
+                {
+                    "name": "session",
+                    "value": "abc",
+                    "domain": ".example.com",
+                    "path": "/",
+                    "expires": -1,
+                    "httpOnly": True,
+                    "secure": True,
+                    "sameSite": "Lax",
+                },
+            ]
+        )
         sm = SessionManager(mock_page, state_dir="/tmp/sessions")
         cookies = await sm.get_cookies()
         assert len(cookies) == 1
@@ -192,10 +205,20 @@ class TestSessionManager:
 
     @pytest.mark.asyncio
     async def test_export_import_cookies(self, mock_page, tmp_path: Path):
-        mock_page.context.cookies = AsyncMock(return_value=[
-            {"name": "x", "value": "1", "domain": ".ex.com", "path": "/",
-             "expires": -1, "httpOnly": False, "secure": False, "sameSite": "Lax"},
-        ])
+        mock_page.context.cookies = AsyncMock(
+            return_value=[
+                {
+                    "name": "x",
+                    "value": "1",
+                    "domain": ".ex.com",
+                    "path": "/",
+                    "expires": -1,
+                    "httpOnly": False,
+                    "secure": False,
+                    "sameSite": "Lax",
+                },
+            ]
+        )
         mock_page.context.add_cookies = AsyncMock()
         sm = SessionManager(mock_page, state_dir="/tmp/sessions")
         export_path = str(tmp_path / "cookies.json")
@@ -206,10 +229,12 @@ class TestSessionManager:
 
     @pytest.mark.asyncio
     async def test_get_storage(self, mock_page):
-        mock_page.evaluate = AsyncMock(side_effect=[
-            json.dumps({"key1": "val1"}),
-            json.dumps({"sess_key": "sess_val"}),
-        ])
+        mock_page.evaluate = AsyncMock(
+            side_effect=[
+                json.dumps({"key1": "val1"}),
+                json.dumps({"sess_key": "sess_val"}),
+            ]
+        )
         sm = SessionManager(mock_page, state_dir="/tmp/sessions")
         storage = await sm.get_storage()
         assert storage.local["key1"] == "val1"
@@ -420,13 +445,15 @@ class TestElementFinder:
 
     @pytest.mark.asyncio
     async def test_get_element_info(self, mock_page):
-        mock_page.evaluate = AsyncMock(return_value={
-            "tag": "button",
-            "text": "Click me",
-            "attributes": {"class": "btn", "id": "submit"},
-            "visible": True,
-            "boundingBox": {"x": 0, "y": 0, "width": 100, "height": 50},
-        })
+        mock_page.evaluate = AsyncMock(
+            return_value={
+                "tag": "button",
+                "text": "Click me",
+                "attributes": {"class": "btn", "id": "submit"},
+                "visible": True,
+                "boundingBox": {"x": 0, "y": 0, "width": 100, "height": 50},
+            }
+        )
         ef = ElementFinder(mock_page)
         info = await ef.get_element_info("#submit")
         assert info is not None
@@ -494,11 +521,18 @@ class TestPageMonitor:
 
     @pytest.mark.asyncio
     async def test_get_performance_metrics(self, mock_page):
-        mock_page.evaluate = AsyncMock(side_effect=[
-            {"domContentLoaded": 100, "load": 200, "firstPaint": 50, "firstContentfulPaint": 60},
-            8000000,
-            1500,
-        ])
+        mock_page.evaluate = AsyncMock(
+            side_effect=[
+                {
+                    "domContentLoaded": 100,
+                    "load": 200,
+                    "firstPaint": 50,
+                    "firstContentfulPaint": 60,
+                },
+                8000000,
+                1500,
+            ]
+        )
         pm = PageMonitor(mock_page)
         metrics = await pm.get_performance_metrics()
         assert metrics.dom_content_loaded == 100

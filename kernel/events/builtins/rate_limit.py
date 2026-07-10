@@ -47,7 +47,8 @@ class RateLimitMiddleware(BaseMiddleware):
     def _bucket(self, key: str) -> TokenBucket:
         if key not in self._buckets:
             rate, burst = self._overrides.get(
-                key, (self._default_rate, self._default_burst),
+                key,
+                (self._default_rate, self._default_burst),
             )
             self._buckets[key] = TokenBucket(rate, burst)
         return self._buckets[key]
@@ -55,7 +56,5 @@ class RateLimitMiddleware(BaseMiddleware):
     async def before_publish(self, event: Event) -> Event:
         source_key = event.source or event.name
         if not self._bucket(source_key).consume():
-            raise RuntimeError(
-                f"Rate limit exceeded for '{source_key}'"
-            )
+            raise RuntimeError(f"Rate limit exceeded for '{source_key}'")
         return event

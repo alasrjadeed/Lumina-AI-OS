@@ -24,10 +24,14 @@ class HealStep:
 
     def to_dict(self) -> dict:
         return {
-            "attempt": self.attempt, "action": self.action,
-            "command": self.command, "output": self.output[:2000],
-            "error": self.error[:2000], "fix": self.fix[:1000],
-            "status": self.status, "duration_ms": self.duration_ms,
+            "attempt": self.attempt,
+            "action": self.action,
+            "command": self.command,
+            "output": self.output[:2000],
+            "error": self.error[:2000],
+            "fix": self.fix[:1000],
+            "status": self.status,
+            "duration_ms": self.duration_ms,
         }
 
 
@@ -45,8 +49,10 @@ class HealResult:
 
     def to_dict(self) -> dict:
         return {
-            "task": self.task, "steps": [s.to_dict() for s in self.steps],
-            "status": self.status, "total_attempts": self.total_attempts,
+            "task": self.task,
+            "steps": [s.to_dict() for s in self.steps],
+            "status": self.status,
+            "total_attempts": self.total_attempts,
             "total_duration_ms": self.total_duration_ms,
             "final_output": self.final_output[:2000],
             "final_error": self.final_error[:2000],
@@ -62,21 +68,24 @@ class SelfHealingEngine:
         self.max_attempts = max_attempts
         self.project_dir = os.path.abspath(project_dir)
 
-    async def heal(self, task: str, test_command: str = "",
-                   build_command: str = "", lint_command: str = "",
-                   context: dict | None = None) -> HealResult:
+    async def heal(
+        self,
+        task: str,
+        test_command: str = "",
+        build_command: str = "",
+        lint_command: str = "",
+        context: dict | None = None,
+    ) -> HealResult:
         """Run the full self-healing loop."""
-        import asyncio
 
         result = HealResult(task=task)
         start = time.time()
 
         try:
-            from core.agents.runner import runner
-
             for attempt in range(1, self.max_attempts + 1):
-                log.info("HealEngine: Attempt %d/%d for '%s'",
-                         attempt, self.max_attempts, task[:60])
+                log.info(
+                    "HealEngine: Attempt %d/%d for '%s'", attempt, self.max_attempts, task[:60]
+                )
 
                 # ── 1. Plan & Write ──
                 step_plan = await self._step_plan(task, context, attempt)
@@ -113,7 +122,10 @@ class SelfHealingEngine:
 
                 # ── 5. Analyze & Fix ──
                 step_fix = await self._step_analyze_and_fix(
-                    task, error_output, attempt, context,
+                    task,
+                    error_output,
+                    attempt,
+                    context,
                 )
                 result.steps.append(step_fix)
 
@@ -145,20 +157,24 @@ class SelfHealingEngine:
             result.status = "failed"
             result.final_error = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
 
-        result.total_attempts = len([s for s in result.steps if "plan" in s.action.lower() or "write" in s.action.lower()])
+        result.total_attempts = len(
+            [s for s in result.steps if "plan" in s.action.lower() or "write" in s.action.lower()]
+        )
         result.total_duration_ms = (time.time() - start) * 1000
 
         return result
 
-    async def _step_plan(self, task: str, context: dict | None,
-                         attempt: int) -> HealStep:
+    async def _step_plan(self, task: str, context: dict | None, attempt: int) -> HealStep:
         step = HealStep(attempt=attempt, action="plan_and_write")
         start = time.time()
 
         try:
             from core.agents.runner import runner
-            prompt = task if attempt == 1 else (
-                f"Previous attempt failed. Retry with a different approach: {task}"
+
+            prompt = (
+                task
+                if attempt == 1
+                else (f"Previous attempt failed. Retry with a different approach: {task}")
             )
             run = await runner.run("programmer", prompt, context)
             step.output = run.output
@@ -171,8 +187,7 @@ class SelfHealingEngine:
         step.duration_ms = (time.time() - start) * 1000
         return step
 
-    async def _step_build(self, command: str, attempt: int,
-                          suffix: str = "") -> HealStep:
+    async def _step_build(self, command: str, attempt: int, suffix: str = "") -> HealStep:
         step = HealStep(
             attempt=attempt,
             action=f"build_{suffix}" if suffix else "build",
@@ -182,8 +197,12 @@ class SelfHealingEngine:
 
         try:
             proc = subprocess.run(
-                command, shell=True, capture_output=True, text=True,
-                cwd=self.project_dir, timeout=120,
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=self.project_dir,
+                timeout=120,
             )
             step.output = proc.stdout
             step.error = proc.stderr
@@ -204,8 +223,12 @@ class SelfHealingEngine:
 
         try:
             proc = subprocess.run(
-                command, shell=True, capture_output=True, text=True,
-                cwd=self.project_dir, timeout=60,
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=self.project_dir,
+                timeout=60,
             )
             step.output = proc.stdout
             step.error = proc.stderr
@@ -216,8 +239,7 @@ class SelfHealingEngine:
         step.status = "success"
         return step
 
-    async def _step_test(self, command: str, attempt: int,
-                         suffix: str = "") -> HealStep:
+    async def _step_test(self, command: str, attempt: int, suffix: str = "") -> HealStep:
         step = HealStep(
             attempt=attempt,
             action=f"test_{suffix}" if suffix else "test",
@@ -227,8 +249,12 @@ class SelfHealingEngine:
 
         try:
             proc = subprocess.run(
-                command, shell=True, capture_output=True, text=True,
-                cwd=self.project_dir, timeout=120,
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=self.project_dir,
+                timeout=120,
             )
             step.output = proc.stdout
             step.error = proc.stderr
@@ -244,7 +270,10 @@ class SelfHealingEngine:
         return step
 
     async def _step_analyze_and_fix(
-        self, task: str, error_output: str, attempt: int,
+        self,
+        task: str,
+        error_output: str,
+        attempt: int,
         context: dict | None,
     ) -> HealStep:
         step = HealStep(attempt=attempt, action="analyze_and_fix")
@@ -252,6 +281,7 @@ class SelfHealingEngine:
 
         try:
             from core.agents.runner import runner
+
             fix_prompt = (
                 f"Original task: {task}\n\n"
                 f"Tests FAILED with the following output:\n{error_output[:3000]}\n\n"

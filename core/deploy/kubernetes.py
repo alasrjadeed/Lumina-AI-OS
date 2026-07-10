@@ -46,8 +46,11 @@ class Kubernetes:
         deployment = {
             "apiVersion": "apps/v1",
             "kind": "Deployment",
-            "metadata": {"name": self.config.name, "namespace": self.config.namespace,
-                         "labels": {"app": self.config.name}},
+            "metadata": {
+                "name": self.config.name,
+                "namespace": self.config.namespace,
+                "labels": {"app": self.config.name},
+            },
             "spec": {
                 "replicas": self.config.replicas,
                 "selector": {"matchLabels": {"app": self.config.name}},
@@ -70,11 +73,13 @@ class Kubernetes:
             "metadata": {"name": self.config.name, "namespace": self.config.namespace},
             "spec": {
                 "selector": {"app": self.config.name},
-                "ports": [{
-                    "protocol": "TCP",
-                    "port": self.config.service_port,
-                    "targetPort": self.config.container_port,
-                }],
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "port": self.config.service_port,
+                        "targetPort": self.config.container_port,
+                    }
+                ],
                 "type": "ClusterIP",
             },
         }
@@ -99,30 +104,38 @@ class Kubernetes:
             "kind": "Ingress",
             "metadata": {"name": self.config.name, "namespace": self.config.namespace},
             "spec": {
-                "rules": [{
-                    "host": self.config.ingress_host,
-                    "http": {
-                        "paths": [{
-                            "path": "/",
-                            "pathType": "Prefix",
-                            "backend": {
-                                "service": {
-                                    "name": self.config.name,
-                                    "port": {"number": self.config.service_port},
-                                },
-                            },
-                        }],
-                    },
-                }],
+                "rules": [
+                    {
+                        "host": self.config.ingress_host,
+                        "http": {
+                            "paths": [
+                                {
+                                    "path": "/",
+                                    "pathType": "Prefix",
+                                    "backend": {
+                                        "service": {
+                                            "name": self.config.name,
+                                            "port": {"number": self.config.service_port},
+                                        },
+                                    },
+                                }
+                            ],
+                        },
+                    }
+                ],
             },
         }
         with open(path, "w") as f:
             yaml.dump(ingress, f, default_flow_style=False)
         return path
 
-    def generate_hpa(self, path: str = "hpa.yml",
-                     min_replicas: int = 2, max_replicas: int = 10,
-                     cpu_percent: int = 70) -> str:
+    def generate_hpa(
+        self,
+        path: str = "hpa.yml",
+        min_replicas: int = 2,
+        max_replicas: int = 10,
+        cpu_percent: int = 70,
+    ) -> str:
         hpa = {
             "apiVersion": "autoscaling/v2",
             "kind": "HorizontalPodAutoscaler",
@@ -135,11 +148,15 @@ class Kubernetes:
                 },
                 "minReplicas": min_replicas,
                 "maxReplicas": max_replicas,
-                "metrics": [{
-                    "type": "Resource",
-                    "resource": {"name": "cpu", "target": {"type": "Utilization",
-                                                           "averageUtilization": cpu_percent}},
-                }],
+                "metrics": [
+                    {
+                        "type": "Resource",
+                        "resource": {
+                            "name": "cpu",
+                            "target": {"type": "Utilization", "averageUtilization": cpu_percent},
+                        },
+                    }
+                ],
             },
         }
         with open(path, "w") as f:
@@ -150,7 +167,9 @@ class Kubernetes:
         try:
             result = subprocess.run(
                 ["kubectl", "apply", "-f", file_or_dir],
-                capture_output=True, text=True, timeout=120,
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
             return {"success": result.returncode == 0, "output": result.stdout.strip()}
         except FileNotFoundError:
@@ -160,7 +179,9 @@ class Kubernetes:
         try:
             result = subprocess.run(
                 ["kubectl", "delete", "-f", file_or_dir],
-                capture_output=True, text=True, timeout=120,
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
             return {"success": result.returncode == 0, "output": result.stdout.strip()}
         except FileNotFoundError:
@@ -170,7 +191,9 @@ class Kubernetes:
         try:
             result = subprocess.run(
                 ["kubectl", "get", "pods", "-n", self.config.namespace, "-o", "json"],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             if result.returncode != 0:
                 return []
@@ -206,9 +229,13 @@ class Kubernetes:
     @staticmethod
     def default_config() -> K8sConfig:
         return K8sConfig(
-            name="lumina", image="lumina:latest", replicas=2,
+            name="lumina",
+            image="lumina:latest",
+            replicas=2,
             env={"LUMINA_ENV": "production"},
             ingress_host="lumina.example.com",
-            resources={"requests": {"cpu": "250m", "memory": "256Mi"},
-                       "limits": {"cpu": "500m", "memory": "512Mi"}},
+            resources={
+                "requests": {"cpu": "250m", "memory": "256Mi"},
+                "limits": {"cpu": "500m", "memory": "512Mi"},
+            },
         )

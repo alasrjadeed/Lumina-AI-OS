@@ -20,8 +20,10 @@ class AuditResult:
 
     def to_dict(self) -> dict:
         return {
-            "url": self.url, "score": self.score,
-            "issues": self.issues, "suggestions": self.suggestions,
+            "url": self.url,
+            "score": self.score,
+            "issues": self.issues,
+            "suggestions": self.suggestions,
             "timestamp": self.timestamp,
         }
 
@@ -82,10 +84,9 @@ def list_keywords() -> list[dict]:
 async def run_audit(url: str) -> AuditResult:
     try:
         await browser.navigate(url)
+        assert browser._page is not None
         title = (
-            await browser.get_text("title")
-            if await browser._page.query_selector("title")
-            else ""
+            await browser.get_text("title") if await browser._page.query_selector("title") else ""
         )
         meta_desc = await browser._page.evaluate(
             "document.querySelector('meta[name=\"description\"]')?.content || ''",
@@ -123,7 +124,8 @@ async def run_audit(url: str) -> AuditResult:
     except Exception as e:
         log.error("SEO audit failed for %s: %s", url, e)
         return AuditResult(
-            url=url, score=0,
+            url=url,
+            score=0,
             issues=[{"type": "audit_error", "severity": "high", "detail": str(e)}],
         )
 
@@ -146,8 +148,7 @@ def generate_report() -> dict:
         "keywords": len(_keywords),
         "audits": len(_audit_history),
         "average_score": (
-            sum(a.score for a in _audit_history) / len(_audit_history)
-            if _audit_history else 0
+            sum(a.score for a in _audit_history) / len(_audit_history) if _audit_history else 0
         ),
         "generated_at": datetime.now().isoformat(),
     }

@@ -82,16 +82,35 @@ def _load_data() -> None:
 
 def _save_data() -> None:
     with open(_storage_path, "w") as f:
-        json.dump({
-            "templates": {k: {"name": t.name, "subject": t.subject, "body": t.body,
-                              "is_html": t.is_html, "variables": t.variables}
-                          for k, t in _templates.items()},
-            "campaigns": [{"name": c.name, "template": c.template,
-                           "recipients": c.recipients, "sent": c.sent,
-                           "failed": c.failed, "opened": c.opened, "status": c.status}
-                          for c in _campaigns],
-            "smtp": _smtp_config,
-        }, f, indent=2)
+        json.dump(
+            {
+                "templates": {
+                    k: {
+                        "name": t.name,
+                        "subject": t.subject,
+                        "body": t.body,
+                        "is_html": t.is_html,
+                        "variables": t.variables,
+                    }
+                    for k, t in _templates.items()
+                },
+                "campaigns": [
+                    {
+                        "name": c.name,
+                        "template": c.template,
+                        "recipients": c.recipients,
+                        "sent": c.sent,
+                        "failed": c.failed,
+                        "opened": c.opened,
+                        "status": c.status,
+                    }
+                    for c in _campaigns
+                ],
+                "smtp": _smtp_config,
+            },
+            f,
+            indent=2,
+        )
 
 
 def get_smtp_config() -> dict:
@@ -99,22 +118,32 @@ def get_smtp_config() -> dict:
 
 
 def configure_smtp(
-    host: str, port: int, username: str, password: str,
+    host: str,
+    port: int,
+    username: str,
+    password: str,
     use_tls: bool = True,
 ) -> None:
-    _smtp_config.update({"host": host, "port": port, "username": username,
-                         "password": password, "use_tls": use_tls})
+    _smtp_config.update(
+        {"host": host, "port": port, "username": username, "password": password, "use_tls": use_tls}
+    )
     _save_data()
     log.info("SMTP configured: %s:%d", host, port)
 
 
 def create_template(
-    name: str, subject: str, body: str, is_html: bool = False,
+    name: str,
+    subject: str,
+    body: str,
+    is_html: bool = False,
 ) -> EmailTemplate:
     variables = list(set(re.findall(r"\{(\w+)\}", body)))
     template = EmailTemplate(
-        name=name, subject=subject, body=body,
-        is_html=is_html, variables=variables,
+        name=name,
+        subject=subject,
+        body=body,
+        is_html=is_html,
+        variables=variables,
     )
     _templates[name] = template
     _save_data()

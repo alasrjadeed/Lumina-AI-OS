@@ -15,6 +15,7 @@ from core.log import log
 @dataclass
 class ActionRecord:
     """A recorded user action with context."""
+
     action: str
     params: dict[str, Any] = field(default_factory=dict)
     module: str = ""
@@ -26,6 +27,7 @@ class ActionRecord:
 @dataclass
 class Pattern:
     """A learned pattern from repeated actions."""
+
     sequence: list[str]
     frequency: int = 1
     last_used: float = field(default_factory=time.time)
@@ -63,24 +65,52 @@ class LearningAgent:
 
     def _save(self) -> None:
         with open(self.storage_path, "w") as f:
-            json.dump({
-                "history": [{"action": h.action, "params": h.params, "module": h.module,
-                             "timestamp": h.timestamp, "success": h.success, "duration_ms": h.duration_ms}
-                            for h in self._history[-500:]],
-                "patterns": [{"sequence": p.sequence, "frequency": p.frequency,
-                              "last_used": p.last_used, "context": p.context,
-                              "suggestions": p.suggestions} for p in self._patterns],
-                "field_memory": dict(self._field_memory),
-                "workflows": self._workflows,
-            }, f, indent=2)
+            json.dump(
+                {
+                    "history": [
+                        {
+                            "action": h.action,
+                            "params": h.params,
+                            "module": h.module,
+                            "timestamp": h.timestamp,
+                            "success": h.success,
+                            "duration_ms": h.duration_ms,
+                        }
+                        for h in self._history[-500:]
+                    ],
+                    "patterns": [
+                        {
+                            "sequence": p.sequence,
+                            "frequency": p.frequency,
+                            "last_used": p.last_used,
+                            "context": p.context,
+                            "suggestions": p.suggestions,
+                        }
+                        for p in self._patterns
+                    ],
+                    "field_memory": dict(self._field_memory),
+                    "workflows": self._workflows,
+                },
+                f,
+                indent=2,
+            )
 
     # ── Record Actions ──
 
-    def record(self, action: str, module: str = "", params: dict | None = None,
-               success: bool = True, duration_ms: float = 0.0) -> None:
+    def record(
+        self,
+        action: str,
+        module: str = "",
+        params: dict | None = None,
+        success: bool = True,
+        duration_ms: float = 0.0,
+    ) -> None:
         record = ActionRecord(
-            action=action, module=module, params=params or {},
-            success=success, duration_ms=duration_ms,
+            action=action,
+            module=module,
+            params=params or {},
+            success=success,
+            duration_ms=duration_ms,
         )
         self._history.append(record)
         self._learn_pattern(record)
@@ -89,7 +119,6 @@ class LearningAgent:
         self._save()
 
     def _learn_pattern(self, record: ActionRecord) -> None:
-        action_key = f"{record.module}:{record.action}" if record.module else record.action
         recent = [r for r in self._history[-10:] if r.success]
         if len(recent) >= 3:
             seq = [f"{r.module}:{r.action}" if r.module else r.action for r in recent[-3:]]
@@ -146,9 +175,7 @@ class LearningAgent:
         steps = self._workflows.get(name)
         if not steps:
             return {"error": f"Workflow '{name}' not found"}
-        results = []
-        for step in steps:
-            results.append({"step": step, "status": "ready"})
+        results = [{"step": step, "status": "ready"} for step in steps]
         return {"workflow": name, "steps": len(steps), "results": results}
 
     # ── Statistics ──
@@ -159,8 +186,10 @@ class LearningAgent:
             "patterns_learned": len(self._patterns),
             "fields_remembered": sum(len(v) for v in self._field_memory.values()),
             "workflows_saved": len(self._workflows),
-            "top_patterns": [{"sequence": p.sequence, "frequency": p.frequency}
-                           for p in self.get_frequent_patterns(3)],
+            "top_patterns": [
+                {"sequence": p.sequence, "frequency": p.frequency}
+                for p in self.get_frequent_patterns(3)
+            ],
         }
 
 

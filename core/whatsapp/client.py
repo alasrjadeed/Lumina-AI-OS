@@ -1,4 +1,3 @@
-
 import httpx
 
 from config.settings import settings
@@ -23,62 +22,83 @@ class WhatsAppClient:
             }
         url = f"{self.base_url}/{self.phone_number_id}/{endpoint}"
         async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(url, json=data, headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            })
+            resp = await client.post(
+                url,
+                json=data,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
             return resp.json()
 
     async def send_text(self, to: str, text: str) -> dict:
-        return await self._post("messages", {
-            "messaging_product": "whatsapp",
-            "to": to,
-            "type": "text",
-            "text": {"body": text},
-        })
+        return await self._post(
+            "messages",
+            {
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "text",
+                "text": {"body": text},
+            },
+        )
 
     async def send_template(
         self, to: str, template_name: str, params: list[str] | None = None
     ) -> dict:
         components = []
         if params:
-            components.append({
-                "type": "body",
-                "parameters": [{"type": "text", "text": p} for p in params],
-            })
-        return await self._post("messages", {
-            "messaging_product": "whatsapp",
-            "to": to,
-            "type": "template",
-            "template": {
-                "name": template_name,
-                "language": {"code": "en"},
-                "components": components,
+            components.append(
+                {
+                    "type": "body",
+                    "parameters": [{"type": "text", "text": p} for p in params],
+                }
+            )
+        return await self._post(
+            "messages",
+            {
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "template",
+                "template": {
+                    "name": template_name,
+                    "language": {"code": "en"},
+                    "components": components,
+                },
             },
-        })
+        )
 
     async def send_image(self, to: str, image_url: str, caption: str = "") -> dict:
-        return await self._post("messages", {
-            "messaging_product": "whatsapp",
-            "to": to,
-            "type": "image",
-            "image": {"link": image_url, "caption": caption},
-        })
+        return await self._post(
+            "messages",
+            {
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "image",
+                "image": {"link": image_url, "caption": caption},
+            },
+        )
 
     async def send_document(self, to: str, doc_url: str, filename: str = "") -> dict:
-        return await self._post("messages", {
-            "messaging_product": "whatsapp",
-            "to": to,
-            "type": "document",
-            "document": {"link": doc_url, "filename": filename},
-        })
+        return await self._post(
+            "messages",
+            {
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "document",
+                "document": {"link": doc_url, "filename": filename},
+            },
+        )
 
     async def mark_as_read(self, message_id: str) -> dict:
-        return await self._post("messages", {
-            "messaging_product": "whatsapp",
-            "status": "read",
-            "message_id": message_id,
-        })
+        return await self._post(
+            "messages",
+            {
+                "messaging_product": "whatsapp",
+                "status": "read",
+                "message_id": message_id,
+            },
+        )
 
     async def get_templates(self) -> list[dict]:
         if not self._is_configured():

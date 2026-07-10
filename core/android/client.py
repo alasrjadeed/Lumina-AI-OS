@@ -103,8 +103,9 @@ class AndroidClient:
             self._screen_info = self._get_screen_info()
         return self._screen_info
 
-    def screenrecord(self, path: str = "/sdcard/record.mp4", duration: int = 30,
-                     bit_rate: int = 4000000) -> str:
+    def screenrecord(
+        self, path: str = "/sdcard/record.mp4", duration: int = 30, bit_rate: int = 4000000
+    ) -> str:
         self.device.shell(f"screenrecord --time-limit {duration} --bit-rate {bit_rate} {path}")
         log.info("Screen recording saved: %s (%ds)", path, duration)
         return path
@@ -148,12 +149,14 @@ class AndroidClient:
         for line in output.split("\n"):
             parts = line.split()
             if len(parts) >= 9 and parts[0].startswith(("-", "d")):
-                items.append({
-                    "permissions": parts[0],
-                    "size": int(parts[4]) if parts[4].isdigit() else 0,
-                    "name": parts[-1],
-                    "is_dir": parts[0].startswith("d"),
-                })
+                items.append(
+                    {
+                        "permissions": parts[0],
+                        "size": int(parts[4]) if parts[4].isdigit() else 0,
+                        "name": parts[-1],
+                        "is_dir": parts[0].startswith("d"),
+                    }
+                )
         return items
 
     # ── Monitoring ──
@@ -175,8 +178,10 @@ class AndroidClient:
     # ── Helpers ──
 
     def _get_main_activity(self, package: str) -> str:
-        output = self.device.shell(f"cmd package resolve-activity --brief {package} 2>/dev/null "
-                                   f"|| dumpsys package {package} | grep -A 1 'MAIN'")
+        output = self.device.shell(
+            f"cmd package resolve-activity --brief {package} 2>/dev/null "
+            f"|| dumpsys package {package} | grep -A 1 'MAIN'"
+        )
         for line in output.split("\n"):
             line = line.strip()
             if "/" in line and line.startswith(package):

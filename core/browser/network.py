@@ -95,14 +95,16 @@ class NetworkInterceptor:
         headers: dict[str, str] | None = None,
         method: str = "*",
     ) -> None:
-        self._routes.append({
-            "pattern": url_pattern,
-            "method": method,
-            "action": "fulfill",
-            "status": status,
-            "headers": headers or {"Content-Type": "application/json"},
-            "body": body,
-        })
+        self._routes.append(
+            {
+                "pattern": url_pattern,
+                "method": method,
+                "action": "fulfill",
+                "status": status,
+                "headers": headers or {"Content-Type": "application/json"},
+                "body": body,
+            }
+        )
         log.info("Mock added: %s -> %d", url_pattern, status)
 
     def mock_json(self, url_pattern: str, data: Any, status: int = 200) -> None:
@@ -125,6 +127,7 @@ class NetworkInterceptor:
                     await route.continue_()
                     return
             await route.abort()
+
         self._page.route("**/*", handler)
 
     def get_requests(self, method: str = "", url_pattern: str = "") -> list[RequestInfo]:
@@ -157,7 +160,9 @@ class NetworkInterceptor:
         return None
 
     async def wait_for_response(
-        self, url_pattern: str, timeout: float = 5000,
+        self,
+        url_pattern: str,
+        timeout: float = 5000,
     ) -> ResponseInfo | None:
         deadline = asyncio.get_event_loop().time() + timeout / 1000
         while asyncio.get_event_loop().time() < deadline:

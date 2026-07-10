@@ -11,39 +11,32 @@ if TYPE_CHECKING:
 
 @runtime_checkable
 class EventMiddleware(Protocol):
-    async def before_publish(self, event: Event) -> Event:
-        ...
+    async def before_publish(self, event: Event) -> Event: ...
 
-    async def after_publish(self, event: Event) -> None:
-        ...
+    async def after_publish(self, event: Event) -> None: ...
 
-    async def before_dispatch(self, event: Event) -> Event:
-        ...
+    async def before_dispatch(self, event: Event) -> Event: ...
 
     async def before_handler(
         self,
         subscription: Subscription,
         event: Event,
-    ) -> Event:
-        ...
+    ) -> Event: ...
 
     async def after_handler(
         self,
         subscription: Subscription,
         event: Event,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def on_exception(
         self,
         subscription: Subscription,
         event: Event,
         exception: Exception,
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    async def after_dispatch(self, event: Event) -> None:
-        ...
+    async def after_dispatch(self, event: Event) -> None: ...
 
 
 class BaseMiddleware(ABC):

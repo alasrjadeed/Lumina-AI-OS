@@ -11,9 +11,10 @@ import json
 import os
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from core.log import log
 
@@ -29,6 +30,7 @@ class TaskStatus(Enum):
 @dataclass
 class Task:
     """A single task in the queue."""
+
     id: str = ""
     name: str = ""
     action: str = ""
@@ -49,6 +51,7 @@ class Task:
 @dataclass
 class Pipeline:
     """A pipeline is a named collection of tasks."""
+
     id: str = ""
     name: str = ""
     tasks: list[Task] = field(default_factory=list)
@@ -63,39 +66,48 @@ def _new_id() -> str:
 
 # ── Task Executors — maps module.action to handler ──
 
+
 async def _execute_chat(params: dict) -> str:
     from core.provider import engine
+
     resp = await engine.chat([{"role": "user", "content": params.get("prompt", "")}])
     return resp.get("message", {}).get("content", "")
 
 
 async def _execute_content(params: dict) -> str:
     from core.writer.generator import writer
+
     result = await writer.generate(
-        params.get("type", "blog"), params.get("topic", ""), params.get("tone", "professional"),
+        params.get("type", "blog"),
+        params.get("topic", ""),
+        params.get("tone", "professional"),
     )
     return result.get("content", "")
 
 
 async def _execute_browser(params: dict) -> dict:
     from core.browser.agent import browser_agent
+
     return await browser_agent.execute(params.get("task", ""), headless=True)
 
 
 async def _execute_whatsapp(params: dict) -> str:
     from core.whatsapp.client import whatsapp
+
     result = await whatsapp.send_text(params.get("to", ""), params.get("text", ""))
     return str(result)
 
 
 async def _execute_social(params: dict) -> str:
     from core.social.manager import social
+
     p = social.create_post(params.get("content", ""), params.get("platform", "facebook"))
     return f"Post created: {p.id}"
 
 
 async def _execute_crm(params: dict) -> str:
     from core.crm.pipeline import crm
+
     if params.get("action") == "add_contact":
         c = crm.add_contact(params.get("name", ""), params.get("email", ""))
         return f"Contact added: {c['id']}"
@@ -109,6 +121,7 @@ async def _execute_crm(params: dict) -> str:
 
 async def _execute_vault(params: dict) -> str:
     from core.vault.store import vault
+
     if params.get("action") == "set":
         vault.set(params.get("key", ""), params.get("value", ""))
         return f"Saved: {params.get('key', '')}"
@@ -143,28 +156,55 @@ class TaskQueue:
                 data = json.load(f)
             for p in data.get("pipelines", []):
                 tasks = [Task(**t) for t in p.get("tasks", [])]
-                pipeline = Pipeline(id=p["id"], name=p["name"], tasks=tasks,
-                                    status=p.get("status", "draft"), created=p.get("created", 0))
+                pipeline = Pipeline(
+                    id=p["id"],
+                    name=p["name"],
+                    tasks=tasks,
+                    status=p.get("status", "draft"),
+                    created=p.get("created", 0),
+                )
                 self._pipelines.append(pipeline)
         except Exception:
             pass
 
     def _save(self) -> None:
         with open(self.storage_path, "w") as f:
-            json.dump({
-                "pipelines": [{"id": p.id, "name": p.name, "status": p.status,
-                               "created": p.created, "completed": p.completed,
-                               "tasks": [{"id": t.id, "name": t.name, "action": t.action,
-                                          "params": t.params, "module": t.module,
-                                          "depends_on": t.depends_on, "status": t.status.value,
-                                          "result": str(t.result)[:200] if t.result else "",
-                                          "error": t.error[:200], "created": t.created,
-                                          "started": t.started, "completed": t.completed,
-                                          "duration_ms": t.duration_ms, "retries": t.retries,
-                                          "max_retries": t.max_retries}
-                                         for t in p.tasks]}
-                              for p in self._pipelines],
-            }, f, indent=2)
+            json.dump(
+                {
+                    "pipelines": [
+                        {
+                            "id": p.id,
+                            "name": p.name,
+                            "status": p.status,
+                            "created": p.created,
+                            "completed": p.completed,
+                            "tasks": [
+                                {
+                                    "id": t.id,
+                                    "name": t.name,
+                                    "action": t.action,
+                                    "params": t.params,
+                                    "module": t.module,
+                                    "depends_on": t.depends_on,
+                                    "status": t.status.value,
+                                    "result": str(t.result)[:200] if t.result else "",
+                                    "error": t.error[:200],
+                                    "created": t.created,
+                                    "started": t.started,
+                                    "completed": t.completed,
+                                    "duration_ms": t.duration_ms,
+                                    "retries": t.retries,
+                                    "max_retries": t.max_retries,
+                                }
+                                for t in p.tasks
+                            ],
+                        }
+                        for p in self._pipelines
+                    ],
+                },
+                f,
+                indent=2,
+            )
 
     # ── Pipeline Management ──
 
@@ -174,15 +214,25 @@ class TaskQueue:
         self._save()
         return pipeline
 
-    def add_task(self, pipeline_id: str, name: str, action: str,
-                 module: str = "chat", params: dict | None = None,
-                 depends_on: list[str] | None = None) -> Task | None:
+    def add_task(
+        self,
+        pipeline_id: str,
+        name: str,
+        action: str,
+        module: str = "chat",
+        params: dict | None = None,
+        depends_on: list[str] | None = None,
+    ) -> Task | None:
         pipeline = next((p for p in self._pipelines if p.id == pipeline_id), None)
         if not pipeline:
             return None
         task = Task(
-            id=_new_id(), name=name, action=action, module=module,
-            params=params or {}, depends_on=depends_on or [],
+            id=_new_id(),
+            name=name,
+            action=action,
+            module=module,
+            params=params or {},
+            depends_on=depends_on or [],
         )
         pipeline.tasks.append(task)
         self._save()
@@ -214,14 +264,20 @@ class TaskQueue:
 
         for task in pipeline.tasks:
             # Check dependencies
-            deps_met = all(
-                any(t.id in dep for t in pipeline.tasks if t.status == TaskStatus.SUCCESS)
-                for dep in task.depends_on
-            ) if task.depends_on else True
+            deps_met = (
+                all(
+                    any(t.id in dep for t in pipeline.tasks if t.status == TaskStatus.SUCCESS)
+                    for dep in task.depends_on
+                )
+                if task.depends_on
+                else True
+            )
 
             if not deps_met:
                 task.status = TaskStatus.SKIPPED
-                results.append({"task": task.name, "status": "skipped", "reason": "dependency not met"})
+                results.append(
+                    {"task": task.name, "status": "skipped", "reason": "dependency not met"}
+                )
                 continue
 
             task.status = TaskStatus.RUNNING

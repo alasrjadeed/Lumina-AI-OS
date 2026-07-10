@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import os
-import queue
 import subprocess
 import threading
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from core.log import log
 from core.voice.echo import EchoDetector
@@ -27,9 +24,23 @@ class DictationResult:
 
 
 FILLER_WORDS = {
-    "um", "uh", "er", "ah", "like", "you know", "i mean",
-    "sort of", "kind of", "actually", "basically", "literally",
-    "so", "well", "right", "okay", "hmm",
+    "um",
+    "uh",
+    "er",
+    "ah",
+    "like",
+    "you know",
+    "i mean",
+    "sort of",
+    "kind of",
+    "actually",
+    "basically",
+    "literally",
+    "so",
+    "well",
+    "right",
+    "okay",
+    "hmm",
 }
 
 
@@ -108,7 +119,8 @@ class DictationEngine:
         cleaned = self._clean_text(result.text)
 
         return DictationResult(
-            text=cleaned, confidence=result.confidence,
+            text=cleaned,
+            confidence=result.confidence,
             duration_ms=result.duration_ms,
             filler_removed=self.filler_removal and cleaned != result.text,
             corrections_applied=cleaned != result.text and not self.filler_removal,
@@ -137,7 +149,8 @@ class DictationEngine:
                         loop.run_until_complete(
                             self._result_queue.put(
                                 DictationResult(
-                                    text=cleaned, confidence=result.confidence,
+                                    text=cleaned,
+                                    confidence=result.confidence,
                                     duration_ms=result.duration_ms,
                                 )
                             )
@@ -164,7 +177,7 @@ class DictationEngine:
     async def next_result(self, timeout: float = 30.0) -> DictationResult | None:
         try:
             return await asyncio.wait_for(self._result_queue.get(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
     # ── Hotkey Mode (push-to-talk dictation) ──
@@ -201,6 +214,7 @@ class DictationEngine:
     def _hotkey_listener(self, hotkey: str) -> None:
         try:
             import keyboard
+
             log.info("Dictation: using 'keyboard' library for hotkey")
             press_time = 0.0
             recording = False
@@ -244,7 +258,10 @@ class DictationEngine:
         try:
             import pynput.keyboard as pynput_kb
         except ImportError:
-            log.error("Dictation: neither 'keyboard' nor 'pynput' available. Install one with: pip install keyboard")
+            log.error(
+                "Dictation: neither 'keyboard' nor 'pynput' available. "
+                "Install one with: pip install keyboard"
+            )
             return
 
         press_time = 0.0
@@ -291,9 +308,7 @@ class DictationEngine:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            return loop.run_until_complete(
-                self.recorder.record(duration=0.5, timeout=1.0)
-            )
+            return loop.run_until_complete(self.recorder.record(duration=0.5, timeout=1.0))
         except Exception:
             return b""
         finally:
@@ -314,7 +329,8 @@ class DictationEngine:
                 return
             self._echo.record_utterance(cleaned)
             dr = DictationResult(
-                text=cleaned, confidence=result.confidence,
+                text=cleaned,
+                confidence=result.confidence,
                 duration_ms=result.duration_ms,
                 filler_removed=self.filler_removal and cleaned != result.text,
             )
@@ -330,23 +346,25 @@ class DictationEngine:
     @staticmethod
     def _simulate_typing(text: str) -> None:
         """Type text into the currently focused application."""
-        import shlex
         try:
             subprocess.run(
                 ["xdotool", "type", "--", text],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 timeout=5,
             )
         except FileNotFoundError:
             try:
                 subprocess.run(
                     ["ydotool", "type", text],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
                     timeout=5,
                 )
             except FileNotFoundError:
                 try:
                     import pyautogui
+
                     pyautogui.write(text, interval=0.005)
                 except ImportError:
                     log.warning("Dictation: no typing tool found (install xdotool or ydotool)")

@@ -18,8 +18,12 @@ class TestRequest(BaseModel):
 @router.post("/run")
 async def run_once(req: TestRequest):
     result = await tester.run(req.command, req.timeout)
-    return {"success": result.success, "output": result.output[-500:], "error": result.error[-500:],
-            "duration_ms": result.duration_ms}
+    return {
+        "success": result.success,
+        "output": result.output[-500:],
+        "error": result.error[-500:],
+        "duration_ms": result.duration_ms,
+    }
 
 
 @router.post("/fix")
@@ -45,9 +49,19 @@ async def run_lint(path: str = "."):
 @router.get("/history")
 async def get_history(limit: int = 20):
     items = tester.get_history(limit)
-    return {"history": [{"command": h.command, "success": h.success, "duration_ms": h.duration_ms,
-                         "error": h.error[:200], "timestamp": getattr(h, 'timestamp', '')}
-                       for h in items], "total": len(items)}
+    return {
+        "history": [
+            {
+                "command": h.command,
+                "success": h.success,
+                "duration_ms": h.duration_ms,
+                "error": h.error[:200],
+                "timestamp": getattr(h, "timestamp", ""),
+            }
+            for h in items
+        ],
+        "total": len(items),
+    }
 
 
 @router.get("/stats")
@@ -58,7 +72,9 @@ async def get_stats():
     failed = total - passed
     avg_duration = sum(h.duration_ms for h in items) / max(total, 1)
     return {
-        "total": total, "passed": passed, "failed": failed,
+        "total": total,
+        "passed": passed,
+        "failed": failed,
         "pass_rate": round((passed / max(total, 1)) * 100, 1),
         "avg_duration_ms": round(avg_duration, 0),
     }
@@ -73,7 +89,11 @@ async def list_commands():
             {"label": "TypeScript", "cmd": "npx tsc --noEmit", "category": "typescript"},
             {"label": "Ruff Lint", "cmd": "python -m ruff check .", "category": "python"},
             {"label": "Build UI", "cmd": "cd lumina-ui && npx vite build", "category": "build"},
-            {"label": "Ruff Format", "cmd": "python -m ruff format . --check", "category": "python"},
+            {
+                "label": "Ruff Format",
+                "cmd": "python -m ruff format . --check",
+                "category": "python",
+            },
             {"label": "Pyright", "cmd": "python -m pyright .", "category": "python"},
             {"label": "ESLint", "cmd": "npx eslint src/", "category": "javascript"},
             {"label": "Vitest", "cmd": "npx vitest run", "category": "javascript"},

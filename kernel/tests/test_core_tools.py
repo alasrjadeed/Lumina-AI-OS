@@ -87,7 +87,7 @@ class TestCalculatorTool:
         tool = CalculatorTool()
         result = await tool.execute(expression="__import__('os').system('ls')")
         assert not result.success
-        assert "disallowed" in result.error
+        assert result.error is not None and "disallowed" in result.error
 
 
 class TestCurrentDateTimeTool:
@@ -153,7 +153,7 @@ class TestToolRegistry:
         reg = ToolRegistry()
         result = await reg.execute_call("unknown", {})
         assert not result.success
-        assert "Unknown tool" in result.error
+        assert result.error is not None and "Unknown tool" in result.error
 
 
 class TestDefaultTools:
@@ -171,4 +171,4 @@ class TestFileReadTool:
         tool = FileReadTool()
         result = await tool.execute(path="/tmp/nonexistent_file_for_testing_xyz.txt")
         assert not result.success
-        assert "error" in result.error.lower() or result.error
+        assert result.error is not None and ("error" in result.error.lower() or result.error)

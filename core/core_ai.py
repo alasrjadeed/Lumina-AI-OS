@@ -3,19 +3,15 @@
 from __future__ import annotations
 
 import time
-import traceback
-from typing import Any
 
-from core.agents.approval import ApprovalLevel, approval_gate
-from core.agents.ceo import CEOAgent
 from core.agents.employee import LuminaEmployee
 from core.agents.languages import language_engine
 from core.agents.learning import learning_engine
 from core.agents.routine import autonomous_routine
-from core.audit import AuditAction, audit_trail
 from core.analytics import analytics
-from core.vault.memory import business_memory
+from core.audit import AuditAction, audit_trail
 from core.log import log
+from core.vault.memory import business_memory
 
 
 class CoreAI:
@@ -26,8 +22,13 @@ class CoreAI:
         self.employee = LuminaEmployee()
         self.working_language = "en"
 
-    async def think(self, input_text: str, context: dict | None = None,
-                    auto_heal: bool = True, max_retries: int = 3) -> dict:
+    async def think(
+        self,
+        input_text: str,
+        context: dict | None = None,
+        auto_heal: bool = True,
+        max_retries: int = 3,
+    ) -> dict:
         """The main entry point for ALL Lumina requests — text, voice, or API.
 
         Full pipeline:
@@ -66,7 +67,11 @@ class CoreAI:
         if auto_heal and not execution_success and max_retries > 0:
             log.info("CoreAI: [%s] Self-healing — attempt 1/%d", task_id, max_retries)
             result = await self._self_heal(
-                input_text, result, full_context, max_retries, start_time,
+                input_text,
+                result,
+                full_context,
+                max_retries,
+                start_time,
             )
 
         # ── 5. VERIFY ──
@@ -118,13 +123,20 @@ class CoreAI:
         return {
             **result,
             "pipeline": {
-                "understand": {"language": detected_lang, "language_name": lang_name,
-                               "domain": domain},
-                "recall": {"prior_knowledge_count": 1 if prior_knowledge else 0,
-                           "similar_experiences": len(similar_experiences)},
-                "execute": {"status": result.get("status"),
-                            "phases": len(result.get("phases", [])),
-                            "duration_ms": duration_ms},
+                "understand": {
+                    "language": detected_lang,
+                    "language_name": lang_name,
+                    "domain": domain,
+                },
+                "recall": {
+                    "prior_knowledge_count": 1 if prior_knowledge else 0,
+                    "similar_experiences": len(similar_experiences),
+                },
+                "execute": {
+                    "status": result.get("status"),
+                    "phases": len(result.get("phases", [])),
+                    "duration_ms": duration_ms,
+                },
                 "verify": verification,
                 "learn": learning_engine.get_stats(),
                 "audit": audit_trail.get_stats(),
@@ -132,14 +144,22 @@ class CoreAI:
         }
 
     async def _self_heal(
-        self, original_task: str, failed_result: dict,
-        context: dict, max_retries: int, start_time: float,
+        self,
+        original_task: str,
+        failed_result: dict,
+        context: dict,
+        max_retries: int,
+        start_time: float,
     ) -> dict:
         """Attempt to heal a failed task by delegating to the Debugger + Programmer + Tester."""
         for attempt in range(max_retries):
             error_summary = failed_result.get("error", "Unknown error")
-            log.info("CoreAI: Self-healing attempt %d/%d — %s",
-                     attempt + 1, max_retries, error_summary[:80])
+            log.info(
+                "CoreAI: Self-healing attempt %d/%d — %s",
+                attempt + 1,
+                max_retries,
+                error_summary[:80],
+            )
 
             heal_task = (
                 f"Previous attempt to '{original_task}' failed with: {error_summary}. "
@@ -170,11 +190,10 @@ class CoreAI:
         phases = result.get("phases", [])
         failed_phases = [p for p in phases if p.get("status") == "failed"]
         if failed_phases:
-            for fp in failed_phases:
-                issues.append(
-                    f"Phase '{fp.get('agent', 'unknown')}' failed: "
-                    f"{fp.get('error', '')[:150]}"
-                )
+            issues.extend(
+                f"Phase '{fp.get('agent', 'unknown')}' failed: {fp.get('error', '')[:150]}"
+                for fp in failed_phases
+            )
 
         return {
             "passed": len(issues) == 0,
@@ -182,19 +201,17 @@ class CoreAI:
             "issue_count": len(issues),
         }
 
-    async def voice_pipeline(self, audio_text: str,
-                             reply_by_voice: bool = False) -> dict:
+    async def voice_pipeline(self, audio_text: str, reply_by_voice: bool = False) -> dict:
         """Full voice-to-action pipeline: speech → understand → execute → speak reply."""
         result = await self.think(audio_text)
 
         if reply_by_voice:
             response_text = result.get("output", "")
             if not response_text:
-                response_text = (
-                    f"Task completed. Status: {result.get('status', 'unknown')}."
-                )
+                response_text = f"Task completed. Status: {result.get('status', 'unknown')}."
             try:
                 from core.voice.tts import tts
+
                 detected = result.get("pipeline", {}).get("understand", {}).get("language", "en")
                 await tts.speak_in_language(response_text[:500], lang_code=detected)
                 log.info("CoreAI: Voice reply spoken (%s)", detected)
@@ -203,8 +220,9 @@ class CoreAI:
 
         return result
 
-    async def code_task(self, description: str, project_dir: str = "",
-                        frameworks: list[str] | None = None) -> dict:
+    async def code_task(
+        self, description: str, project_dir: str = "", frameworks: list[str] | None = None
+    ) -> dict:
         """Handle a coding-specific task with self-healing enabled by default."""
         context = {}
         if project_dir:
@@ -228,34 +246,84 @@ class CoreAI:
     def _classify_domain(self, text: str) -> str:
         t = text.lower()
 
-        if any(w in t for w in ["code", "program", "app", "api", "software", "build",
-                                "developer", "database", "server", "website", "backend",
-                                "frontend", "migration", "controller", "model",
-                                "debug", "test", "fix", "error", "bug", "crash"]):
+        if any(
+            w in t
+            for w in [
+                "code",
+                "program",
+                "app",
+                "api",
+                "software",
+                "build",
+                "developer",
+                "database",
+                "server",
+                "website",
+                "backend",
+                "frontend",
+                "migration",
+                "controller",
+                "model",
+                "debug",
+                "test",
+                "fix",
+                "error",
+                "bug",
+                "crash",
+            ]
+        ):
             return "development"
-        if any(w in t for w in ["design", "ui", "ux", "css", "brand", "color", "layout",
-                                "logo", "banner", "post", "social media"]):
+        if any(
+            w in t
+            for w in [
+                "design",
+                "ui",
+                "ux",
+                "css",
+                "brand",
+                "color",
+                "layout",
+                "logo",
+                "banner",
+                "post",
+                "social media",
+            ]
+        ):
             return "design"
-        if any(w in t for w in ["marketing", "seo", "social", "ad", "campaign",
-                                "content", "blog", "post"]):
+        if any(
+            w in t
+            for w in ["marketing", "seo", "social", "ad", "campaign", "content", "blog", "post"]
+        ):
             return "marketing"
-        if any(w in t for w in ["finance", "invoice", "budget", "payment", "tax",
-                                "revenue", "cost", "pricing"]):
+        if any(
+            w in t
+            for w in [
+                "finance",
+                "invoice",
+                "budget",
+                "payment",
+                "tax",
+                "revenue",
+                "cost",
+                "pricing",
+            ]
+        ):
             return "finance"
-        if any(w in t for w in ["security", "vulnerability", "compliance", "audit",
-                                "monitor", "encrypt"]):
+        if any(
+            w in t
+            for w in ["security", "vulnerability", "compliance", "audit", "monitor", "encrypt"]
+        ):
             return "security"
-        if any(w in t for w in ["email", "inbox", "message", "reply", "draft",
-                                "newsletter"]):
+        if any(w in t for w in ["email", "inbox", "message", "reply", "draft", "newsletter"]):
             return "communication"
-        if any(w in t for w in ["customer", "support", "client", "help", "issue",
-                                "ticket"]):
+        if any(w in t for w in ["customer", "support", "client", "help", "issue", "ticket"]):
             return "support"
-        if any(w in t for w in ["sale", "lead", "proposal", "deal", "quote",
-                                "negotiate"]):
+        if any(w in t for w in ["sale", "lead", "proposal", "deal", "quote", "negotiate"]):
             return "sales"
-        if any(w in t for w in ["deploy", "docker", "kubernetes", "ci/cd",
-                                "pipeline", "infrastructure"]):
+        if any(
+            w in t
+            for w in ["deploy", "docker", "kubernetes", "ci/cd", "pipeline", "infrastructure"]
+        ):
             return "devops"
         return "general"
 

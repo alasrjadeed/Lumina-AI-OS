@@ -14,6 +14,7 @@ from core.log import log
 @dataclass
 class Post:
     """A social media post."""
+
     id: str = ""
     platform: str = "facebook"
     content: str = ""
@@ -27,6 +28,7 @@ class Post:
 @dataclass
 class Page:
     """A Facebook page or Instagram account."""
+
     id: str = ""
     name: str = ""
     platform: str = "facebook"
@@ -65,18 +67,34 @@ class SocialManager:
 
     def _save(self) -> None:
         with open(self.storage_path, "w") as f:
-            json.dump({
-                "pages": [p.__dict__ for p in self._pages.values()],
-                "posts": [p.__dict__ for p in self._posts],
-            }, f, indent=2)
+            json.dump(
+                {
+                    "pages": [p.__dict__ for p in self._pages.values()],
+                    "posts": [p.__dict__ for p in self._posts],
+                },
+                f,
+                indent=2,
+            )
 
     # ── Pages ──
 
-    def add_page(self, name: str, platform: str = "facebook", url: str = "",
-                 category: str = "", description: str = "") -> Page:
+    def add_page(
+        self,
+        name: str,
+        platform: str = "facebook",
+        url: str = "",
+        category: str = "",
+        description: str = "",
+    ) -> Page:
         pid = f"page_{int(time.time())}_{len(self._pages)}"
-        page = Page(id=pid, name=name, platform=platform, url=url,
-                    category=category, description=description)
+        page = Page(
+            id=pid,
+            name=name,
+            platform=platform,
+            url=url,
+            category=category,
+            description=description,
+        )
         self._pages[pid] = page
         self._save()
         log.info("Social page added: %s (%s)", name, platform)
@@ -109,12 +127,21 @@ class SocialManager:
 
     # ── Posts ──
 
-    def create_post(self, content: str, platform: str = "facebook",
-                    media_urls: list[str] | None = None,
-                    scheduled: float = 0.0) -> Post:
+    def create_post(
+        self,
+        content: str,
+        platform: str = "facebook",
+        media_urls: list[str] | None = None,
+        scheduled: float = 0.0,
+    ) -> Post:
         pid = f"post_{int(time.time())}_{len(self._posts)}"
-        post = Post(id=pid, platform=platform, content=content,
-                    media_urls=media_urls or [], scheduled=scheduled)
+        post = Post(
+            id=pid,
+            platform=platform,
+            content=content,
+            media_urls=media_urls or [],
+            scheduled=scheduled,
+        )
         self._posts.append(post)
         self._save()
         return post
@@ -156,13 +183,19 @@ class SocialManager:
     async def publish_via_browser(self, post_id: str, headless: bool = False) -> dict:
         """Use Browser Agent to publish a post on Facebook/Instagram."""
         from core.browser.agent import browser_agent
+
         post = next((p for p in self._posts if p.id == post_id), None)
         if not post:
             return {"error": "Post not found"}
 
-        platform_url = "https://business.facebook.com" if post.platform == "facebook" else "https://instagram.com"
+        platform_url = (
+            "https://business.facebook.com"
+            if post.platform == "facebook"
+            else "https://instagram.com"
+        )
         task = (
-            f"Go to {platform_url}, log in if needed, navigate to the creator studio / posts section. "
+            f"Go to {platform_url}, log in if needed, navigate to the "
+            f"creator studio / posts section. "
             f"Create a new post with the following content:\n\n{post.content}\n\n"
             f"Publish the post. Report back what happened."
         )
@@ -172,10 +205,12 @@ class SocialManager:
         self._save()
         return result
 
-    async def upload_page_photo(self, page_id: str, image_url: str,
-                                photo_type: str = "logo", headless: bool = False) -> dict:
+    async def upload_page_photo(
+        self, page_id: str, image_url: str, photo_type: str = "logo", headless: bool = False
+    ) -> dict:
         """Use Browser Agent to upload a logo or cover photo to a Facebook page."""
         from core.browser.agent import browser_agent
+
         page = self._pages.get(page_id)
         if not page:
             return {"error": "Page not found"}
@@ -191,10 +226,12 @@ class SocialManager:
         self._save()
         return result
 
-    async def reply_to_comments(self, page_id: str, reply_text: str,
-                                headless: bool = False) -> dict:
+    async def reply_to_comments(
+        self, page_id: str, reply_text: str, headless: bool = False
+    ) -> dict:
         """Use Browser Agent to reply to recent comments on a page."""
         from core.browser.agent import browser_agent
+
         page = self._pages.get(page_id)
         if not page:
             return {"error": "Page not found"}
@@ -205,10 +242,12 @@ class SocialManager:
         )
         return await browser_agent.execute(task, headless=headless)
 
-    async def create_ad(self, page_id: str, ad_description: str,
-                        budget: float = 10.0, headless: bool = False) -> dict:
+    async def create_ad(
+        self, page_id: str, ad_description: str, budget: float = 10.0, headless: bool = False
+    ) -> dict:
         """Use Browser Agent to create a Facebook ad."""
         from core.browser.agent import browser_agent
+
         page = self._pages.get(page_id)
         if not page:
             return {"error": "Page not found"}
@@ -229,7 +268,9 @@ class SocialManager:
             "scheduled": len(self.get_scheduled()),
             "drafts": len([p for p in self._posts if p.status == "draft" and p.scheduled == 0]),
             "facebook_pages": len([p for p in self._pages.values() if p.platform == "facebook"]),
-            "instagram_accounts": len([p for p in self._pages.values() if p.platform == "instagram"]),
+            "instagram_accounts": len(
+                [p for p in self._pages.values() if p.platform == "instagram"]
+            ),
         }
 
 

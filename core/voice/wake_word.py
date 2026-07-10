@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import struct
 import time
@@ -7,11 +8,14 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 try:
-    import pvporcupine
+    import pvporcupine  # pyright: ignore[reportMissingImports]
+
     HAS_PVPORCUPINE = True
 except ImportError:
     pvporcupine = None
     HAS_PVPORCUPINE = False
+
+_PICOVOICE_KEY = os.getenv("PICOVOICE_ACCESS_KEY", "")
 
 
 @dataclass
@@ -56,12 +60,12 @@ class PorcupineWakeWordDetector:
 
     def __init__(
         self,
-        access_key: str = "",
+        access_key: str | None = None,
         wake_words: list[str] | None = None,
         sensitivities: list[float] | None = None,
     ):
-        self.access_key = access_key
-        self.wake_words = wake_words or ["lumina"]
+        self.access_key = access_key or _PICOVOICE_KEY
+        self.wake_words = wake_words or ["jarvis"]
         self.sensitivities = sensitivities or [0.5] * len(self.wake_words)
         self._engine = None
 
@@ -69,7 +73,10 @@ class PorcupineWakeWordDetector:
         if self._engine is not None:
             return
         if not HAS_PVPORCUPINE:
-            raise ImportError("pvporcupine is required. Install with: pip install pvporcupine")
+            return
+        if not self.access_key:
+            return
+        assert pvporcupine is not None
         self._engine = pvporcupine.create(
             access_key=self.access_key,
             keywords=self.wake_words,
@@ -78,6 +85,8 @@ class PorcupineWakeWordDetector:
 
     def detect(self, audio_chunk: bytes) -> WakeWordResult:
         self._lazy_init()
+        if self._engine is None:
+            return WakeWordResult(detected=False)
         pcm = struct.unpack_from("h" * (len(audio_chunk) // 2), audio_chunk)
         result = self._engine.process(pcm)
         if result >= 0:

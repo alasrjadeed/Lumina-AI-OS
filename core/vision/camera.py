@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import io
-import os
+import contextlib
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import cv2
+    import numpy as np
 
 from core.log import log
 
@@ -24,16 +27,8 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
-try:
-    from PIL import Image
 
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL_AVAILABLE = False
-
-
-class CameraError(Exception):
-    ...
+class CameraError(Exception): ...
 
 
 class CameraProperty(Enum):
@@ -100,7 +95,7 @@ class Frame:
 
     @property
     def datetime(self) -> datetime:
-        return datetime.fromtimestamp(self.timestamp, tz=timezone.utc)
+        return datetime.fromtimestamp(self.timestamp, tz=UTC)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -170,7 +165,10 @@ class CameraDevice:
             self._open = True
             log.info(
                 "Vision: Camera %d opened (%dx%d @ %dfps)",
-                self.device_id, actual_w, actual_h, int(actual_fps),
+                self.device_id,
+                actual_w,
+                actual_h,
+                int(actual_fps),
             )
             return True
 
@@ -181,10 +179,8 @@ class CameraDevice:
 
     def close(self) -> None:
         if self._cap is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._cap.release()
-            except Exception:
-                pass
         self._cap = None
         self._open = False
         log.info("Vision: Camera %d closed", self.device_id)
@@ -205,6 +201,7 @@ class CameraDevice:
                     return None
 
             try:
+                assert self._cap is not None
                 ret, frame_np = self._cap.read()
                 if not ret or frame_np is None:
                     log.warning("Vision: Failed to capture frame from camera %d", self.device_id)
@@ -241,6 +238,7 @@ class CameraDevice:
                     return None
 
             try:
+                assert self._cap is not None
                 ret, frame_np = self._cap.read()
                 if not ret or frame_np is None:
                     return None
@@ -250,7 +248,10 @@ class CameraDevice:
                 return None
 
     def _encode_params(
-        self, format: str, quality: int, frame_np: np.ndarray,
+        self,
+        format: str,
+        quality: int,
+        frame_np: np.ndarray,
     ) -> list[int]:
         if format == "jpg" or format == "jpeg":
             return [cv2.IMWRITE_JPEG_QUALITY, quality]
@@ -323,10 +324,15 @@ def list_cameras(max_devices: int = 10) -> list[CameraInfo]:
             h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = cap.get(cv2.CAP_PROP_FPS)
             cap.release()
-            cameras.append(CameraInfo(
-                device_id=i, width=w, height=h,
-                fps=int(fps), available=True,
-            ))
+            cameras.append(
+                CameraInfo(
+                    device_id=i,
+                    width=w,
+                    height=h,
+                    fps=int(fps),
+                    available=True,
+                )
+            )
         else:
             cap.release()
     return cameras or [CameraInfo(available=False)]

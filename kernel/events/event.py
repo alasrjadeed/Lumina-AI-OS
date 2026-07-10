@@ -13,7 +13,7 @@ class Event(IEvent):
     payload: Any = None
     source: str = ""
     is_replay: bool = False
-    correlation_id: str = ""
+    correlation_id: str | None = ""  # pyright: ignore[reportIncompatibleVariableOverride]
     version: int = 0
     timestamp: float = field(default_factory=time.time)
 

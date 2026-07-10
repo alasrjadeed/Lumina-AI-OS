@@ -88,9 +88,16 @@ class SessionManager:
     async def export_cookies(self, path: str) -> str:
         cookies = await self.get_cookies()
         data = [
-            {"name": c.name, "value": c.value, "domain": c.domain,
-             "path": c.path, "expires": c.expires, "http_only": c.http_only,
-             "secure": c.secure, "same_site": c.same_site}
+            {
+                "name": c.name,
+                "value": c.value,
+                "domain": c.domain,
+                "path": c.path,
+                "expires": c.expires,
+                "http_only": c.http_only,
+                "secure": c.secure,
+                "same_site": c.same_site,
+            }
             for c in cookies
         ]
         with open(path, "w") as f:
@@ -134,17 +141,28 @@ class SessionManager:
         )
         path = os.path.join(self.state_dir, f"{name}.json")
         with open(path, "w") as f:
-            json.dump({
-                "url": state.url,
-                "cookies": [
-                    {"name": c.name, "value": c.value, "domain": c.domain,
-                     "path": c.path, "expires": c.expires, "http_only": c.http_only,
-                     "secure": c.secure, "same_site": c.same_site}
-                    for c in state.cookies
-                ],
-                "storage": {"local": state.storage.local, "session": state.storage.session},
-                "timestamp": state.timestamp,
-            }, f, indent=2)
+            json.dump(
+                {
+                    "url": state.url,
+                    "cookies": [
+                        {
+                            "name": c.name,
+                            "value": c.value,
+                            "domain": c.domain,
+                            "path": c.path,
+                            "expires": c.expires,
+                            "http_only": c.http_only,
+                            "secure": c.secure,
+                            "same_site": c.same_site,
+                        }
+                        for c in state.cookies
+                    ],
+                    "storage": {"local": state.storage.local, "session": state.storage.session},
+                    "timestamp": state.timestamp,
+                },
+                f,
+                indent=2,
+            )
         log.info("Session saved: %s", name)
         return path
 

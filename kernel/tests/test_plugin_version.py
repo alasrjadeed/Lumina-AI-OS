@@ -73,7 +73,8 @@ class TestVersionMatching:
 class TestCompatibility:
     def test_all_pass(self):
         errors = check_plugin_compatibility(
-            "my_plugin", "1.0.0",
+            "my_plugin",
+            "1.0.0",
             {"dep_a": ">=1.0.0", "dep_b": "^2.0.0"},
             {"dep_a": "1.5.0", "dep_b": "2.3.0"},
         )
@@ -81,7 +82,8 @@ class TestCompatibility:
 
     def test_version_mismatch(self):
         errors = check_plugin_compatibility(
-            "my_plugin", "1.0.0",
+            "my_plugin",
+            "1.0.0",
             {"dep_a": ">=2.0.0"},
             {"dep_a": "1.0.0"},
         )
@@ -90,7 +92,8 @@ class TestCompatibility:
 
     def test_missing_dependency(self):
         errors = check_plugin_compatibility(
-            "my_plugin", "1.0.0",
+            "my_plugin",
+            "1.0.0",
             {"dep_missing": ">=1.0.0"},
             {"dep_a": "1.0.0"},
         )

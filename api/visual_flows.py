@@ -1,9 +1,9 @@
 """Visual Agent Flows API — drag-and-drop multi-agent workflow builder."""
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-from core.visual_flows import flow_manager, VisualFlow
+from core.visual_flows import flow_manager
 
 router = APIRouter(prefix="/visual-flows", tags=["Visual Flows"])
 
@@ -55,10 +55,14 @@ async def create_flow(req: CreateFlow):
 @router.put("/update")
 async def update_flow(req: UpdateFlow):
     kwargs = {}
-    if req.name: kwargs["name"] = req.name
-    if req.description: kwargs["description"] = req.description
-    if req.nodes is not None: kwargs["nodes"] = req.nodes
-    if req.edges is not None: kwargs["edges"] = req.edges
+    if req.name:
+        kwargs["name"] = req.name
+    if req.description:
+        kwargs["description"] = req.description
+    if req.nodes is not None:
+        kwargs["nodes"] = req.nodes
+    if req.edges is not None:
+        kwargs["edges"] = req.edges
 
     flow = flow_manager.update(req.flow_id, **kwargs)
     if not flow:

@@ -117,54 +117,106 @@ class AppSettings:
     @staticmethod
     def default_settings(path: str = "lumina_settings.json") -> AppSettings:
         settings = AppSettings(path)
-        settings.define(SettingDefinition(
-            key="theme", label="Theme", type="choice",
-            default="dark", options=["dark", "light"],
-            category="appearance",
-        ))
-        settings.define(SettingDefinition(
-            key="language", label="Language", type="choice",
-            default="en", options=["en", "zh", "ja", "ko"],
-            category="appearance",
-        ))
-        settings.define(SettingDefinition(
-            key="font_size", label="Font Size", type="int",
-            default=14, min=8, max=32,
-            category="appearance",
-        ))
-        settings.define(SettingDefinition(
-            key="api_key", label="API Key", type="string", default="",
-            description="OpenAI API key",
-            category="api",
-        ))
-        settings.define(SettingDefinition(
-            key="model", label="Model", type="choice",
-            default="gpt-4o", options=["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
-            category="api",
-        ))
-        settings.define(SettingDefinition(
-            key="temperature", label="Temperature", type="float",
-            default=0.7, min=0.0, max=2.0,
-            category="api",
-        ))
-        settings.define(SettingDefinition(
-            key="max_tokens", label="Max Tokens", type="int",
-            default=4096, min=256, max=32768,
-            category="api",
-        ))
-        settings.define(SettingDefinition(
-            key="auto_save", label="Auto Save", type="bool",
-            default=True,
-            category="general",
-        ))
-        settings.define(SettingDefinition(
-            key="startup_behavior", label="Startup Behavior", type="choice",
-            default="restore", options=["restore", "new", "minimized"],
-            category="general",
-        ))
-        settings.define(SettingDefinition(
-            key="log_level", label="Log Level", type="choice",
-            default="info", options=["debug", "info", "warning", "error"],
-            category="system",
-        ))
+        settings.define(
+            SettingDefinition(
+                key="theme",
+                label="Theme",
+                type="choice",
+                default="dark",
+                options=["dark", "light"],
+                category="appearance",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="language",
+                label="Language",
+                type="choice",
+                default="en",
+                options=["en", "zh", "ja", "ko"],
+                category="appearance",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="font_size",
+                label="Font Size",
+                type="int",
+                default=14,
+                min=8,
+                max=32,
+                category="appearance",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="api_key",
+                label="API Key",
+                type="string",
+                default="",
+                description="OpenAI API key",
+                category="api",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="model",
+                label="Model",
+                type="choice",
+                default="gpt-4o",
+                options=["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
+                category="api",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="temperature",
+                label="Temperature",
+                type="float",
+                default=0.7,
+                min=0.0,
+                max=2.0,
+                category="api",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="max_tokens",
+                label="Max Tokens",
+                type="int",
+                default=4096,
+                min=256,
+                max=32768,
+                category="api",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="auto_save",
+                label="Auto Save",
+                type="bool",
+                default=True,
+                category="general",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="startup_behavior",
+                label="Startup Behavior",
+                type="choice",
+                default="restore",
+                options=["restore", "new", "minimized"],
+                category="general",
+            )
+        )
+        settings.define(
+            SettingDefinition(
+                key="log_level",
+                label="Log Level",
+                type="choice",
+                default="info",
+                options=["debug", "info", "warning", "error"],
+                category="system",
+            )
+        )
         return settings

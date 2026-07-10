@@ -43,4 +43,4 @@ def test_slots():
     """EventBusMetrics uses slots to reduce memory."""
     m = EventBusMetrics()
     with pytest.raises(AttributeError):
-        m.nonexistent = 1
+        m.nonexistent = 1  # pyright: ignore[reportAttributeAccessIssue]

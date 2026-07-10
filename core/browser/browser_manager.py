@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 try:
-    from playwright.async_api import async_playwright
+    from playwright.async_api import async_playwright  # pyright: ignore[reportMissingImports]
 except ImportError:
     async_playwright = None
 

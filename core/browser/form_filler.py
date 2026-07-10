@@ -21,10 +21,13 @@ class FormFiller:
 
     async def analyze_form(self, html_form: str) -> list[dict]:
         messages = [
-            {"role": "system", "content": (
-                "Analyze this HTML form. Return a JSON array of fields,"
-                " each with 'name', 'type', 'label', 'required', and 'placeholder'."
-            )},
+            {
+                "role": "system",
+                "content": (
+                    "Analyze this HTML form. Return a JSON array of fields,"
+                    " each with 'name', 'type', 'label', 'required', and 'placeholder'."
+                ),
+            },
             {"role": "user", "content": html_form[:3000]},
         ]
         try:
@@ -40,11 +43,14 @@ class FormFiller:
     async def suggest_values(self, fields: list[dict], profile_name: str = "default") -> dict:
         profile = self.profiles.get(profile_name, {})
         messages = [
-            {"role": "system", "content": (
-                "Given these form fields and a user profile, suggest"
-                " appropriate values for each field. Return JSON object"
-                f" mapping field names to values. Profile: {profile}"
-            )},
+            {
+                "role": "system",
+                "content": (
+                    "Given these form fields and a user profile, suggest"
+                    " appropriate values for each field. Return JSON object"
+                    f" mapping field names to values. Profile: {profile}"
+                ),
+            },
             {"role": "user", "content": str(fields)},
         ]
         try:

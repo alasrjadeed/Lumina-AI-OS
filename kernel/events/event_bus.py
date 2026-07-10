@@ -206,7 +206,7 @@ class EventBus:
         event: Event,
     ) -> None:
         for mw in self._middleware:
-            if hasattr(mw, 'before_dispatch'):
+            if hasattr(mw, "before_dispatch"):
                 event = await mw.before_dispatch(event)
 
         subscriptions: list[Subscription] = []
@@ -227,14 +227,12 @@ class EventBus:
                     EventEnvelope(event=event, replay=event.is_replay),
                 )
                 for sub in subscriptions
-                if sub.enabled and all(
-                    f.matches(event) for f in sub.filters
-                )
+                if sub.enabled and all(f.matches(event) for f in sub.filters)
             ],
         )
 
         for mw in self._middleware:
-            if hasattr(mw, 'after_dispatch'):
+            if hasattr(mw, "after_dispatch"):
                 await mw.after_dispatch(event)
 
     async def _execute(
@@ -244,7 +242,7 @@ class EventBus:
     ) -> None:
         event = envelope.event
         for mw in self._middleware:
-            if hasattr(mw, 'before_handler'):
+            if hasattr(mw, "before_handler"):
                 event = await mw.before_handler(subscription, event)
 
         modified = EventEnvelope(event=event, replay=event.is_replay)
@@ -267,13 +265,11 @@ class EventBus:
                                 subscriber=subscription.handler.__name__,
                             ),
                         )
-                        raise EventSubscriberError(
-                            f"Handler returned {result.name}"
-                        )
+                        raise EventSubscriberError(f"Handler returned {result.name}")
                 self._metrics.dispatched_events += 1
 
                 for mw in self._middleware:
-                    if hasattr(mw, 'after_handler'):
+                    if hasattr(mw, "after_handler"):
                         await mw.after_handler(subscription, modified.event)
                 return
             except self._retry_policy.retry_exceptions as ex:
@@ -281,9 +277,11 @@ class EventBus:
 
                 decision: RetryDecision | None = None
                 for mw in self._middleware:
-                    if hasattr(mw, 'on_exception'):
+                    if hasattr(mw, "on_exception"):
                         mw_result = await mw.on_exception(
-                            subscription, modified.event, ex,
+                            subscription,
+                            modified.event,
+                            ex,
                         )
                         if isinstance(mw_result, RetryDecision):
                             decision = mw_result

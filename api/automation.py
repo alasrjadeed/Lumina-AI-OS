@@ -4,14 +4,18 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from core.automation.engine import (
-    engine, WorkflowModel, StepModel, TriggerConfig,
-    TRIGGER_TYPES, ACTION_TYPES,
+    ACTION_TYPES,
+    TRIGGER_TYPES,
+    StepModel,
+    TriggerConfig,
+    engine,
 )
 
 router = APIRouter(prefix="/automation", tags=["Automation"])
 
 
 # ── Schemas ──
+
 
 class WorkflowCreate(BaseModel):
     name: str
@@ -36,6 +40,7 @@ class WebhookBody(BaseModel):
 
 # ── Endpoints ──
 
+
 @router.get("/workflows")
 async def list_workflows():
     workflows = engine.list_workflows()
@@ -50,8 +55,11 @@ async def create_workflow(req: WorkflowCreate):
     trigger = TriggerConfig.from_dict(req.trigger) if req.trigger else None
     steps = [StepModel.from_dict(s) for s in req.steps] if req.steps else []
     wf = engine.create_workflow(
-        name=req.name, description=req.description,
-        trigger=trigger, steps=steps, tags=req.tags,
+        name=req.name,
+        description=req.description,
+        trigger=trigger,
+        steps=steps,
+        tags=req.tags,
     )
     return {"workflow": wf.to_dict()}
 

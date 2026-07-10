@@ -19,18 +19,11 @@ try:
 
     CV2_AVAILABLE = True
 except ImportError:
+    cv2 = None  # pyright: ignore[reportAssignmentType]
     CV2_AVAILABLE = False
 
-try:
-    from PIL import Image
 
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL_AVAILABLE = False
-
-
-class SceneDescriptionError(Exception):
-    ...
+class SceneDescriptionError(Exception): ...
 
 
 @dataclass
@@ -75,7 +68,8 @@ class SceneDescriber:
         if not NUMPY_AVAILABLE:
             return SceneDescription(
                 summary="NumPy not available for image processing.",
-                objects=[], provider=self._provider,
+                objects=[],
+                provider=self._provider,
             )
 
         start = time.time()
@@ -86,21 +80,28 @@ class SceneDescriber:
             return self._describe_basic(frame_np, start)
         else:
             return SceneDescription(
-                summary="No description engine available (install opencv-python or configure AI engine).",
-                objects=[], inference_ms=(time.time() - start) * 1000,
+                summary=(
+                    "No description engine available (install opencv-python "
+                    "or configure AI engine)."
+                ),
+                objects=[],
+                inference_ms=(time.time() - start) * 1000,
                 provider=self._provider,
             )
 
     async def _describe_with_llm(
-        self, frame_np: np.ndarray,
-        detail: str, context: str | None,
+        self,
+        frame_np: np.ndarray,
+        detail: str,
+        context: str | None,
         start: float,
     ) -> SceneDescription:
         try:
             img_bytes = self._frame_to_jpeg(frame_np)
             if img_bytes is None:
                 return SceneDescription(
-                    summary="Failed to encode image.", objects=[],
+                    summary="Failed to encode image.",
+                    objects=[],
                     inference_ms=(time.time() - start) * 1000,
                     provider=self._provider,
                 )
@@ -118,38 +119,49 @@ class SceneDescriber:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": prompt},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": detail}},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": detail},
+                        },
                     ],
                 }
             ]
 
+            assert self._ai_engine is not None
             resp = await self._ai_engine.chat(messages)
             text = resp.get("message", {}).get("content", "")
 
             elapsed = (time.time() - start) * 1000
             return SceneDescription(
-                summary=text, objects=[],
-                inference_ms=elapsed, provider=self._provider,
+                summary=text,
+                objects=[],
+                inference_ms=elapsed,
+                provider=self._provider,
             )
 
         except Exception as e:
             log.error("Vision: Scene description LLM error: %s", e)
             return SceneDescription(
-                summary=f"Description failed: {e}", objects=[],
+                summary=f"Description failed: {e}",
+                objects=[],
                 inference_ms=(time.time() - start) * 1000,
                 provider=self._provider,
             )
 
     def _describe_basic(
-        self, frame_np: np.ndarray, start: float,
+        self,
+        frame_np: np.ndarray,
+        start: float,
     ) -> SceneDescription:
         if not CV2_AVAILABLE:
             return SceneDescription(
                 summary="OpenCV not available for basic description.",
-                objects=[], provider="none",
+                objects=[],
+                provider="none",
             )
 
         height, width = frame_np.shape[:2]
+        assert cv2 is not None
         gray = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)
         brightness = float(gray.mean())
         std = float(gray.std())
@@ -160,13 +172,17 @@ class SceneDescriber:
         elapsed = (time.time() - start) * 1000
         return SceneDescription(
             summary=f"Image is {width}x{height} pixels, {lighting} lighting, {mood} mood.",
-            objects=[], lighting=lighting, mood=mood,
-            inference_ms=elapsed, provider="basic",
+            objects=[],
+            lighting=lighting,
+            mood=mood,
+            inference_ms=elapsed,
+            provider="basic",
         )
 
     def _frame_to_jpeg(self, frame_np: np.ndarray, quality: int = 85) -> bytes | None:
         if not CV2_AVAILABLE:
             return None
+        assert cv2 is not None
         ret, buf = cv2.imencode(".jpg", frame_np, [cv2.IMWRITE_JPEG_QUALITY, quality])
         if ret:
             return buf.tobytes()

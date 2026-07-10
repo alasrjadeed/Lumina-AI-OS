@@ -81,10 +81,7 @@ class SEOAnalytics:
             },
             {
                 "role": "user",
-                "content": (
-                    f"Focus keyword: {focus_keyword}\n\n"
-                    f"Content:\n{page_content[:3000]}"
-                ),
+                "content": (f"Focus keyword: {focus_keyword}\n\nContent:\n{page_content[:3000]}"),
             },
         ]
         try:

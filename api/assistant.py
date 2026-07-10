@@ -22,4 +22,5 @@ async def process_command(req: CommandRequest):
 @router.get("/capabilities")
 async def get_capabilities():
     from core.assistant.agent import CAPABILITIES
+
     return {"capabilities": CAPABILITIES}

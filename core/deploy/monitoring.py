@@ -53,6 +53,7 @@ class Monitoring:
         if not fn:
             return HealthStatus(service=name, status="unknown", error="No check registered")
         start = time.time()
+        result: bool = False
         try:
             if hasattr(fn, "__call__"):
                 result = fn()
@@ -76,7 +77,7 @@ class Monitoring:
         point = MetricPoint(name=name, value=value, labels=labels or {})
         self._metrics.append(point)
         if len(self._metrics) > self._max_metrics:
-            self._metrics = self._metrics[-self._max_metrics:]
+            self._metrics = self._metrics[-self._max_metrics :]
         self._evaluate_alerts(name, value)
 
     def query_metrics(self, name: str = "", limit: int = 100) -> list[MetricPoint]:
@@ -84,28 +85,43 @@ class Monitoring:
             return [m for m in self._metrics if m.name == name][-limit:]
         return self._metrics[-limit:]
 
-    def add_alert_rule(self, metric: str, operator: str, threshold: float,
-                       severity: str = "warning", message: str = "") -> None:
-        self._alert_rules.append({
-            "metric": metric, "operator": operator, "threshold": threshold,
-            "severity": severity, "message": message,
-        })
+    def add_alert_rule(
+        self,
+        metric: str,
+        operator: str,
+        threshold: float,
+        severity: str = "warning",
+        message: str = "",
+    ) -> None:
+        self._alert_rules.append(
+            {
+                "metric": metric,
+                "operator": operator,
+                "threshold": threshold,
+                "severity": severity,
+                "message": message,
+            }
+        )
 
     def _evaluate_alerts(self, metric_name: str, value: float) -> None:
         for rule in self._alert_rules:
             if rule["metric"] != metric_name:
                 continue
-            triggered = any([
-                rule["operator"] == ">" and value > rule["threshold"],
-                rule["operator"] == "<" and value < rule["threshold"],
-                rule["operator"] == "==" and value == rule["threshold"],
-            ])
+            triggered = any(
+                [
+                    rule["operator"] == ">" and value > rule["threshold"],
+                    rule["operator"] == "<" and value < rule["threshold"],
+                    rule["operator"] == "==" and value == rule["threshold"],
+                ]
+            )
             if triggered:
-                self._alerts.append(Alert(
-                    name=f"{metric_name}_{rule['operator']}_{rule['threshold']}",
-                    message=rule["message"] or f"{metric_name} is {value}",
-                    severity=rule["severity"],
-                ))
+                self._alerts.append(
+                    Alert(
+                        name=f"{metric_name}_{rule['operator']}_{rule['threshold']}",
+                        message=rule["message"] or f"{metric_name} is {value}",
+                        severity=rule["severity"],
+                    )
+                )
 
     def get_alerts(self, severity: str = "", unacknowledged: bool = False) -> list[Alert]:
         results = list(self._alerts)
@@ -133,14 +149,30 @@ class Monitoring:
 
     def export_json(self, path: str = "monitoring_export.json") -> str:
         data = {
-            "health": {k: {"service": v.service, "status": v.status,
-                           "latency_ms": v.latency_ms, "last_check": v.last_check,
-                           "error": v.error} for k, v in self._health_status.items()},
-            "metrics": [{"name": m.name, "value": m.value, "labels": m.labels,
-                         "timestamp": m.timestamp} for m in self._metrics[-500:]],
-            "alerts": [{"name": a.name, "message": a.message, "severity": a.severity,
-                        "timestamp": a.timestamp, "acknowledged": a.acknowledged}
-                       for a in self._alerts[-100:]],
+            "health": {
+                k: {
+                    "service": v.service,
+                    "status": v.status,
+                    "latency_ms": v.latency_ms,
+                    "last_check": v.last_check,
+                    "error": v.error,
+                }
+                for k, v in self._health_status.items()
+            },
+            "metrics": [
+                {"name": m.name, "value": m.value, "labels": m.labels, "timestamp": m.timestamp}
+                for m in self._metrics[-500:]
+            ],
+            "alerts": [
+                {
+                    "name": a.name,
+                    "message": a.message,
+                    "severity": a.severity,
+                    "timestamp": a.timestamp,
+                    "acknowledged": a.acknowledged,
+                }
+                for a in self._alerts[-100:]
+            ],
         }
         with open(path, "w") as f:
             json.dump(data, f, indent=2)

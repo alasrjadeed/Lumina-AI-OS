@@ -3,15 +3,11 @@
 from __future__ import annotations
 
 import time
-import traceback
-from typing import Any
 
 from core.agents.approval import ApprovalLevel, approval_gate
-from core.agents.base import AgentResult
 from core.agents.ceo import CEOAgent, OrchestrationRun
 from core.agents.languages import language_engine
 from core.agents.learning import learning_engine
-from core.agents.manager import AgentManager
 from core.agents.routine import autonomous_routine
 from core.log import log
 
@@ -24,7 +20,8 @@ class LuminaEmployee:
         self.working_language = "en"
 
     async def handle_request(self, text: str, context: dict | None = None) -> dict:
-        """Process a natural language request through the full Think→Plan→Execute→Verify→Learn cycle."""
+        """Process a natural language request through the full Think-Plan-Execute-Verify-Learn
+        cycle."""
         start = time.time()
 
         detected_lang = language_engine.detect(text)
@@ -75,7 +72,10 @@ class LuminaEmployee:
         }
 
     async def handle_with_approval(
-        self, action: str, description: str, task: str,
+        self,
+        action: str,
+        description: str,
+        task: str,
         details: dict | None = None,
     ) -> dict:
         """Handle a task that may require human approval before execution."""
@@ -84,14 +84,18 @@ class LuminaEmployee:
         if level in (ApprovalLevel.AUTO, ApprovalLevel.NOTIFY):
             result = await self.handle_request(task)
             await approval_gate.request(
-                action=action, agent="CEO AI",
-                description=description, details=details or {},
+                action=action,
+                agent="CEO AI",
+                description=description,
+                details=details or {},
             )
             return {"status": "executed", "approval": level.value, **result}
 
         req = await approval_gate.request(
-            action=action, agent="CEO AI",
-            description=description, details=details or {},
+            action=action,
+            agent="CEO AI",
+            description=description,
+            details=details or {},
         )
 
         if req.status == "approved":
@@ -133,9 +137,7 @@ class LuminaEmployee:
         return {
             **shutdown,
             "daily_learning": daily,
-            "message": (
-                f"Good evening. Today's work complete.\n{shutdown['summary']}"
-            ),
+            "message": (f"Good evening. Today's work complete.\n{shutdown['summary']}"),
         }
 
     async def status(self) -> dict:
@@ -152,7 +154,19 @@ class LuminaEmployee:
 
     def _detect_domain(self, text: str) -> str:
         t = text.lower()
-        if any(w in t for w in ["code", "program", "app", "api", "software", "developer", "database", "server"]):
+        if any(
+            w in t
+            for w in [
+                "code",
+                "program",
+                "app",
+                "api",
+                "software",
+                "developer",
+                "database",
+                "server",
+            ]
+        ):
             return "development"
         if any(w in t for w in ["design", "ui", "css", "brand", "color", "layout"]):
             return "design"
@@ -173,11 +187,16 @@ class LuminaEmployee:
     def _extract_tags(self, text: str) -> list[str]:
         tags = [self._detect_domain(text)]
         t = text.lower()
-        if "python" in t: tags.append("python")
-        if "react" in t: tags.append("react")
-        if "fastapi" in t: tags.append("fastapi")
-        if "docker" in t: tags.append("docker")
-        if "database" in t: tags.append("database")
+        if "python" in t:
+            tags.append("python")
+        if "react" in t:
+            tags.append("react")
+        if "fastapi" in t:
+            tags.append("fastapi")
+        if "docker" in t:
+            tags.append("docker")
+        if "database" in t:
+            tags.append("database")
         return tags
 
     def _extract_learning(self, run: OrchestrationRun) -> str:

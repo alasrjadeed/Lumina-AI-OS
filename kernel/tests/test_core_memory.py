@@ -170,10 +170,12 @@ class TestConsolidationEngine:
     def test_empty_message_skipped(self, tmp_path):
         sm = SemanticMemory(path=str(tmp_path / "sem.json"))
         ce = ConsolidationEngine(semantic=sm)
-        facts = ce.consolidate_conversation([
-            {"role": "system", "content": ""},
-            {"role": "user", "content": "short"},
-        ])
+        facts = ce.consolidate_conversation(
+            [
+                {"role": "system", "content": ""},
+                {"role": "user", "content": "short"},
+            ]
+        )
         assert len(facts) == 0
 
 
@@ -196,8 +198,10 @@ class TestMemoryEngine:
             semantic=SemanticMemory(path=str(tmp_path / "sem.json")),
         )
         await me.record_episode(
-            task="test deploy", agent="bot",
-            action="deploy", result="successful deployment",
+            task="test deploy",
+            agent="bot",
+            action="deploy",
+            result="successful deployment",
         )
         similar = await me.recall_similar_episodes("deploy")
         assert len(similar) >= 1

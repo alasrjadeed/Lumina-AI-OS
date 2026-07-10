@@ -58,8 +58,11 @@ def list_contacts() -> list[dict]:
 
 def search_contacts(query: str) -> list[dict]:
     q = query.lower()
-    return [c for c in pipeline.list_contacts()
-            if q in c.get("name", "").lower() or q in c.get("email", "").lower()]
+    return [
+        c
+        for c in pipeline.list_contacts()
+        if q in c.get("name", "").lower() or q in c.get("email", "").lower()
+    ]
 
 
 def add_deal(title: str, value: float, contact_id: str = "", stage: str = "lead") -> dict:

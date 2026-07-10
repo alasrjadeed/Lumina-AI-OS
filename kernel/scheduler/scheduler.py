@@ -87,10 +87,7 @@ def _cron_matches(expr: str, dt: datetime | None = None) -> bool:
         and dt.hour in hours
         and dt.day in days
         and dt.month in months
-        and (
-            cron_wd in weekdays
-            or cron_wd == 0 and 7 in weekdays
-        )
+        and (cron_wd in weekdays or cron_wd == 0 and 7 in weekdays)
     )
 
 
@@ -184,14 +181,11 @@ class Scheduler:
                     continue
                 if job.end_at and now > job.end_at:
                     continue
-                if (
-                    job.max_executions is not None
-                    and job.execution_count >= job.max_executions
-                ):
+                if job.max_executions is not None and job.execution_count >= job.max_executions:
                     continue
                 if self._should_run(job, now):
                     job.status = JobStatus.RUNNING
-                    await self._pool.run(self._execute(job))
+                    await self._pool.run(self._execute(job))  # pyright: ignore[reportArgumentType]
             await asyncio.sleep(1)
 
     def _should_run(self, job: Job, now: datetime) -> bool:
@@ -234,8 +228,8 @@ class Scheduler:
             start_at=start_at,
             end_at=end_at,
         )
-        job._args = args
-        job._kwargs = kwargs
+        job._args = args  # pyright: ignore[reportAttributeAccessIssue]
+        job._kwargs = kwargs  # pyright: ignore[reportAttributeAccessIssue]
         self._jobs[job_id] = job
         await self._emit("job.added", job_id, name)
         log.info("Job queued: %s [%s]", name, job_id)
@@ -265,7 +259,10 @@ class Scheduler:
                 job.status = JobStatus.PENDING
                 log.warning(
                     "Job failed (retry %d/%d): %s [%s]",
-                    job.retries, job.max_retries, job.name, job.id,
+                    job.retries,
+                    job.max_retries,
+                    job.name,
+                    job.id,
                 )
             else:
                 job.status = JobStatus.FAILED
@@ -281,8 +278,7 @@ class Scheduler:
 
             if job.interval or job.cron:
                 reached_max = (
-                    job.max_executions is not None
-                    and job.execution_count >= job.max_executions
+                    job.max_executions is not None and job.execution_count >= job.max_executions
                 )
                 if not reached_max:
                     job.status = JobStatus.PENDING

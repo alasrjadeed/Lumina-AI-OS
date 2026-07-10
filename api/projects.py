@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from core.projects import project_manager, PROJECT_TEMPLATES
-from core.projects.process import process_manager
+from core.projects import project_manager
 from core.projects.agent import ProjectAgent
+from core.projects.process import process_manager
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -74,13 +74,16 @@ class AskAI(BaseModel):
 
 # ── Project CRUD ──
 
+
 @router.get("/templates")
 async def list_templates():
     return {"templates": project_manager.get_templates()}
 
+
 @router.get("/stats")
 async def stats():
     return project_manager.get_stats()
+
 
 @router.get("")
 async def list_projects(query: str = Query("")):
@@ -91,8 +94,12 @@ async def list_projects(query: str = Query("")):
 @router.post("/create")
 async def create_project(req: CreateProject):
     proj = project_manager.create(
-        req.name, req.template, req.description,
-        req.framework, req.language, req.save_to,
+        req.name,
+        req.template,
+        req.description,
+        req.framework,
+        req.language,
+        req.save_to,
     )
     return {"status": "created", "project": proj.to_dict()}
 
@@ -125,6 +132,7 @@ async def scan_vscode(base_dir: str = Query("")):
 async def browse_filesystem(path: str = Query("~")):
     """Browse the filesystem — returns directories and files for project import navigation."""
     import os as _os
+
     full = _os.path.expanduser(path)
     if not _os.path.exists(full):
         full = _os.path.expanduser("~")
@@ -136,13 +144,19 @@ async def browse_filesystem(path: str = Query("~")):
     files = []
     try:
         for entry in _os.scandir(full):
-            if entry.name.startswith('.'):
+            if entry.name.startswith("."):
                 continue
             if entry.is_dir():
                 dirs.append({"name": entry.name, "path": entry.path, "is_dir": True})
             else:
-                files.append({"name": entry.name, "path": entry.path, "is_dir": False,
-                              "size": entry.stat().st_size})
+                files.append(
+                    {
+                        "name": entry.name,
+                        "path": entry.path,
+                        "is_dir": False,
+                        "size": entry.stat().st_size,
+                    }
+                )
     except PermissionError:
         dirs = []
         files = []
@@ -181,25 +195,25 @@ async def save_as(req: SaveAsRequest):
 
 # ── Import / Scan ──
 
+
 @router.post("/import")
 async def import_project(req: ImportProject):
     proj = project_manager.import_project(req.source_path, req.name, req.description)
     return {"status": "imported", "project": proj.to_dict()}
 
 
-@router.get("/scan/vscode")
-async def scan_vscode(base_dir: str = Query("")):
-    projects = project_manager.scan_vscode_projects(base_dir)
-    return {"projects": [p.to_dict() for p in projects], "total": len(projects)}
-
-
 # ── Files ──
+
 
 @router.get("/{project_id}/files")
 async def list_files(project_id: str, path: str = Query("")):
     files = project_manager.list_files(project_id, path)
-    return {"project_id": project_id, "path": path, "files": [f.to_dict() for f in files],
-            "total": len(files)}
+    return {
+        "project_id": project_id,
+        "path": path,
+        "files": [f.to_dict() for f in files],
+        "total": len(files),
+    }
 
 
 @router.get("/{project_id}/file")
@@ -229,6 +243,7 @@ async def create_directory(req: CreateDirectory):
 
 # ── AI / Agent ──
 
+
 @router.post("/ai/ask")
 async def ask_ai(req: AskAI):
     try:
@@ -250,6 +265,7 @@ async def ask_specific_agent(req: AskAI):
 
 
 # ── Server / Dev Commands ──
+
 
 @router.post("/server/run")
 async def run_server(req: RunServer):

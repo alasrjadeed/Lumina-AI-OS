@@ -229,6 +229,7 @@ async def test_start_idempotent():
 # Cron shorthand
 # ------------------------------------------------------------------
 
+
 def test_cron_shorthand():
     assert _cron_matches("@hourly", datetime(2025, 1, 1, 0, 0))
     assert _cron_matches("@hourly", datetime(2025, 1, 1, 23, 0))
@@ -249,6 +250,7 @@ def test_cron_weekday_7_as_sunday():
 # ------------------------------------------------------------------
 # Cron job reset (repeated execution)
 # ------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_cron_job_executes_multiple_times():
@@ -277,6 +279,7 @@ async def test_cron_job_executes_multiple_times():
 # auto_remove
 # ------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_auto_remove_after_completion():
     sched = Scheduler()
@@ -296,6 +299,7 @@ async def test_auto_remove_after_completion():
 # ------------------------------------------------------------------
 # max_executions
 # ------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_max_executions_limits_interval_job():
@@ -317,6 +321,7 @@ async def test_max_executions_limits_interval_job():
 # ------------------------------------------------------------------
 # start_at / end_at
 # ------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_start_at_delays_execution():
@@ -359,6 +364,7 @@ async def test_end_at_prevents_execution():
 # WorkerPool
 # ------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_worker_pool_executes_task():
 
@@ -368,7 +374,7 @@ async def test_worker_pool_executes_task():
     async def my_task():
         results.append("ok")
 
-    await pool.run(my_task())
+    await pool.run(my_task())  # pyright: ignore[reportArgumentType]
     assert results == ["ok"]
     assert pool.active_count == 0
 
@@ -388,7 +394,7 @@ async def test_worker_pool_limits_concurrency():
                 active_max = current
         await asyncio.sleep(1)
 
-    tasks = [pool.run(slow_task(i)) for i in range(5)]
+    tasks = [pool.run(slow_task(i)) for i in range(5)]  # pyright: ignore[reportArgumentType]
     await asyncio.gather(*tasks)
     assert active_max <= 2
 
@@ -403,7 +409,7 @@ async def test_worker_pool_join():
         await asyncio.sleep(0.1)
         results.append("ok")
 
-    await pool.run(task())
+    await pool.run(task())  # pyright: ignore[reportArgumentType]
     await pool.join()
     assert results == ["ok"]
 

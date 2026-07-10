@@ -22,13 +22,25 @@ class FlowNode:
     config: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "type": self.type, "label": self.label,
-                "x": self.x, "y": self.y, "config": self.config}
+        return {
+            "id": self.id,
+            "type": self.type,
+            "label": self.label,
+            "x": self.x,
+            "y": self.y,
+            "config": self.config,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> FlowNode:
-        return cls(id=d["id"], type=d["type"], label=d.get("label", d["type"]),
-                   x=d.get("x", 0), y=d.get("y", 0), config=d.get("config", {}))
+        return cls(
+            id=d["id"],
+            type=d["type"],
+            label=d.get("label", d["type"]),
+            x=d.get("x", 0),
+            y=d.get("y", 0),
+            config=d.get("config", {}),
+        )
 
 
 @dataclass
@@ -40,13 +52,23 @@ class FlowEdge:
     condition: str = ""
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "source": self.source, "target": self.target,
-                "label": self.label, "condition": self.condition}
+        return {
+            "id": self.id,
+            "source": self.source,
+            "target": self.target,
+            "label": self.label,
+            "condition": self.condition,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> FlowEdge:
-        return cls(id=d["id"], source=d["source"], target=d["target"],
-                   label=d.get("label", ""), condition=d.get("condition", ""))
+        return cls(
+            id=d["id"],
+            source=d["source"],
+            target=d["target"],
+            label=d.get("label", ""),
+            condition=d.get("condition", ""),
+        )
 
 
 @dataclass
@@ -63,38 +85,111 @@ class VisualFlow:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "name": self.name, "description": self.description,
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
             "nodes": [n.to_dict() for n in self.nodes],
             "edges": [e.to_dict() for e in self.edges],
-            "created_at": self.created_at, "updated_at": self.updated_at,
-            "run_count": self.run_count, "last_run": self.last_run,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "run_count": self.run_count,
+            "last_run": self.last_run,
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> VisualFlow:
         return cls(
-            id=d["id"], name=d["name"], description=d.get("description", ""),
+            id=d["id"],
+            name=d["name"],
+            description=d.get("description", ""),
             nodes=[FlowNode.from_dict(n) for n in d.get("nodes", [])],
             edges=[FlowEdge.from_dict(e) for e in d.get("edges", [])],
-            created_at=d.get("created_at", 0), updated_at=d.get("updated_at", 0),
-            run_count=d.get("run_count", 0), last_run=d.get("last_run", 0),
+            created_at=d.get("created_at", 0),
+            updated_at=d.get("updated_at", 0),
+            run_count=d.get("run_count", 0),
+            last_run=d.get("last_run", 0),
         )
 
 
 AGENT_PALETTE = [
-    {"type": "input", "label": "User Input", "color": "#6366f1", "description": "Starting point — user's request"},
-    {"type": "ceo", "label": "CEO AI", "color": "#f59e0b", "description": "Orchestrator — plans and assigns tasks"},
-    {"type": "planner", "label": "Planner", "color": "#8b5cf6", "description": "Task decomposition and milestones"},
-    {"type": "programmer", "label": "Programmer", "color": "#22c55e", "description": "Full-stack code generation"},
-    {"type": "tester", "label": "Tester", "color": "#ef4444", "description": "QA, unit/integration tests"},
-    {"type": "debugger", "label": "Debugger", "color": "#f97316", "description": "Root cause analysis and fixes"},
-    {"type": "designer", "label": "Designer", "color": "#ec4899", "description": "UI/UX and visual design"},
-    {"type": "database_engineer", "label": "Database Engineer", "color": "#06b6d4", "description": "Schema, queries, migrations"},
-    {"type": "devops_engineer", "label": "DevOps Engineer", "color": "#14b8a6", "description": "CI/CD, Docker, K8s"},
-    {"type": "security_auditor", "label": "Security Auditor", "color": "#dc2626", "description": "Vulnerability assessment"},
-    {"type": "marketing_agent", "label": "Marketing Agent", "color": "#a855f7", "description": "Campaigns, SEO, content"},
-    {"type": "documentation_writer", "label": "Documentation Writer", "color": "#64748b", "description": "API docs, guides, ADRs"},
-    {"type": "output", "label": "Output / Report", "color": "#3b82f6", "description": "Final output — synthesized result"},
+    {
+        "type": "input",
+        "label": "User Input",
+        "color": "#6366f1",
+        "description": "Starting point — user's request",
+    },
+    {
+        "type": "ceo",
+        "label": "CEO AI",
+        "color": "#f59e0b",
+        "description": "Orchestrator — plans and assigns tasks",
+    },
+    {
+        "type": "planner",
+        "label": "Planner",
+        "color": "#8b5cf6",
+        "description": "Task decomposition and milestones",
+    },
+    {
+        "type": "programmer",
+        "label": "Programmer",
+        "color": "#22c55e",
+        "description": "Full-stack code generation",
+    },
+    {
+        "type": "tester",
+        "label": "Tester",
+        "color": "#ef4444",
+        "description": "QA, unit/integration tests",
+    },
+    {
+        "type": "debugger",
+        "label": "Debugger",
+        "color": "#f97316",
+        "description": "Root cause analysis and fixes",
+    },
+    {
+        "type": "designer",
+        "label": "Designer",
+        "color": "#ec4899",
+        "description": "UI/UX and visual design",
+    },
+    {
+        "type": "database_engineer",
+        "label": "Database Engineer",
+        "color": "#06b6d4",
+        "description": "Schema, queries, migrations",
+    },
+    {
+        "type": "devops_engineer",
+        "label": "DevOps Engineer",
+        "color": "#14b8a6",
+        "description": "CI/CD, Docker, K8s",
+    },
+    {
+        "type": "security_auditor",
+        "label": "Security Auditor",
+        "color": "#dc2626",
+        "description": "Vulnerability assessment",
+    },
+    {
+        "type": "marketing_agent",
+        "label": "Marketing Agent",
+        "color": "#a855f7",
+        "description": "Campaigns, SEO, content",
+    },
+    {
+        "type": "documentation_writer",
+        "label": "Documentation Writer",
+        "color": "#64748b",
+        "description": "API docs, guides, ADRs",
+    },
+    {
+        "type": "output",
+        "label": "Output / Report",
+        "color": "#3b82f6",
+        "description": "Final output — synthesized result",
+    },
 ]
 
 
@@ -131,17 +226,25 @@ class FlowManager:
     def get(self, flow_id: str) -> VisualFlow | None:
         return self._flows.get(flow_id)
 
-    def create(self, name: str, description: str = "",
-               nodes: list[dict] | None = None,
-               edges: list[dict] | None = None) -> VisualFlow:
+    def create(
+        self,
+        name: str,
+        description: str = "",
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+    ) -> VisualFlow:
         import uuid
+
         fid = uuid.uuid4().hex[:12]
         now = time.time()
         flow = VisualFlow(
-            id=fid, name=name, description=description,
+            id=fid,
+            name=name,
+            description=description,
             nodes=[FlowNode.from_dict(n) for n in (nodes or [])],
             edges=[FlowEdge.from_dict(e) for e in (edges or [])],
-            created_at=now, updated_at=now,
+            created_at=now,
+            updated_at=now,
         )
         self._flows[fid] = flow
         self._save()
@@ -180,12 +283,14 @@ class FlowManager:
             return {"error": "Flow has no nodes"}
 
         input_nodes = [n for n in flow.nodes if n.type == "input"]
-        start_text = input_text or input_nodes[0].config.get("text", "") if input_nodes else input_text
+        start_text = (
+            input_text or input_nodes[0].config.get("text", "") if input_nodes else input_text
+        )
 
         if not start_text:
             return {"error": "No input text provided"}
 
-        node_map = {n.id: n for n in flow.nodes}
+        {n.id: n for n in flow.nodes}
         execution_order = self._topological_sort(flow.nodes, flow.edges)
         results: dict[str, dict] = {}
 
@@ -209,6 +314,7 @@ class FlowManager:
 
             try:
                 from core.agents.runner import runner
+
                 agent_id = self._map_to_agent(node.type)
                 run = await runner.run(agent_id, task, {"flow_id": flow_id})
                 results[node.id] = {
@@ -223,7 +329,9 @@ class FlowManager:
                 results[node.id] = {"status": "error", "output": "", "error": str(e)}
 
         output_nodes = [n for n in flow.nodes if n.type == "output"]
-        final_output = results.get(output_nodes[0].id, {}).get("output", "") if output_nodes else current_input
+        final_output = (
+            results.get(output_nodes[0].id, {}).get("output", "") if output_nodes else current_input
+        )
 
         return {
             "flow_id": flow_id,
@@ -234,8 +342,7 @@ class FlowManager:
             "nodes_executed": len(execution_order),
         }
 
-    def _topological_sort(self, nodes: list[FlowNode],
-                           edges: list[FlowEdge]) -> list[FlowNode]:
+    def _topological_sort(self, nodes: list[FlowNode], edges: list[FlowEdge]) -> list[FlowNode]:
         node_map = {n.id: n for n in nodes}
         in_degree: dict[str, int] = {n.id: 0 for n in nodes}
         adj: dict[str, list[str]] = {n.id: [] for n in nodes}
@@ -265,8 +372,12 @@ class FlowManager:
 
     def _map_to_agent(self, nodetype: str) -> str:
         mapping = {
-            "ceo": "ceo", "planner": "planner", "programmer": "programmer",
-            "tester": "tester", "debugger": "debugger", "designer": "designer",
+            "ceo": "ceo",
+            "planner": "planner",
+            "programmer": "programmer",
+            "tester": "tester",
+            "debugger": "debugger",
+            "designer": "designer",
             "database_engineer": "database_engineer",
             "devops_engineer": "devops_engineer",
             "security_auditor": "security_auditor",

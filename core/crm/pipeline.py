@@ -57,8 +57,7 @@ class CRMPipeline:
         if search:
             s = search.lower()
             contacts = [
-                c for c in contacts
-                if s in c["name"].lower() or s in c.get("email", "").lower()
+                c for c in contacts if s in c["name"].lower() or s in c.get("email", "").lower()
             ]
         return contacts
 
@@ -101,7 +100,8 @@ class CRMPipeline:
         won = sum(d["value"] for d in deals if d["stage"] == DealStage.CLOSED_WON.value)
         lost = sum(d["value"] for d in deals if d["stage"] == DealStage.CLOSED_LOST.value)
         pipeline = sum(
-            d["value"] for d in deals
+            d["value"]
+            for d in deals
             if d["stage"] not in (DealStage.CLOSED_WON.value, DealStage.CLOSED_LOST.value)
         )
         return {

@@ -2,19 +2,30 @@
 
 from fastapi import APIRouter, Query
 
-from core.audit import audit_trail, AuditAction
+from core.audit import AuditAction, audit_trail
 
 router = APIRouter(prefix="/audit", tags=["Audit"])
 
 
 @router.get("/entries")
-async def query(agent: str = Query(""), action: str = Query(""),
-                status: str = Query(""), since: float = Query(0),
-                limit: int = Query(100)):
+async def query(
+    agent: str = Query(""),
+    action: str = Query(""),
+    status: str = Query(""),
+    since: float = Query(0),
+    limit: int = Query(100),
+):
     return {
-        "entries": [e.to_dict() for e in audit_trail.query(
-            agent=agent, action=action, status=status, since=since, limit=limit,
-        )],
+        "entries": [
+            e.to_dict()
+            for e in audit_trail.query(
+                agent=agent,
+                action=action,
+                status=status,
+                since=since,
+                limit=limit,
+            )
+        ],
     }
 
 

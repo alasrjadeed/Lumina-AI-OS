@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Protocol
 
 from core.log import log
 from core.voice.languages import LANGUAGE_VOICES, get_voice_for_language
-
 
 TTS_VOICES = {
     "alloy": "OpenAI - versatile, balanced",
@@ -43,10 +43,10 @@ class TTSResult:
 
 
 class TTSProvider(Protocol):
-    async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
-        ...
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
-        ...
+    async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult: ...
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str: ...
 
 
 class DummyTTSProvider:
@@ -56,12 +56,17 @@ class DummyTTSProvider:
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         audio = f"[AUDIO:{text}]".encode()
         return TTSResult(
-            audio_data=audio, format=self._format,
-            duration_ms=len(audio) * 10.0, text=text,
-            characters=len(text), provider="dummy",
+            audio_data=audio,
+            format=self._format,
+            duration_ms=len(audio) * 10.0,
+            text=text,
+            characters=len(text),
+            provider="dummy",
         )
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         audio = f"[AUDIO:{text}]".encode()
         with open(path, "wb") as f:
             f.write(audio)
@@ -74,32 +79,39 @@ class OpenAITTSProvider:
 
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         from openai import AsyncOpenAI
+
         client = AsyncOpenAI(api_key=self.api_key)
         voice = voice or "shimmer"
-        tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-        tmp.close()
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+            pass
         try:
             response = await client.audio.speech.create(
-                model="tts-1", voice=voice, input=text,
-                speed=speed, response_format="mp3",
+                model="tts-1",
+                voice=voice,
+                input=text,
+                speed=speed,
+                response_format="mp3",
             )
             response.stream_to_file(tmp.name)
             with open(tmp.name, "rb") as f:
                 audio_data = f.read()
             return TTSResult(
-                audio_data=audio_data, format="mp3",
-                duration_ms=0, text=text,
-                characters=len(text), path=tmp.name,
+                audio_data=audio_data,
+                format="mp3",
+                duration_ms=0,
+                text=text,
+                characters=len(text),
+                path=tmp.name,
                 provider="openai_tts",
             )
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp.name)
-            except OSError:
-                pass
             raise
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         result = await self.synthesize(text, voice, speed)
         with open(path, "wb") as f:
             f.write(result.audio_data)
@@ -109,28 +121,33 @@ class OpenAITTSProvider:
 class GTTSSynthesizer:
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         import asyncio
+
         from gtts import gTTS
-        tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-        tmp.close()
+
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+            pass
         try:
             tts = gTTS(text=text, lang="en", slow=False)
             await asyncio.to_thread(tts.save, tmp.name)
             with open(tmp.name, "rb") as f:
                 audio_data = f.read()
             return TTSResult(
-                audio_data=audio_data, format="mp3",
-                duration_ms=0, text=text,
-                characters=len(text), path=tmp.name,
+                audio_data=audio_data,
+                format="mp3",
+                duration_ms=0,
+                text=text,
+                characters=len(text),
+                path=tmp.name,
                 provider="gtts",
             )
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp.name)
-            except OSError:
-                pass
             raise
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         result = await self.synthesize(text, voice, speed)
         with open(path, "wb") as f:
             f.write(result.audio_data)
@@ -140,23 +157,30 @@ class GTTSSynthesizer:
 class PyTTSEngine:
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         import asyncio
+
         import pyttsx3
+
         engine = pyttsx3.init()
         engine.setProperty("rate", 175)
-        tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        tmp.close()
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            pass
         await asyncio.to_thread(engine.save_to_file, text, tmp.name)
         await asyncio.to_thread(engine.runAndWait)
         with open(tmp.name, "rb") as f:
             audio_data = f.read()
         return TTSResult(
-            audio_data=audio_data, format="wav",
-            duration_ms=0, text=text,
-            characters=len(text), path=tmp.name,
+            audio_data=audio_data,
+            format="wav",
+            duration_ms=0,
+            text=text,
+            characters=len(text),
+            path=tmp.name,
             provider="pyttsx3",
         )
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         result = await self.synthesize(text, voice, speed)
         with open(path, "wb") as f:
             f.write(result.audio_data)
@@ -167,6 +191,7 @@ class PiperTTSProvider:
     """Local neural TTS using Piper. Downloads ~60MB model on first use.
     Fully offline, fast synthesis, multiple voices available.
     """
+
     MODEL_URLS = {
         "en_GB-alan-medium": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx",
         "en_US-amy-medium": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium.onnx",
@@ -192,9 +217,13 @@ class PiperTTSProvider:
         if not os.path.exists(model_path):
             url = self.MODEL_URLS.get(self.model_name)
             if not url:
-                raise RuntimeError(f"Unknown Piper model: {self.model_name}. Available: {list(self.MODEL_URLS.keys())}")
+                raise RuntimeError(
+                    f"Unknown Piper model: {self.model_name}. "
+                    f"Available: {list(self.MODEL_URLS.keys())}"
+                )
             log.info("Piper: downloading model %s from %s", self.model_name, url)
             import urllib.request
+
             urllib.request.urlretrieve(url, model_path)
             log.info("Piper: model downloaded to %s", model_path)
 
@@ -203,6 +232,7 @@ class PiperTTSProvider:
             if url:
                 log.info("Piper: downloading config for %s", self.model_name)
                 import urllib.request
+
                 urllib.request.urlretrieve(url, config_path)
 
         return model_path, config_path
@@ -211,37 +241,44 @@ class PiperTTSProvider:
         model_path, config_path = self._ensure_model()
         proc = await asyncio.create_subprocess_exec(
             "piper",
-            "--model", model_path,
-            "--config", config_path,
-            "--output_file", path,
-            "--sentence-silence", "0.2",
+            "--model",
+            model_path,
+            "--config",
+            config_path,
+            "--output_file",
+            path,
+            "--sentence-silence",
+            "0.2",
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,
-            input=text.encode("utf-8"),
+            input=text.encode("utf-8"),  # pyright: ignore[reportCallIssue]
         )
         await proc.communicate()
 
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
-        tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        tmp.close()
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            pass
         try:
             await self._synthesize_piper(text, tmp.name)
             with open(tmp.name, "rb") as f:
                 audio_data = f.read()
             return TTSResult(
-                audio_data=audio_data, format="wav",
-                duration_ms=0, text=text,
-                characters=len(text), path=tmp.name,
+                audio_data=audio_data,
+                format="wav",
+                duration_ms=0,
+                text=text,
+                characters=len(text),
+                path=tmp.name,
                 provider="piper",
             )
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp.name)
-            except OSError:
-                pass
             raise
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         await self._synthesize_piper(text, path)
         return path
 
@@ -255,6 +292,7 @@ class EmotiVoiceProvider:
 
     The EmotiVoice server defaults to http://localhost:8000.
     """
+
     def __init__(
         self,
         base_url: str = "http://localhost:8000",
@@ -269,6 +307,7 @@ class EmotiVoiceProvider:
 
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         import httpx
+
         voice = voice or self.default_voice
         emotion = self.default_emotion
         if ":" in voice:
@@ -295,20 +334,37 @@ class EmotiVoiceProvider:
             audio_data = resp.content
 
         return TTSResult(
-            audio_data=audio_data, format="mp3",
-            duration_ms=0, text=text,
-            characters=len(text), provider="emotivoice",
+            audio_data=audio_data,
+            format="mp3",
+            duration_ms=0,
+            text=text,
+            characters=len(text),
+            provider="emotivoice",
         )
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         result = await self.synthesize(text, voice, speed)
         with open(path, "wb") as f:
             f.write(result.audio_data)
         return path
 
     def list_voices(self) -> list[str]:
-        return ["8044", "8047", "8051", "8054", "8063", "9065",
-                "9069", "9081", "9085", "9102", "9116", "9120"]
+        return [
+            "8044",
+            "8047",
+            "8051",
+            "8054",
+            "8063",
+            "9065",
+            "9069",
+            "9081",
+            "9085",
+            "9102",
+            "9116",
+            "9120",
+        ]
 
     def list_emotions(self) -> list[str]:
         return list(TTS_EMOTIONS.keys())
@@ -320,35 +376,41 @@ class EdgeTTSProvider:
     Uses the ``edge-tts`` Python package (pip install edge-tts).
     Caches voices after first use. Supports SSML and rate/pitch control.
     """
+
     def __init__(self):
         self._voices_cache: dict[str, str] = {}
 
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
         import edge_tts
+
         voice = voice or "en-US-JennyNeural"
         rate = f"+{int((speed - 1) * 100)}%" if speed >= 1.0 else f"-{int((1 - speed) * 100)}%"
-        tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-        tmp.close()
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+            pass
         try:
             communicate = edge_tts.Communicate(text, voice, rate=rate)
             await communicate.save(tmp.name)
             with open(tmp.name, "rb") as f:
                 audio_data = f.read()
             return TTSResult(
-                audio_data=audio_data, format="mp3",
-                duration_ms=0, text=text,
-                characters=len(text), path=tmp.name,
+                audio_data=audio_data,
+                format="mp3",
+                duration_ms=0,
+                text=text,
+                characters=len(text),
+                path=tmp.name,
                 provider="edge_tts",
             )
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp.name)
-            except OSError:
-                pass
             raise
 
-    async def synthesize_to_file(self, text: str, path: str, voice: str = "", speed: float = 1.0) -> str:
+    async def synthesize_to_file(
+        self, text: str, path: str, voice: str = "", speed: float = 1.0
+    ) -> str:
         import edge_tts
+
         voice = voice or "en-US-JennyNeural"
         rate = f"+{int((speed - 1) * 100)}%" if speed >= 1.0 else f"-{int((1 - speed) * 100)}%"
         communicate = edge_tts.Communicate(text, voice, rate=rate)
@@ -373,25 +435,30 @@ class TTSEngine:
     def _init_providers(self) -> None:
         try:
             import edge_tts  # noqa: F401
+
             self._providers.append(EdgeTTSProvider())
         except ImportError:
             log.info("TTS: edge-tts not installed (pip install edge-tts for 100+ languages)")
         if os.getenv("EMOTIVOICE_URL"):
-            self._providers.append(EmotiVoiceProvider(
-                base_url=os.getenv("EMOTIVOICE_URL"),
-                default_emotion=os.getenv("EMOTIVOICE_EMOTION", "neutral"),
-            ))
+            self._providers.append(
+                EmotiVoiceProvider(
+                    base_url=os.getenv("EMOTIVOICE_URL") or "",
+                    default_emotion=os.getenv("EMOTIVOICE_EMOTION", "neutral"),
+                )
+            )
         if os.getenv("PIPER_MODEL"):
-            self._providers.append(PiperTTSProvider(model_name=os.getenv("PIPER_MODEL")))
+            self._providers.append(PiperTTSProvider(model_name=os.getenv("PIPER_MODEL", "")))
         if os.getenv("OPENAI_API_KEY"):
             self._providers.append(OpenAITTSProvider())
         try:
             import gtts  # noqa: F401
+
             self._providers.append(GTTSSynthesizer())
         except ImportError:
             pass
         try:
             import pyttsx3  # noqa: F401
+
             self._providers.append(PyTTSEngine())
         except ImportError:
             pass
@@ -405,7 +472,9 @@ class TTSEngine:
         self._provider = provider
         self._providers = [provider]
 
-    async def speak_in_language(self, text: str, lang_code: str = "", speed: float = 1.0, play: bool = True) -> TTSResult:
+    async def speak_in_language(
+        self, text: str, lang_code: str = "", speed: float = 1.0, play: bool = True
+    ) -> TTSResult:
         """Speak text auto-selecting the best voice for the given language code."""
         if not lang_code:
             lang_code = "en"
@@ -414,7 +483,9 @@ class TTSEngine:
         log.info("TTS: speaking in %s (%s) with voice %s", lv.name, lang_code, voice)
         return await self.speak(text, voice=voice, speed=speed, play=play)
 
-    async def speak(self, text: str, voice: str = "", speed: float = 1.0, play: bool = True) -> TTSResult:
+    async def speak(
+        self, text: str, voice: str = "", speed: float = 1.0, play: bool = True
+    ) -> TTSResult:
         voice = voice or self.default_voice
         if self._provider:
             result = await self._provider.synthesize(text, voice, speed)
@@ -438,7 +509,8 @@ class TTSEngine:
         for player in ["ffplay", "aplay", "paplay", "mpg123", "sox"]:
             if os.system(f"which {player} >/dev/null 2>&1") == 0:
                 await asyncio.create_subprocess_exec(
-                    player, result.path,
+                    player,
+                    result.path,
                     stdout=asyncio.subprocess.DEVNULL,
                     stderr=asyncio.subprocess.DEVNULL,
                 )
@@ -447,6 +519,7 @@ class TTSEngine:
 
     def speak_async(self, text: str, voice: str = "", speed: float = 1.0, on_done=None) -> None:
         import threading
+
         def _run():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -456,11 +529,12 @@ class TTSEngine:
                     on_done(result)
             finally:
                 loop.close()
+
         threading.Thread(target=_run, daemon=True).start()
 
     def list_voices(self) -> dict:
         voices = dict(TTS_VOICES)
-        for code, lv in LANGUAGE_VOICES.items():
+        for lv in LANGUAGE_VOICES.values():
             voices[lv.edge_voice] = f"EdgeTTS - {lv.name} ({lv.native_name})"
         voices["emoti_8044"] = "EmotiVoice - Speaker 8044"
         voices["emoti_8051"] = "EmotiVoice - Speaker 8051"

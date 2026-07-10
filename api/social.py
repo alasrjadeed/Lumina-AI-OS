@@ -30,9 +30,20 @@ async def get_stats():
 
 @router.get("/pages")
 async def list_pages(platform: str = ""):
-    return {"pages": [{"id": p.id, "name": p.name, "platform": p.platform,
-                        "url": p.url, "category": p.category, "followers": p.followers,
-                        "status": p.status} for p in social.list_pages(platform)]}
+    return {
+        "pages": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "platform": p.platform,
+                "url": p.url,
+                "category": p.category,
+                "followers": p.followers,
+                "status": p.status,
+            }
+            for p in social.list_pages(platform)
+        ]
+    }
 
 
 @router.post("/pages")
@@ -47,16 +58,28 @@ async def delete_page(page_id: str):
 
 
 @router.post("/pages/{page_id}/upload-photo")
-async def upload_photo(page_id: str, image_url: str, photo_type: str = "logo", headless: bool = False):
+async def upload_photo(
+    page_id: str, image_url: str, photo_type: str = "logo", headless: bool = False
+):
     result = await social.upload_page_photo(page_id, image_url, photo_type, headless=headless)
     return result
 
 
 @router.get("/posts")
 async def list_posts(platform: str = "", status: str = ""):
-    return {"posts": [{"id": p.id, "platform": p.platform, "content": p.content[:100],
-                        "status": p.status, "scheduled": p.scheduled,
-                        "engagement": p.engagement} for p in social.list_posts(platform, status)]}
+    return {
+        "posts": [
+            {
+                "id": p.id,
+                "platform": p.platform,
+                "content": p.content[:100],
+                "status": p.status,
+                "scheduled": p.scheduled,
+                "engagement": p.engagement,
+            }
+            for p in social.list_posts(platform, status)
+        ]
+    }
 
 
 @router.post("/posts")

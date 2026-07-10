@@ -48,7 +48,10 @@ keys = {
 }
 
 VALID_SCRIPTS = [
-    "123", "246", "753", "842",
+    "123",
+    "246",
+    "753",
+    "842",
 ]
 
 
@@ -140,7 +143,7 @@ async def main():
 
     for name, fn in checks.items():
         provider_name = None
-        for k, v in keys.items():
+        for k in keys:
             if k.startswith(name.split(" Key")[0]):
                 provider_name = k
                 break

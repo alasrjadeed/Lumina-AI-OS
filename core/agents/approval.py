@@ -6,12 +6,12 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 PENDING_DIR = os.path.expanduser("~/.lumina/pending_approvals")
 
 
-class ApprovalLevel(str, Enum):
+class ApprovalLevel(StrEnum):
     AUTO = "auto"
     NOTIFY = "notify"
     CONFIRM = "confirm"
@@ -156,7 +156,11 @@ class ApprovalGate:
         return False
 
     async def request(
-        self, action: str, agent: str, description: str, details: dict | None = None,
+        self,
+        action: str,
+        agent: str,
+        description: str,
+        details: dict | None = None,
     ) -> ApprovalRequest:
         import uuid
 

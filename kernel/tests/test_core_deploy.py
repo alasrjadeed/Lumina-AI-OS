@@ -24,8 +24,9 @@ class TestDocker:
         assert "WORKDIR /app" in content
 
     def test_custom_config(self):
-        config = DockerConfig(base_image="python:3.11", expose_port=8080,
-                              entrypoint="python app.py")
+        config = DockerConfig(
+            base_image="python:3.11", expose_port=8080, entrypoint="python app.py"
+        )
         d = Docker(config)
         assert d.config.base_image == "python:3.11"
         assert d.config.expose_port == 8080
@@ -63,10 +64,14 @@ class TestCompose:
 
     def test_generate_with_healthcheck(self, tmp_path: Path):
         c = Compose()
-        c.add_service(ServiceConfig(
-            name="api", build=".", ports=["8000:8000"],
-            healthcheck={"test": ["CMD", "curl", "-f", "http://localhost:8000/health"]},
-        ))
+        c.add_service(
+            ServiceConfig(
+                name="api",
+                build=".",
+                ports=["8000:8000"],
+                healthcheck={"test": ["CMD", "curl", "-f", "http://localhost:8000/health"]},
+            )
+        )
         path = c.generate(str(tmp_path / "compose.yml"))
         content = Path(path).read_text()
         assert "healthcheck" in content
@@ -201,16 +206,18 @@ class TestMonitoring:
 
     def test_run_check_failure(self):
         m = Monitoring()
+
         def failing():
             raise RuntimeError("fail")
+
         m.register_check("fail", failing)
         result = asyncio.run(m.run_check("fail"))
-        assert result.status == "unhealthy"
+        assert result.status == "unhealthy"  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_get_health(self):
         m = Monitoring()
         health = m.get_health("test")
-        assert health.status == "unknown"
+        assert health.status == "unknown"  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_record_and_query_metrics(self):
         m = Monitoring()

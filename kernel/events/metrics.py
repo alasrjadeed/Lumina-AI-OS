@@ -22,9 +22,7 @@ class EventBusMetrics:
 
     @property
     def uptime_seconds(self) -> float:
-        return (
-            datetime.now(UTC) - self.started_at
-        ).total_seconds()
+        return (datetime.now(UTC) - self.started_at).total_seconds()
 
     def snapshot(self) -> dict:
         return asdict(self)

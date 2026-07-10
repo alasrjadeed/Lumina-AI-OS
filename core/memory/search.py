@@ -51,56 +51,66 @@ class MemorySearch:
         if (sources is None or "short_term" in sources) and self.short_term:
             for e in self.short_term.search(query, limit=limit * 2):
                 score = self._score(e.content, query, query_vec)
-                results.append(SearchResult(
-                    content=e.content,
-                    score=score,
-                    source="short_term",
-                    timestamp=e.timestamp,
-                    metadata={"role": e.role},
-                ))
+                results.append(
+                    SearchResult(
+                        content=e.content,
+                        score=score,
+                        source="short_term",
+                        timestamp=e.timestamp,
+                        metadata={"role": e.role},
+                    )
+                )
 
         if (sources is None or "long_term" in sources) and self.long_term:
             for e in self.long_term.search_content(query):
                 score = self._score(e.value, query, query_vec)
-                results.append(SearchResult(
-                    content=e.value,
-                    score=score,
-                    source="long_term",
-                    timestamp=e.timestamp,
-                    metadata={"key": e.key, "tags": e.tags},
-                ))
+                results.append(
+                    SearchResult(
+                        content=e.value,
+                        score=score,
+                        source="long_term",
+                        timestamp=e.timestamp,
+                        metadata={"key": e.key, "tags": e.tags},
+                    )
+                )
 
         if (sources is None or "episodic" in sources) and self.episodic:
             for ep in self.episodic.search(query, limit=limit * 2):
                 combined = f"{ep.task} {ep.result} {ep.reflection}"
                 score = self._score(combined, query, query_vec)
-                results.append(SearchResult(
-                    content=combined,
-                    score=score,
-                    source="episodic",
-                    timestamp=0.0,
-                    metadata={"task": ep.task, "success": ep.success},
-                ))
+                results.append(
+                    SearchResult(
+                        content=combined,
+                        score=score,
+                        source="episodic",
+                        timestamp=0.0,
+                        metadata={"task": ep.task, "success": ep.success},
+                    )
+                )
 
         if (sources is None or "semantic" in sources) and self.semantic:
             for fact in self.semantic.query():
                 combined = f"{fact.subject} {fact.predicate} {fact.obj}"
                 score = self._score(combined, query, query_vec)
-                results.append(SearchResult(
-                    content=combined,
-                    score=score * fact.confidence,
-                    source="semantic",
-                    metadata={"subject": fact.subject, "confidence": fact.confidence},
-                ))
+                results.append(
+                    SearchResult(
+                        content=combined,
+                        score=score * fact.confidence,
+                        source="semantic",
+                        metadata={"subject": fact.subject, "confidence": fact.confidence},
+                    )
+                )
 
         if (sources is None or "vector" in sources) and self.vector_store:
             for rec, sim in self.vector_store.search(query_vec, top_k=limit * 2):
-                results.append(SearchResult(
-                    content=rec.content or "",
-                    score=sim,
-                    source="vector",
-                    metadata=rec.metadata,
-                ))
+                results.append(
+                    SearchResult(
+                        content=rec.content or "",
+                        score=sim,
+                        source="vector",
+                        metadata=rec.metadata,
+                    )
+                )
 
         results.sort(key=lambda r: -r.score)
         seen = set()

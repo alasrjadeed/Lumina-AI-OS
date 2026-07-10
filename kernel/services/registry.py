@@ -221,10 +221,7 @@ class ServiceRegistry:
         return results
 
     def find_by_dependency(self, dependency_name: str) -> list[str]:
-        return [
-            n for n, r in self._records.items()
-            if dependency_name in r.dependencies
-        ]
+        return [n for n, r in self._records.items() if dependency_name in r.dependencies]
 
     def get_record(self, name: str) -> ServiceRecord | None:
         return self._records.get(name)
@@ -375,7 +372,7 @@ class ServiceRegistry:
 
         def visit(name: str, path: list[str]) -> None:
             if name in path:
-                cycle = path[path.index(name):] + [name]
+                cycle = path[path.index(name) :] + [name]
                 raise CircularDependencyError(cycle)
             if name in visited:
                 return

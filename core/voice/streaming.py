@@ -7,7 +7,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
-from core.log import log
 from core.voice.stt import STTEngine, STTResult
 from core.voice.tts import TTSEngine
 from core.voice.vad import EnergyVAD, SilenceBuffer
@@ -50,6 +49,7 @@ class MicrophoneSource(AudioSource):
             return
         try:
             import pyaudio
+
             self._pyaudio = pyaudio.PyAudio()
             self._stream = self._pyaudio.open(
                 format=pyaudio.paInt16,
@@ -63,6 +63,7 @@ class MicrophoneSource(AudioSource):
 
     def read_chunk(self, chunk_size: int = 4096) -> AudioChunk:
         self._lazy_init()
+        assert self._stream is not None
         data = self._stream.read(chunk_size, exception_on_overflow=False)
         return AudioChunk(data=data, format=AudioFormat.PCM16, sample_rate=self.sample_rate)
 
@@ -78,7 +79,7 @@ class FileAudioSource(AudioSource):
     def __init__(self, path: str, chunk_size: int = 4096):
         self.path = path
         self.chunk_size = chunk_size
-        self._file = open(path, "rb")
+        self._file = open(path, "rb")  # noqa: SIM115
 
     def read_chunk(self, chunk_size: int | None = None) -> AudioChunk:
         size = chunk_size or self.chunk_size
@@ -124,7 +125,7 @@ class StreamTranscriber:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            last_audio = time.time()
+            time.time()
             sil = SilenceBuffer(sample_rate=16000, silence_sec=self.silence_timeout)
             while self._running:
                 try:
@@ -140,7 +141,7 @@ class StreamTranscriber:
                         self._buffer = b""
                     elif vad_result.is_speech:
                         self._buffer += chunk.data
-                        last_audio = time.time()
+                        time.time()
                         if len(self._buffer) >= 32000:
                             partial = loop.run_until_complete(self.stt.transcribe(self._buffer))
                             if partial.text and self.on_partial:
@@ -181,7 +182,7 @@ class StreamSynthesizer:
         for i in range(0, len(data), chunk_size):
             is_last = i + chunk_size >= len(data)
             chunk = AudioChunk(
-                data=data[i:i + chunk_size],
+                data=data[i : i + chunk_size],
                 format=fmt,
                 is_end=is_last,
             )

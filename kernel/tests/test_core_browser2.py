@@ -20,6 +20,15 @@ class AsyncMockPage:
         self.context.pages = []
         self.url = "https://example.com"
         self.keyboard = MagicMock()
+        self._event_handlers: dict[str, list] = {}
+
+    def on(self, event: str, handler):
+        self._event_handlers.setdefault(event, []).append(handler)
+
+    def remove_listener(self, event: str, handler):
+        handlers = self._event_handlers.get(event, [])
+        if handler in handlers:
+            handlers.remove(handler)
 
     def __getattr__(self, name):
         if name.startswith("_"):
@@ -183,8 +192,8 @@ class TestAutomationAPI:
         assert await api.get_url() == "https://example.com"
 
 
-@pytest.mark.asyncio
 class TestDownloadManager:
+    @pytest.mark.asyncio
     async def test_tracking(self, mock_page):
         dm = DownloadManager(mock_page)
         await dm.start_tracking()
@@ -218,19 +227,21 @@ class TestDownloadManager:
         assert len(dm.get_downloads()) == 0
 
 
-@pytest.mark.asyncio
 class TestScreenshotManager:
+    @pytest.mark.asyncio
     async def test_capture(self, mock_page, tmp_path: Path):
         sm = ScreenshotManager(mock_page, output_dir=str(tmp_path))
         path = await sm.capture("test.png")
         assert "test.png" in path
         mock_page.screenshot.assert_called_with(path=str(tmp_path / "test.png"), full_page=True)
 
+    @pytest.mark.asyncio
     async def test_capture_visible(self, mock_page, tmp_path: Path):
         sm = ScreenshotManager(mock_page, output_dir=str(tmp_path))
         await sm.capture_visible("visible.png")
         mock_page.screenshot.assert_called_with(path=str(tmp_path / "visible.png"), full_page=False)
 
+    @pytest.mark.asyncio
     async def test_capture_element_not_found(self, mock_page):
         mock_page.query_selector = AsyncMock(return_value=None)
         sm = ScreenshotManager(mock_page)
@@ -259,7 +270,7 @@ class TestScreenshotManager:
 
     def test_clear_history(self):
         sm = ScreenshotManager(MagicMock())
-        sm._history.append("entry")
+        sm._history.append("entry")  # pyright: ignore[reportArgumentType]
         sm.clear_history()
         assert len(sm.get_history()) == 0
 
@@ -320,6 +331,7 @@ class TestDOMInteraction:
         mock_page.evaluate = AsyncMock(return_value={"tag": "div", "id": "container"})
         dom = DOMInteraction(mock_page)
         parent = await dom.get_parent("#child")
+        assert parent is not None
         assert parent["tag"] == "div"
 
     async def test_focus_and_blur(self, mock_page):

@@ -328,7 +328,7 @@ export default function VoiceAssistant() {
               <div className={`w-2 h-2 rounded-full ${voiceStatus?.listening ? 'bg-green-400 animate-pulse' : 'bg-slate-600'}`} />
               <span className="text-xs text-slate-300">{voiceStatus?.listening ? 'Listening' : 'Idle'}</span>
             </div>
-            <p className="text-[10px] text-slate-500">STT: {voiceStatus?.stt_providers?.[0] || 'None'}</p>
+            <p className="text-[10px] text-slate-500">STT: {voiceStatus?.stt_providers?.[0]?.model || voiceStatus?.stt_providers?.[0]?.model_size || 'None'}</p>
             <p className="text-[10px] text-slate-500">Voices: {Object.keys(voiceStatus?.tts_voices || {}).length} available</p>
           </div>
         </Card>

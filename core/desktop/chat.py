@@ -91,7 +91,8 @@ class ChatHistory:
     def list_sessions(self, limit: int = 50) -> list[ChatSession]:
         sessions = sorted(
             self._sessions.values(),
-            key=lambda s: s.created, reverse=True,
+            key=lambda s: s.created,
+            reverse=True,
         )
         return sessions[:limit]
 
@@ -125,9 +126,7 @@ class ChatHistory:
         for sid in sessions:
             session = self._sessions.get(sid)
             if session:
-                results.extend(
-                    msg for msg in session.messages if q in msg.content.lower()
-                )
+                results.extend(msg for msg in session.messages if q in msg.content.lower())
         return results
 
     def clear_current(self) -> None:
@@ -163,7 +162,8 @@ class ChatHistory:
                     data = json.load(f)
                 messages = [
                     ChatMessage(
-                        role=m["role"], content=m["content"],
+                        role=m["role"],
+                        content=m["content"],
                         timestamp=m.get("timestamp", 0),
                     )
                     for m in data.get("messages", [])

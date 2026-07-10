@@ -36,4 +36,5 @@ class ToolRegistry:
             return ToolResult(success=False, error=f"Unknown tool: {name}")
         if isinstance(arguments, str):
             arguments = json.loads(arguments)
-        return await tool.execute(**arguments)
+        assert isinstance(arguments, dict)
+        return await tool.execute(**{str(k): v for k, v in arguments.items()})

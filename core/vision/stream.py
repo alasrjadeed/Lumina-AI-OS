@@ -2,17 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable
 
 from core.log import log
 from core.vision.camera import CameraDevice, Frame
 
-try:
-    import cv2
-
-    CV2_AVAILABLE = True
-except ImportError:
-    CV2_AVAILABLE = False
+CV2_AVAILABLE = False
 
 
 class FrameProcessor:
@@ -84,7 +79,8 @@ class VideoStream:
             frame_start = time.time()
 
             frame = await self._camera.capture_frame(
-                format=self._format, quality=self._quality,
+                format=self._format,
+                quality=self._quality,
             )
 
             if frame is not None:
@@ -110,12 +106,15 @@ class VideoStream:
             yield frame.data
 
     async def capture_burst(
-        self, count: int = 5, interval: float = 0.1,
+        self,
+        count: int = 5,
+        interval: float = 0.1,
     ) -> list[Frame]:
         frames: list[Frame] = []
         for _ in range(count):
             frame = await self._camera.capture_frame(
-                format=self._format, quality=self._quality,
+                format=self._format,
+                quality=self._quality,
             )
             if frame is not None:
                 frames.append(frame)

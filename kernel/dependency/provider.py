@@ -13,8 +13,7 @@ class ServiceProvider(ABC):
         self,
         container: Any,
         resolver: Any,
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
 
 class TypeProvider(ServiceProvider):

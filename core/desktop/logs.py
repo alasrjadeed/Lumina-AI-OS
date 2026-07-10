@@ -53,15 +53,18 @@ class LogManager:
         self._filters: list[Any] = []
 
     def log(
-        self, level: LogLevel | str, message: str,
-        source: str = "", traceback: str = "",
+        self,
+        level: LogLevel | str,
+        message: str,
+        source: str = "",
+        traceback: str = "",
     ) -> LogEntry:
         if isinstance(level, str):
             level = LogLevel(level)
         entry = LogEntry(level=level, message=message, source=source, traceback=traceback)
         self._entries.append(entry)
         if len(self._entries) > self.max_entries:
-            self._entries = self._entries[-self.max_entries:]
+            self._entries = self._entries[-self.max_entries :]
         return entry
 
     def debug(self, message: str, source: str = "") -> LogEntry:
@@ -94,7 +97,7 @@ class LogManager:
         if source:
             results = [e for e in results if source.lower() in e.source.lower()]
         results.reverse()
-        return results[offset:offset + limit]
+        return results[offset : offset + limit]
 
     def get_by_level(self, level: LogLevel | str, limit: int = 100) -> list[LogEntry]:
         return self.get(level=level, limit=limit)
@@ -106,9 +109,8 @@ class LogManager:
         return results[:limit]
 
     def get_errors(self, limit: int = 100) -> list[LogEntry]:
-        return (
-            self.get_by_level(LogLevel.ERROR, limit)
-            + self.get_by_level(LogLevel.CRITICAL, limit)
+        return self.get_by_level(LogLevel.ERROR, limit) + self.get_by_level(
+            LogLevel.CRITICAL, limit
         )
 
     def get_recent(self, limit: int = 50) -> list[LogEntry]:
@@ -145,7 +147,7 @@ class LogManager:
         return export_path
 
     def save(self) -> None:
-        data = [e.to_dict() for e in self._entries[-self.max_entries:]]
+        data = [e.to_dict() for e in self._entries[-self.max_entries :]]
         with open(self.storage_path, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -166,7 +168,7 @@ class LogManager:
                 )
                 self._entries.append(entry)
                 count += 1
-            self._entries = self._entries[-self.max_entries:]
+            self._entries = self._entries[-self.max_entries :]
             return count
         except Exception:
             return 0

@@ -42,6 +42,7 @@ def demo_scaffold_plugin():
         print(f"Plugin loaded: {ok}")
         if ok:
             info = pm.get_plugin("hello_plugin")
+            assert info is not None
             print(f"  Name: {info.metadata.name}")
             print(f"  Version: {info.metadata.version}")
             print(f"  Author: {info.metadata.author}")

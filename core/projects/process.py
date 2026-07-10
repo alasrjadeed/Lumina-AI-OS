@@ -48,7 +48,10 @@ class ProcessManager:
                 {"label": "php artisan test", "command": "php artisan test"},
             ],
             "FastAPI": [
-                {"label": "uvicorn main:app --reload", "command": "uvicorn main:app --reload --host 0.0.0.0 --port 8000"},
+                {
+                    "label": "uvicorn main:app --reload",
+                    "command": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+                },
                 {"label": "python main.py", "command": "python main.py"},
                 {"label": "pytest", "command": "pytest"},
             ],
@@ -68,9 +71,15 @@ class ProcessManager:
             ],
             "Python": [
                 {"label": "python main.py", "command": "python main.py"},
-                {"label": "uvicorn main:app --reload", "command": "uvicorn main:app --reload --host 0.0.0.0 --port 8000"},
+                {
+                    "label": "uvicorn main:app --reload",
+                    "command": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+                },
                 {"label": "pytest", "command": "pytest"},
-                {"label": "pip install -r requirements.txt", "command": "pip install -r requirements.txt"},
+                {
+                    "label": "pip install -r requirements.txt",
+                    "command": "pip install -r requirements.txt",
+                },
             ],
             "Go": [
                 {"label": "go run .", "command": "go run ."},
@@ -96,12 +105,15 @@ class ProcessManager:
                 {"label": "ng build", "command": "ng build"},
             ],
         }
-        return presets.get(framework, [
-            {"label": "npm run dev", "command": "npm run dev"},
-            {"label": "npm start", "command": "npm start"},
-            {"label": "npm run build", "command": "npm run build"},
-            {"label": "python main.py", "command": "python main.py"},
-        ])
+        return presets.get(
+            framework,
+            [
+                {"label": "npm run dev", "command": "npm run dev"},
+                {"label": "npm start", "command": "npm start"},
+                {"label": "npm run build", "command": "npm run build"},
+                {"label": "python main.py", "command": "python main.py"},
+            ],
+        )
 
     async def start(self, project_id: str, command: str, project_path: str) -> dict:
         if project_id in self._servers and self._servers[project_id].status == "running":
@@ -147,13 +159,14 @@ class ProcessManager:
 
         try:
             while True:
+                assert proc.stdout is not None
                 line = await proc.stdout.readline()
                 if not line:
                     break
                 decoded = line.decode("utf-8", errors="replace").rstrip()
                 server.output_lines.append(decoded)
                 if len(server.output_lines) > server.max_lines:
-                    server.output_lines = server.output_lines[-server.max_lines:]
+                    server.output_lines = server.output_lines[-server.max_lines :]
         except Exception:
             pass
 
@@ -161,9 +174,7 @@ class ProcessManager:
         server = self._servers.get(project_id)
         if server:
             server.status = "stopped" if proc.returncode == 0 else "crashed"
-            server.output_lines.append(
-                f"\n[Process exited with code {proc.returncode}]"
-            )
+            server.output_lines.append(f"\n[Process exited with code {proc.returncode}]")
             log.info("Process: [%s] exited with code %d", project_id, proc.returncode)
 
     async def stop(self, project_id: str) -> dict:
@@ -179,7 +190,7 @@ class ProcessManager:
             os.killpg(pgid, signal.SIGTERM)
             try:
                 await asyncio.wait_for(server.process.wait(), timeout=5)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 os.killpg(pgid, signal.SIGKILL)
             server.status = "stopped"
             log.info("Process: [%s] stopped", project_id)
@@ -222,8 +233,12 @@ class ProcessManager:
 
     def get_running(self) -> list[dict]:
         return [
-            {"project_id": pid, "command": s.command, "status": s.status,
-             "uptime": int(time.time() - s.started_at) if s.started_at else 0}
+            {
+                "project_id": pid,
+                "command": s.command,
+                "status": s.status,
+                "uptime": int(time.time() - s.started_at) if s.started_at else 0,
+            }
             for pid, s in self._servers.items()
             if s.status == "running"
         ]

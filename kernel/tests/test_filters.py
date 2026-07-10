@@ -250,11 +250,7 @@ class TestFilterWithBus:
                 topic="*",
                 handler=handler,
                 filters=[
-                    PredicateFilter(
-                        lambda e: (
-                            e.payload or {}
-                        ).get("confidence", 0) > 0.9
-                    ),
+                    PredicateFilter(lambda e: (e.payload or {}).get("confidence", 0) > 0.9),
                 ],
             ),
         )

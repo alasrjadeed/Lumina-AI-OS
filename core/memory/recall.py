@@ -33,8 +33,7 @@ class RecallContext:
 
         if self.similar_episodes:
             similar_lines = "\n".join(
-                f"- {r.content[:200]} (score: {r.score:.2f})"
-                for r in self.similar_episodes[:3]
+                f"- {r.content[:200]} (score: {r.score:.2f})" for r in self.similar_episodes[:3]
             )
             parts.append("## Similar Past Episodes\n" + similar_lines)
 
@@ -83,7 +82,9 @@ class RecallEngine:
         )
 
     def recall(
-        self, query: str, limit: int = 10,
+        self,
+        query: str,
+        limit: int = 10,
         sources: list[str] | None = None,
     ) -> list[SearchResult]:
         return self.search_engine.search(query, limit=limit, sources=sources)
@@ -104,7 +105,9 @@ class RecallEngine:
         return ctx
 
     def record_conversation(
-        self, role: str, content: str,
+        self,
+        role: str,
+        content: str,
         metadata: dict[str, Any] | None = None,
     ) -> None:
         self.short_term.add(role, content, metadata)

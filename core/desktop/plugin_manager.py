@@ -65,9 +65,14 @@ class PluginManager:
                 continue
             for entry in os.listdir(d):
                 plugin_path = os.path.join(d, entry)
-                if os.path.isdir(plugin_path) and os.path.exists(
-                    os.path.join(plugin_path, "__init__.py"),
-                ) or entry.endswith(".py") and entry != "__init__.py":
+                if (
+                    os.path.isdir(plugin_path)
+                    and os.path.exists(
+                        os.path.join(plugin_path, "__init__.py"),
+                    )
+                    or entry.endswith(".py")
+                    and entry != "__init__.py"
+                ):
                     found.append(plugin_path)
         return found
 
@@ -81,14 +86,15 @@ class PluginManager:
             return False
         try:
             if os.path.isdir(plugin_path):
-                spec = importlib.util.spec_from_file_location(
-                    name, os.path.join(plugin_path, "__init__.py"),
+                spec = importlib.util.spec_from_file_location(  # pyright: ignore[reportAttributeAccessIssue]
+                    name,
+                    os.path.join(plugin_path, "__init__.py"),
                 )
             else:
-                spec = importlib.util.spec_from_file_location(name, plugin_path)
+                spec = importlib.util.spec_from_file_location(name, plugin_path)  # pyright: ignore[reportAttributeAccessIssue]
             if not spec or not spec.loader:
                 return False
-            module = importlib.util.module_from_spec(spec)
+            module = importlib.util.module_from_spec(spec)  # pyright: ignore[reportAttributeAccessIssue]
             sys.modules[name] = module
             spec.loader.exec_module(module)
             instance = self._instantiate(module)
@@ -203,8 +209,9 @@ class PluginManager:
     def _remove_hooks(self, name: str) -> None:
         for hook in list(self._hooks.keys()):
             self._hooks[hook] = [
-                cb for cb in self._hooks[hook]
-                if not (hasattr(cb, "__self__") and getattr(cb.__self__, "__module__", "") == name)
+                cb
+                for cb in self._hooks[hook]
+                if not (hasattr(cb, "__self__") and getattr(cb.__self__, "__module__", "") == name)  # pyright: ignore[reportFunctionMemberAccess]
             ]
 
     def load_all(self, directory: str = "") -> int:

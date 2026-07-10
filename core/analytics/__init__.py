@@ -6,9 +6,6 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any
-
-from core.log import log
 
 ANALYTICS_DIR = os.path.expanduser("~/.lumina/analytics")
 
@@ -24,17 +21,24 @@ class Metric:
 
     def to_dict(self) -> dict:
         return {
-            "name": self.name, "value": self.value, "unit": self.unit,
-            "category": self.category, "timestamp": self.timestamp,
+            "name": self.name,
+            "value": self.value,
+            "unit": self.unit,
+            "category": self.category,
+            "timestamp": self.timestamp,
             "tags": self.tags,
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> Metric:
-        return cls(name=d["name"], value=d["value"], unit=d.get("unit", ""),
-                   category=d.get("category", "general"),
-                   timestamp=d.get("timestamp", 0),
-                   tags=d.get("tags", {}))
+        return cls(
+            name=d["name"],
+            value=d["value"],
+            unit=d.get("unit", ""),
+            category=d.get("category", "general"),
+            timestamp=d.get("timestamp", 0),
+            tags=d.get("tags", {}),
+        )
 
 
 class AnalyticsEngine:
@@ -76,12 +80,24 @@ class AnalyticsEngine:
         with open(self._path(), "w") as f:
             json.dump([m.to_dict() for m in self._metrics[-5000:]], f, indent=2)
 
-    def track(self, name: str, value: float, unit: str = "",
-              category: str = "general", tags: dict[str, str] | None = None):
-        self._metrics.append(Metric(
-            name=name, value=value, unit=unit, category=category,
-            timestamp=time.time(), tags=tags or {},
-        ))
+    def track(
+        self,
+        name: str,
+        value: float,
+        unit: str = "",
+        category: str = "general",
+        tags: dict[str, str] | None = None,
+    ):
+        self._metrics.append(
+            Metric(
+                name=name,
+                value=value,
+                unit=unit,
+                category=category,
+                timestamp=time.time(),
+                tags=tags or {},
+            )
+        )
         if len(self._metrics) > 1000 and len(self._metrics) % 100 == 0:
             self._save()
 
@@ -96,8 +112,9 @@ class AnalyticsEngine:
     def get_snapshot(self, category: str) -> dict | None:
         return self._snapshots.get(category)
 
-    def query(self, name: str = "", category: str = "",
-              since: float = 0, limit: int = 100) -> list[Metric]:
+    def query(
+        self, name: str = "", category: str = "", since: float = 0, limit: int = 100
+    ) -> list[Metric]:
         results = list(self._metrics)
         if name:
             results = [m for m in results if m.name == name]
@@ -114,7 +131,10 @@ class AnalyticsEngine:
 
         now = time.time()
         period_sec = {
-            "hour": 3600, "day": 86400, "week": 604800, "month": 2592000,
+            "hour": 3600,
+            "day": 86400,
+            "week": 604800,
+            "month": 2592000,
         }.get(period, 86400)
 
         recent = [m for m in matching if now - m.timestamp <= period_sec]
@@ -147,12 +167,14 @@ class AnalyticsEngine:
             start = t_min + i * bucket_size
             end = start + bucket_size
             bucket_vals = [m.value for m in matching if start <= m.timestamp < end]
-            result.append({
-                "bucket": i,
-                "timestamp": start,
-                "value": sum(bucket_vals) / len(bucket_vals) if bucket_vals else 0,
-                "count": len(bucket_vals),
-            })
+            result.append(
+                {
+                    "bucket": i,
+                    "timestamp": start,
+                    "value": sum(bucket_vals) / len(bucket_vals) if bucket_vals else 0,
+                    "count": len(bucket_vals),
+                }
+            )
         return result
 
     def forecast(self, name: str, ahead: int = 7) -> list[dict]:
@@ -167,23 +189,28 @@ class AnalyticsEngine:
         n = len(values)
         x_mean = (n - 1) / 2
         y_mean = sum(values) / n
-        slope = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values)) / \
-                max(sum((i - x_mean) ** 2 for i in range(n)), 1)
+        slope = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values)) / max(
+            sum((i - x_mean) ** 2 for i in range(n)), 1
+        )
 
         last_ts = max(b["timestamp"] for b in trend)
-        bucket_size = (max(b["timestamp"] for b in trend if b["count"] > 0) -
-                       min(b["timestamp"] for b in trend if b["count"] > 0)) / max(len(values) - 1, 1)
+        bucket_size = (
+            max(b["timestamp"] for b in trend if b["count"] > 0)
+            - min(b["timestamp"] for b in trend if b["count"] > 0)
+        ) / max(len(values) - 1, 1)
 
         result = []
         for i in range(1, ahead + 1):
             pred = max(0, y_mean + slope * (n + i - 1 - x_mean))
-            result.append({
-                "day": i,
-                "timestamp": last_ts + i * bucket_size,
-                "predicted": round(pred, 2),
-                "lower": round(pred * 0.8, 2),
-                "upper": round(pred * 1.2, 2),
-            })
+            result.append(
+                {
+                    "day": i,
+                    "timestamp": last_ts + i * bucket_size,
+                    "predicted": round(pred, 2),
+                    "lower": round(pred * 0.8, 2),
+                    "upper": round(pred * 1.2, 2),
+                }
+            )
         return result
 
     def dashboard(self) -> dict:
@@ -207,8 +234,7 @@ class AnalyticsEngine:
             "total_metrics_today": len(recent),
             "total_metrics_week": len(weekly),
             "categories": by_category,
-            "latest_values": {k: v for k, v in by_name.items()
-                              if not k.endswith("_ts")},
+            "latest_values": {k: v for k, v in by_name.items() if not k.endswith("_ts")},
             "snapshots": list(self._snapshots.keys()),
             "generated_at": time.time(),
         }
@@ -217,17 +243,13 @@ class AnalyticsEngine:
         now = time.time()
         day_ago = now - 86400
 
-        cats = categories or list({
-            m.category for m in self._metrics
-            if m.timestamp >= day_ago
-        })
+        cats = categories or list({m.category for m in self._metrics if m.timestamp >= day_ago})
 
         sections = ["# Analytics Report\n"]
         sections.append(f"Generated: {time.strftime('%Y-%m-%d %H:%M')}\n")
 
         for cat in cats:
-            cat_metrics = [m for m in self._metrics
-                           if m.category == cat and m.timestamp >= day_ago]
+            cat_metrics = [m for m in self._metrics if m.category == cat and m.timestamp >= day_ago]
             if not cat_metrics:
                 continue
             sections.append(f"\n## {cat.title()}")
@@ -235,8 +257,10 @@ class AnalyticsEngine:
             for m in cat_metrics:
                 by_name.setdefault(m.name, []).append(m.value)
             for name, vals in by_name.items():
-                sections.append(f"- **{name}**: avg={sum(vals)/len(vals):.1f}, "
-                                f"min={min(vals):.1f}, max={max(vals):.1f}, count={len(vals)}")
+                sections.append(
+                    f"- **{name}**: avg={sum(vals) / len(vals):.1f}, "
+                    f"min={min(vals):.1f}, max={max(vals):.1f}, count={len(vals)}"
+                )
 
         return "\n".join(sections)
 

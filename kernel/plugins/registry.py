@@ -120,21 +120,16 @@ class PluginRegistry:
         return self._loader.find_by_tag(tag)
 
     def find_by_type(self, plugin_type: PluginType) -> list[PluginManifest]:
-        return [
-            m for m in self._loader.list_discovered()
-            if m.plugin_type == plugin_type
-        ]
+        return [m for m in self._loader.list_discovered() if m.plugin_type == plugin_type]
 
     def find_by_author(self, author: str) -> list[PluginManifest]:
-        return [
-            m for m in self._loader.list_discovered()
-            if m.author.lower() == author.lower()
-        ]
+        return [m for m in self._loader.list_discovered() if m.author.lower() == author.lower()]
 
     def search(self, query: str) -> list[PluginManifest]:
         q = query.lower()
         return [
-            m for m in self._loader.list_discovered()
+            m
+            for m in self._loader.list_discovered()
             if q in m.name.lower()
             or q in m.description.lower()
             or q in m.author.lower()
@@ -171,10 +166,7 @@ class PluginRegistry:
 
     def list_by_kernel_version(self, kernel_spec: str) -> list[PluginManifest]:
         kv = SemVer.parse(kernel_spec.replace(">=", "").replace("==", "").strip())
-        return [
-            m for m in self._loader.list_discovered()
-            if version_matches(m.kernel_version, kv)
-        ]
+        return [m for m in self._loader.list_discovered() if version_matches(m.kernel_version, kv)]
 
     def list_incompatible_plugins(self) -> list[str]:
         incompatible: list[str] = []
@@ -317,7 +309,4 @@ class PluginRegistry:
         )
 
     def _all_versions(self) -> dict[str, str]:
-        return {
-            m.name: m.version
-            for m in self._loader.list_discovered()
-        }
+        return {m.name: m.version for m in self._loader.list_discovered()}

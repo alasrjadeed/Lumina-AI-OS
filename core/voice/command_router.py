@@ -54,12 +54,14 @@ class VoiceCommandRouter:
         patterns: list[str],
         handler: CommandHandler | None = None,
     ) -> None:
-        self._intents.append(IntentPattern(
-            intent=intent,
-            category=category,
-            patterns=patterns,
-            handler=handler,
-        ))
+        self._intents.append(
+            IntentPattern(
+                intent=intent,
+                category=category,
+                patterns=patterns,
+                handler=handler,
+            )
+        )
 
     def set_fallback(self, handler: CommandHandler) -> None:
         self._fallback_handler = handler
@@ -112,27 +114,55 @@ class VoiceCommandRouter:
     @staticmethod
     def default_router() -> VoiceCommandRouter:
         router = VoiceCommandRouter()
-        router.register("search", CommandCategory.QUERY, [
-            r"(?:search|find|look up|query)\s+(?:for\s+)?(?P<query>.+)",
-            r"(?:what|who|when|where|why|how)\s+(?:is|are|was|were|does|do|can)\s+(?P<query>.+)",
-        ])
-        router.register("navigate", CommandCategory.NAVIGATION, [
-            r"(?:go to|open|navigate to|show)\s+(?P<page>.+)",
-            r"(?:take me to|switch to)\s+(?P<page>.+)",
-        ])
-        router.register("create", CommandCategory.ACTION, [
-            r"(?:create|make|new|build)\s+(?P<type>\w+)\s+(?:called|named\s+)?(?P<name>.+)",
-        ])
-        router.register("remind", CommandCategory.ACTION, [
-            r"(?:remind|set reminder|remember)\s+(?:me\s+)?(?:to\s+)?(?P<task>.+)",
-        ])
-        router.register("settings", CommandCategory.SETTINGS, [
-            r"(?:change|set|update|adjust)\s+(?P<setting>\w+)\s+(?:to\s+)?(?P<value>.+)",
-        ])
-        router.register("stop", CommandCategory.SYSTEM, [
-            r"^(?:stop|exit|quit|shutdown|goodbye|bye)\s*$",
-        ])
-        router.register("help", CommandCategory.SYSTEM, [
-            r"^(?:help|what can you do|commands|options)\s*$",
-        ])
+        router.register(
+            "search",
+            CommandCategory.QUERY,
+            [
+                r"(?:search|find|look up|query)\s+(?:for\s+)?(?P<query>.+)",
+                r"(?:what|who|when|where|why|how)\s+(?:is|are|was|were|does|do|can)\s+(?P<query>.+)",
+            ],
+        )
+        router.register(
+            "navigate",
+            CommandCategory.NAVIGATION,
+            [
+                r"(?:go to|open|navigate to|show)\s+(?P<page>.+)",
+                r"(?:take me to|switch to)\s+(?P<page>.+)",
+            ],
+        )
+        router.register(
+            "create",
+            CommandCategory.ACTION,
+            [
+                r"(?:create|make|new|build)\s+(?P<type>\w+)\s+(?:called|named\s+)?(?P<name>.+)",
+            ],
+        )
+        router.register(
+            "remind",
+            CommandCategory.ACTION,
+            [
+                r"(?:remind|set reminder|remember)\s+(?:me\s+)?(?:to\s+)?(?P<task>.+)",
+            ],
+        )
+        router.register(
+            "settings",
+            CommandCategory.SETTINGS,
+            [
+                r"(?:change|set|update|adjust)\s+(?P<setting>\w+)\s+(?:to\s+)?(?P<value>.+)",
+            ],
+        )
+        router.register(
+            "stop",
+            CommandCategory.SYSTEM,
+            [
+                r"^(?:stop|exit|quit|shutdown|goodbye|bye)\s*$",
+            ],
+        )
+        router.register(
+            "help",
+            CommandCategory.SYSTEM,
+            [
+                r"^(?:help|what can you do|commands|options)\s*$",
+            ],
+        )
         return router

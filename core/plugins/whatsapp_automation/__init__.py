@@ -73,13 +73,32 @@ def _load_data() -> None:
 
 def _save_data() -> None:
     with open(_storage_path, "w") as f:
-        json.dump({
-            "rules": [{"keyword": r.keyword, "response": r.response,
-                       "match_type": r.match_type, "enabled": r.enabled} for r in _rules],
-            "campaigns": [{"name": c.name, "message": c.message,
-                           "recipients": c.recipients, "sent": c.sent,
-                           "failed": c.failed, "status": c.status} for c in _campaigns],
-        }, f, indent=2)
+        json.dump(
+            {
+                "rules": [
+                    {
+                        "keyword": r.keyword,
+                        "response": r.response,
+                        "match_type": r.match_type,
+                        "enabled": r.enabled,
+                    }
+                    for r in _rules
+                ],
+                "campaigns": [
+                    {
+                        "name": c.name,
+                        "message": c.message,
+                        "recipients": c.recipients,
+                        "sent": c.sent,
+                        "failed": c.failed,
+                        "status": c.status,
+                    }
+                    for c in _campaigns
+                ],
+            },
+            f,
+            indent=2,
+        )
 
 
 async def send_message(to: str, text: str) -> dict:
@@ -120,9 +139,8 @@ def get_matched_reply(incoming_text: str) -> str | None:
             return rule.response
         if rule.match_type == "contains" and rule.keyword.lower() in incoming_text.lower():
             return rule.response
-        if (
-            rule.match_type == "startswith"
-            and incoming_text.lower().startswith(rule.keyword.lower())
+        if rule.match_type == "startswith" and incoming_text.lower().startswith(
+            rule.keyword.lower()
         ):
             return rule.response
     return None

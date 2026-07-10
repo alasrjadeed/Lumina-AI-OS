@@ -4,6 +4,7 @@ def calculate_total(items):
         total = total + items[i]
     return total
 
+
 def greet(name):
     print("Hello, " + name)
     return None

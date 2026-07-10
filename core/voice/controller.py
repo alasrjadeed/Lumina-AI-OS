@@ -5,16 +5,22 @@ import json
 import os
 import re
 import time
-from typing import Any
 
 from core.log import log
 from core.orchestrator import ceo
 from core.provider import engine as ai_engine
 from core.voice.echo import EchoDetector
-from core.voice.languages import LANGUAGE_VOICES, detect_language, get_voice_for_language, get_wake_word
-from core.voice.recorder import AudioRecorder, recorder as _recorder_singleton
-from core.voice.stt import STTEngine, stt as _stt_singleton
-from core.voice.tts import TTSEngine, tts as _tts_singleton
+from core.voice.languages import (
+    LANGUAGE_VOICES,
+    get_voice_for_language,
+    get_wake_word,
+)
+from core.voice.recorder import AudioRecorder
+from core.voice.recorder import recorder as _recorder_singleton
+from core.voice.stt import STTEngine
+from core.voice.stt import stt as _stt_singleton
+from core.voice.tts import TTSEngine
+from core.voice.tts import tts as _tts_singleton
 from core.voice.vad import EnergyVAD
 
 
@@ -57,8 +63,13 @@ class VoiceController:
         if not audio:
             return None
 
+        vad_result = self._vad.is_speech(audio)
+        if not vad_result.is_speech:
+            return None
+
         result = await self.stt.transcribe(audio)
         text = result.text.lower().strip()
+        self._vad.reset()
 
         if self._multi_language and result.language:
             self._current_language = result.language[:2]
@@ -83,14 +94,19 @@ class VoiceController:
                 log.info("Voice: follow-up detected: '%s'", text)
                 return text
 
-        log.info("Voice: wake word not heard%s",
-                 " (in follow-up window)" if self._in_follow_up else "")
+        log.info(
+            "Voice: wake word not heard%s", " (in follow-up window)" if self._in_follow_up else ""
+        )
         return None
 
     def _strip_wake_word(self, text: str) -> str:
         command = re.sub(rf"^{re.escape(self.wake_word)}[\s,.:;!]*", "", text, flags=re.IGNORECASE)
-        command = re.sub(rf"[\s,.:;!]*{re.escape(self.wake_word)}$", "", command, flags=re.IGNORECASE)
-        command = re.sub(rf"[\s,.:;!]*{re.escape(self.wake_word)}[\s,.:;!]*", " ", command, flags=re.IGNORECASE)
+        command = re.sub(
+            rf"[\s,.:;!]*{re.escape(self.wake_word)}$", "", command, flags=re.IGNORECASE
+        )
+        command = re.sub(
+            rf"[\s,.:;!]*{re.escape(self.wake_word)}[\s,.:;!]*", " ", command, flags=re.IGNORECASE
+        )
         return command.strip()
 
     async def listen_for_command(self, timeout: float = 10.0) -> str | None:
@@ -121,16 +137,19 @@ class VoiceController:
 
         intent = await self._understand_intent(text)
 
-        if intent.get("needs_confirmation", False) and intent.get("confidence", 1.0) < self.confirm_threshold:
-                confirmed = await self._confirm_with_user(intent)
-                if not confirmed:
-                    reply = "Cancelled."
-                    if self._multi_language:
-                        await self.tts.speak_in_language(reply, lang_code=self._current_language)
-                    else:
-                        await self.tts.speak(reply)
-                self._conversation_history.append({"role": "assistant", "content": reply})
-                return {"status": "cancelled", "text": text, "reply": reply}
+        if (
+            intent.get("needs_confirmation", False)
+            and intent.get("confidence", 1.0) < self.confirm_threshold
+        ):
+            confirmed = await self._confirm_with_user(intent)
+            reply: str = "Cancelled."
+            if not confirmed:
+                if self._multi_language:
+                    await self.tts.speak_in_language(reply, lang_code=self._current_language)
+                else:
+                    await self.tts.speak(reply)
+            self._conversation_history.append({"role": "assistant", "content": reply})
+            return {"status": "cancelled", "text": text, "reply": reply}
 
         plan = await self._plan_task(text, intent)
         result = await self._execute_intent(intent, plan)
@@ -166,14 +185,12 @@ class VoiceController:
             r"^(stop|pause)\s+(speaking|talking|playing)",
         ]
         lower = text.lower().strip()
-        for pat in stop_patterns:
-            if re.match(pat, lower):
-                return True
-        return False
+        return any(re.match(pat, lower) for pat in stop_patterns)
 
     async def _understand_intent(self, text: str) -> dict:
         context = self._get_recent_context()
-        prompt = f"""You are the intent parser for a voice-controlled AI assistant named {self.wake_word.title()}.
+        prompt = f"""You are the intent parser for a voice-controlled AI assistant named \
+{self.wake_word.title()}.
 
 Current conversation context:
 {context}
@@ -183,7 +200,8 @@ User command: "{text}"
 Analyze the intent. Return ONLY valid JSON:
 {{
   "action": "brief action name",
-  \"category\": \"chat | code | browser | whatsapp | email | crm | seo | pipeline | system | agent | desktop | memory | voice | vision\",
+  \"category\": \"chat | code | browser | whatsapp | email | crm | seo | pipeline | system | agent\
+ | desktop | memory | voice | vision\",
   "target": "what the command targets (optional)",
   "params": {{"key": "value"}},
   "needs_confirmation": true or false (true if destructive/expensive),
@@ -225,11 +243,10 @@ Analyze the intent. Return ONLY valid JSON:
         if len(self._conversation_history) <= 2:
             return self._get_recent_context(limit=4)
         recent = self._conversation_history[-4:]
-        lines = []
-        for msg in recent:
-            lines.append(f"{msg.get('role', 'user')}: {msg.get('content', '')[:150]}")
+        lines = [f"{msg.get('role', 'user')}: {msg.get('content', '')[:150]}" for msg in recent]
         raw = "\n".join(lines)
-        prompt = f"""Summarize this conversation history in 1-2 short sentences for a voice assistant:
+        prompt = f"""Summarize this conversation history in 1-2 short sentences for a \
+voice assistant:
 
 {raw}
 
@@ -307,9 +324,15 @@ If single-step, return "strategy": "direct" with empty steps."""
             if not response:
                 continue
             response_lower = response.lower()
-            if any(w in response_lower for w in ["yes", "yeah", "sure", "ok", "go", "do it", "please", "correct"]):
+            if any(
+                w in response_lower
+                for w in ["yes", "yeah", "sure", "ok", "go", "do it", "please", "correct"]
+            ):
                 return True
-            if any(w in response_lower for w in ["no", "nope", "nah", "stop", "cancel", "don't", "never mind"]):
+            if any(
+                w in response_lower
+                for w in ["no", "nope", "nah", "stop", "cancel", "don't", "never mind"]
+            ):
                 return False
             await self.tts.speak("Please say yes or no.")
 
@@ -318,34 +341,39 @@ If single-step, return "strategy": "direct" with empty steps."""
     async def _execute_intent(self, intent: dict, plan: dict | None = None) -> dict:
         category = intent.get("category", "chat")
         params = intent.get("params", {})
-        steps = (plan or {}).get("steps", [])
+        (plan or {}).get("steps", [])
 
         try:
             if category == "pipeline":
                 from core.pipeline import pipeline_builder
+
                 desc = params.get("description", params.get("message", intent.get("summary", "")))
                 result = await pipeline_builder.launch(description=desc)
                 return result
 
             elif category == "code":
                 from api.code import code_agent
+
                 resp = await code_agent.run(params.get("message", intent.get("summary", "")))
                 return {"agent_result": resp.output}
 
             elif category == "browser":
                 from core.browser.agent import browser_agent
+
                 result = await browser_agent.execute(params.get("task", intent.get("summary", "")))
                 return result
 
             elif category == "whatsapp":
                 from core.whatsapp.client import whatsapp
+
                 to = params.get("to", "")
                 text = params.get("text", params.get("message", ""))
                 result = await whatsapp.send_text(to, text)
                 return {"sent": str(result)}
 
             elif category == "email":
-                from core.email.client import email_client
+                from core.email.client import email_client  # pyright: ignore[reportMissingImports]
+
                 to = params.get("to", "")
                 subject = params.get("subject", "")
                 body = params.get("body", params.get("message", ""))
@@ -354,6 +382,7 @@ If single-step, return "strategy": "direct" with empty steps."""
 
             elif category == "desktop":
                 from core.desktop.os_automation import DesktopAutomation
+
                 da = DesktopAutomation()
                 action = params.get("action", params.get("message", ""))
                 result = await da.execute(action)
@@ -361,13 +390,14 @@ If single-step, return "strategy": "direct" with empty steps."""
 
             elif category == "memory":
                 from core.memory.engine import MemoryEngine
+
                 me = MemoryEngine()
                 result = await me.recall_context(5)
                 return {"memory": str(result)[:500]}
 
             elif category == "vision":
-                from core.vision.cortex import VisualCortex
                 from core.vision.camera import CameraDevice
+                from core.vision.cortex import VisualCortex
 
                 cortex = VisualCortex(
                     camera=CameraDevice(device_id=0),
@@ -386,7 +416,12 @@ If single-step, return "strategy": "direct" with empty steps."""
                     return {"vision": text, "mode": "describe"}
 
                 elif "look for" in summary or "find" in summary or "search" in summary:
-                    target = summary.replace("look for", "").replace("find", "").replace("search for", "").strip()
+                    target = (
+                        summary.replace("look for", "")
+                        .replace("find", "")
+                        .replace("search for", "")
+                        .strip()
+                    )
                     if not target:
                         target = params.get("target", "something")
                     text = await cortex.look_for(target, timeout=15.0)
@@ -427,7 +462,12 @@ If single-step, return "strategy": "direct" with empty steps."""
                     return {"vision": text, "mode": "memory"}
 
                 elif "ask" in summary or "question" in summary or "what about" in summary:
-                    question = summary.replace("ask", "").replace("question", "").replace("what about", "").strip()
+                    question = (
+                        summary.replace("ask", "")
+                        .replace("question", "")
+                        .replace("what about", "")
+                        .strip()
+                    )
                     text = await cortex.ask_about_scene(question or "What's happening?")
                     return {"vision": text, "mode": "qa"}
 
@@ -459,7 +499,8 @@ If single-step, return "strategy": "direct" with empty steps."""
 Command: "{command}"
 Result: {json.dumps(result, default=str)[:600]}
 
-Reply conversationally. Be concise. Sound like a helpful assistant named {self.wake_word.title()}."""
+Reply conversationally. Be concise. Sound like a helpful assistant named \
+{self.wake_word.title()}."""
         try:
             resp = await ai_engine.chat([{"role": "user", "content": prompt}])
             return resp.get("message", {}).get("content", "Done.")
@@ -481,7 +522,7 @@ Reply conversationally. Be concise. Sound like a helpful assistant named {self.w
 
         while self.listening:
             try:
-                timeout = 60.0
+                timeout = 5.0
                 if wake_word_mode:
                     command = await self.listen_for_wake_word(timeout=timeout)
                 else:
@@ -495,15 +536,16 @@ Reply conversationally. Be concise. Sound like a helpful assistant named {self.w
                 if result.get("status") == "stopped":
                     log.info("Voice: stopped by user command")
                     if self._multi_language:
-                        await self.tts.speak_in_language("Stopped.", lang_code=self._current_language)
+                        await self.tts.speak_in_language(
+                            "Stopped.", lang_code=self._current_language
+                        )
                     else:
                         await self.tts.speak("Stopped.")
                     continue
 
                 reply = result.get("reply", "")
                 if reply:
-                    log.info("Voice: command='%s' -> reply='%s'",
-                             command[:60], reply[:60])
+                    log.info("Voice: command='%s' -> reply='%s'", command[:60], reply[:60])
 
             except asyncio.CancelledError:
                 break
@@ -538,6 +580,7 @@ Reply conversationally. Be concise. Sound like a helpful assistant named {self.w
 
     def list_languages(self) -> list[dict]:
         from core.voice.languages import list_supported_languages
+
         return list_supported_languages()
 
     def get_conversation_history(self, limit: int = 10) -> list[dict]:

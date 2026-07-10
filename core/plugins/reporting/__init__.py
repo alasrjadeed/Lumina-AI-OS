@@ -73,25 +73,44 @@ def _load_data() -> None:
             _reports = []
             for r in data.get("reports", []):
                 sections = [ReportSection(**s) for s in r.get("sections", [])]
-                _reports.append(Report(title=r["title"], sections=sections,
-                                       generated=r.get("generated", 0)))
+                _reports.append(
+                    Report(title=r["title"], sections=sections, generated=r.get("generated", 0))
+                )
         except Exception:
             pass
 
 
 def _save_data() -> None:
     with open(_storage_path, "w") as f:
-        json.dump({
-            "reports": [{"title": r.title,
-                         "sections": [{"title": s.title,
-                                       "metrics": [{"label": m.label, "value": m.value,
-                                                     "unit": m.unit, "change": m.change}
-                                                    for m in s.metrics],
-                                       "chart_type": s.chart_type}
-                                      for s in r.sections],
-                         "generated": r.generated}
-                        for r in _reports[-20:]],
-        }, f, indent=2)
+        json.dump(
+            {
+                "reports": [
+                    {
+                        "title": r.title,
+                        "sections": [
+                            {
+                                "title": s.title,
+                                "metrics": [
+                                    {
+                                        "label": m.label,
+                                        "value": m.value,
+                                        "unit": m.unit,
+                                        "change": m.change,
+                                    }
+                                    for m in s.metrics
+                                ],
+                                "chart_type": s.chart_type,
+                            }
+                            for s in r.sections
+                        ],
+                        "generated": r.generated,
+                    }
+                    for r in _reports[-20:]
+                ],
+            },
+            f,
+            indent=2,
+        )
 
 
 def create_report(title: str) -> Report:
@@ -113,8 +132,14 @@ def add_section(
     return None
 
 
-def add_metric(report_title: str, section_title: str, label: str, value: float,
-               unit: str = "", change: float = 0.0) -> bool:
+def add_metric(
+    report_title: str,
+    section_title: str,
+    label: str,
+    value: float,
+    unit: str = "",
+    change: float = 0.0,
+) -> bool:
     for r in _reports:
         if r.title == report_title:
             for s in r.sections:
@@ -179,14 +204,26 @@ def export_json(report_title: str, path: str = "") -> str:
         return ""
     export_path = path or f"{report_title.replace(' ', '_')}.json"
     with open(export_path, "w") as f:
-        json.dump({
-            "title": report.title,
-            "generated": report.generated,
-            "sections": [{"title": s.title, "chart_type": s.chart_type,
-                          "metrics": [{"label": m.label, "value": m.value,
-                                       "unit": m.unit, "change": m.change} for m in s.metrics],
-                          "data": s.data} for s in report.sections],
-        }, f, indent=2)
+        json.dump(
+            {
+                "title": report.title,
+                "generated": report.generated,
+                "sections": [
+                    {
+                        "title": s.title,
+                        "chart_type": s.chart_type,
+                        "metrics": [
+                            {"label": m.label, "value": m.value, "unit": m.unit, "change": m.change}
+                            for m in s.metrics
+                        ],
+                        "data": s.data,
+                    }
+                    for s in report.sections
+                ],
+            },
+            f,
+            indent=2,
+        )
     log.info("JSON exported: %s", export_path)
     return export_path
 
@@ -204,7 +241,9 @@ def export_html(report_title: str, path: str = "") -> str:
             html.append("<tr><th>Metric</th><th>Value</th><th>Unit</th><th>Change</th></tr>")
             for m in section.metrics:
                 change_str = f"{m.change:+.1f}%" if m.change else "-"
-                html.append(f"<tr><td>{m.label}</td><td>{m.value}</td><td>{m.unit}</td><td>{change_str}</td></tr>")
+                html.append(
+                    f"<tr><td>{m.label}</td><td>{m.value}</td><td>{m.unit}</td><td>{change_str}</td></tr>"
+                )
             html.append("</table>")
         if section.data:
             html.append('<table border="1" cellpadding="6" style="border-collapse:collapse">')

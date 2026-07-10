@@ -24,8 +24,12 @@ async def track_metric(req: MetricTrack):
 
 
 @router.get("/metrics")
-async def query_metrics(name: str = Query(""), category: str = Query(""),
-                        since: float = Query(0), limit: int = Query(100)):
+async def query_metrics(
+    name: str = Query(""),
+    category: str = Query(""),
+    since: float = Query(0),
+    limit: int = Query(100),
+):
     results = analytics.query(name=name, category=category, since=since, limit=limit)
     return {"metrics": [m.to_dict() for m in results], "total": len(results)}
 

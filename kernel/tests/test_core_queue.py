@@ -57,11 +57,13 @@ class TestTaskQueue:
     def test_add_task_with_dependencies(self, queue: TaskQueue):
         p = queue.create_pipeline("P")
         t1 = queue.add_task(p.id, "First", "action1")
+        assert t1 is not None and t1.id is not None
         t2 = queue.add_task(p.id, "Second", "action2", depends_on=[t1.id])
-        assert t2.depends_on == [t1.id]
+        assert t2 is not None and t2.depends_on == [t1.id]
 
     def test_run_pipeline_not_found(self, queue: TaskQueue):
         import asyncio
+
         result = asyncio.run(queue.run_pipeline("bad"))
         assert "error" in result
 

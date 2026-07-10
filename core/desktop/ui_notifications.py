@@ -98,10 +98,9 @@ class UINotificationManager:
         return count
 
     def get_active(self) -> list[UINotification]:
-        return [
-            n for n in self._notifications
-            if not n.dismissed and not n.is_expired
-        ][-self.max_visible:]
+        return [n for n in self._notifications if not n.dismissed and not n.is_expired][
+            -self.max_visible :
+        ]
 
     def get_all(self) -> list[UINotification]:
         return list(self._notifications)
@@ -137,4 +136,4 @@ class UINotificationManager:
 
     def _trim_excess(self) -> None:
         if len(self._notifications) > self.max_visible * 2:
-            self._notifications = self._notifications[-self.max_visible * 2:]
+            self._notifications = self._notifications[-self.max_visible * 2 :]

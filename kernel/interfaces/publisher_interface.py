@@ -8,5 +8,4 @@ if TYPE_CHECKING:
 
 @runtime_checkable
 class IPublisher(Protocol):
-    async def publish(self, event: Event) -> None:
-        ...
+    async def publish(self, event: Event) -> None: ...

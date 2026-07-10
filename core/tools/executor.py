@@ -25,7 +25,10 @@ class ToolExecutor:
         self.cache_ttl = cache_ttl
         self._cache: dict[str, tuple[float, ToolResult]] = {}
         self._stats: dict[str, int] = {
-            "executed": 0, "cached": 0, "failed": 0, "timed_out": 0,
+            "executed": 0,
+            "cached": 0,
+            "failed": 0,
+            "timed_out": 0,
         }
 
     async def execute(
@@ -56,8 +59,10 @@ class ToolExecutor:
 
         for attempt in range(max_retries + 1):
             try:
+                assert isinstance(arguments, dict)
                 result = await asyncio.wait_for(
-                    tool.execute(**arguments), timeout=actual_timeout,
+                    tool.execute(**{str(k): v for k, v in arguments.items()}),
+                    timeout=actual_timeout,
                 )
                 if result.success:
                     self._cache[cache_key] = (time.time(), result)
@@ -83,11 +88,10 @@ class ToolExecutor:
         )
 
     async def execute_many(
-        self, calls: list[tuple[str, str | dict[str, Any]]],
+        self,
+        calls: list[tuple[str, str | dict[str, Any]]],
     ) -> list[ToolResult]:
-        return await asyncio.gather(
-            *(self.execute(name, args) for name, args in calls)
-        )
+        return await asyncio.gather(*(self.execute(name, args) for name, args in calls))
 
     def _check_cache(self, key: str) -> ToolResult | None:
         entry = self._cache.get(key)
@@ -108,5 +112,8 @@ class ToolExecutor:
 
     def reset_stats(self) -> None:
         self._stats = {
-            "executed": 0, "cached": 0, "failed": 0, "timed_out": 0,
+            "executed": 0,
+            "cached": 0,
+            "failed": 0,
+            "timed_out": 0,
         }

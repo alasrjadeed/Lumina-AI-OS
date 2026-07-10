@@ -32,14 +32,24 @@ class PluginSDK:
     def __init__(self):
         self.templates = TemplateManager()
 
-    def scaffold(self, name: str, description: str = "", author: str = "",
-                 version: str = "0.1.0", output_dir: str = ".") -> list[str]:
-        files = self.templates.render("plugin", {
-            "name": name,
-            "description": description or f"{name} plugin",
-            "author": author or "unknown",
-            "version": version,
-        }, output_dir=output_dir)
+    def scaffold(
+        self,
+        name: str,
+        description: str = "",
+        author: str = "",
+        version: str = "0.1.0",
+        output_dir: str = ".",
+    ) -> list[str]:
+        files = self.templates.render(
+            "plugin",
+            {
+                "name": name,
+                "description": description or f"{name} plugin",
+                "author": author or "unknown",
+                "version": version,
+            },
+            output_dir=output_dir,
+        )
         log.info("Plugin scaffolded: %s (%d files)", name, len(files))
         return files
 
@@ -48,9 +58,7 @@ class PluginSDK:
         if not os.path.exists(plugin_path):
             return ["Path does not exist"]
         init_path = (
-            os.path.join(plugin_path, "__init__.py")
-            if os.path.isdir(plugin_path)
-            else plugin_path
+            os.path.join(plugin_path, "__init__.py") if os.path.isdir(plugin_path) else plugin_path
         )
         if not os.path.exists(init_path):
             return ["No __init__.py found"]
@@ -93,9 +101,7 @@ class PluginSDK:
     def get_hooks(self, plugin_path: str) -> list[str]:
         hooks = []
         init_path = (
-            os.path.join(plugin_path, "__init__.py")
-            if os.path.isdir(plugin_path)
-            else plugin_path
+            os.path.join(plugin_path, "__init__.py") if os.path.isdir(plugin_path) else plugin_path
         )
         try:
             spec = importlib.util.spec_from_file_location("_hook_check", init_path)

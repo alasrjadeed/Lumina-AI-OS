@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import time
 import uuid
-from typing import Any, Callable, Coroutine
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 from core.log import log
 from core.task_manager.models import Task, TaskEvent, TaskPriority, TaskStatus, TaskStep
-
 
 Handler = Callable[..., Coroutine[Any, Any, Any]]
 
@@ -60,7 +61,9 @@ class TaskManager:
     def _save(self) -> None:
         try:
             with open(self.storage_path, "w") as f:
-                json.dump({"tasks": [t.to_dict() for t in self._tasks.values()]}, f, indent=2, default=str)
+                json.dump(
+                    {"tasks": [t.to_dict() for t in self._tasks.values()]}, f, indent=2, default=str
+                )
         except Exception as e:
             log.warning("TaskManager: failed to save: %s", e)
 
@@ -115,10 +118,8 @@ class TaskManager:
 
     def _emit(self, event: TaskEvent) -> None:
         for listener in self._event_listeners:
-            try:
+            with contextlib.suppress(Exception):
                 listener(event)
-            except Exception:
-                pass
 
     # ── Handler Registration ──
 
@@ -154,9 +155,15 @@ class TaskManager:
         log.info("TaskManager: created task %s: %s", task.id, name)
         return task
 
-    def add_step(self, task_id: str, name: str, agent: str = "",
-                 description: str = "", params: dict | None = None,
-                 depends_on: list[str] | None = None) -> TaskStep | None:
+    def add_step(
+        self,
+        task_id: str,
+        name: str,
+        agent: str = "",
+        description: str = "",
+        params: dict | None = None,
+        depends_on: list[str] | None = None,
+    ) -> TaskStep | None:
         task = self.get_task(task_id)
         if not task:
             return None
@@ -175,14 +182,15 @@ class TaskManager:
     def get_task(self, task_id: str) -> Task | None:
         return self._tasks.get(task_id)
 
-    def list_tasks(self, status: str | None = None, tag: str | None = None,
-                   limit: int = 50, offset: int = 0) -> list[Task]:
+    def list_tasks(
+        self, status: str | None = None, tag: str | None = None, limit: int = 50, offset: int = 0
+    ) -> list[Task]:
         tasks = sorted(self._tasks.values(), key=lambda t: t.created, reverse=True)
         if status:
             tasks = [t for t in tasks if t.status.value == status]
         if tag:
             tasks = [t for t in tasks if tag in t.tags]
-        return tasks[offset:offset + limit]
+        return tasks[offset : offset + limit]
 
     def delete_task(self, task_id: str) -> bool:
         if task_id in self._active_runs:
@@ -204,8 +212,9 @@ class TaskManager:
         self._emit(task.emit_event("task.progress", message=label))
         self._save()
 
-    def update_step_progress(self, task_id: str, step_id: str,
-                              progress: int, label: str = "") -> None:
+    def update_step_progress(
+        self, task_id: str, step_id: str, progress: int, label: str = ""
+    ) -> None:
         task = self.get_task(task_id)
         if not task:
             return
@@ -245,7 +254,11 @@ class TaskManager:
 
     def cancel_task(self, task_id: str) -> bool:
         task = self.get_task(task_id)
-        if not task or task.status in (TaskStatus.COMPLETED, TaskStatus.CANCELLED, TaskStatus.FAILED):
+        if not task or task.status in (
+            TaskStatus.COMPLETED,
+            TaskStatus.CANCELLED,
+            TaskStatus.FAILED,
+        ):
             return False
         self._cancelled.add(task_id)
         self._paused.discard(task_id)
@@ -306,13 +319,17 @@ class TaskManager:
             deps_ok = self._check_dependencies(task, step)
             if not deps_ok:
                 step.status = TaskStatus.SKIPPED
-                step_results.append({"step": step.name, "status": "skipped", "reason": "dependency not met"})
+                step_results.append(
+                    {"step": step.name, "status": "skipped", "reason": "dependency not met"}
+                )
                 self._save()
                 continue
 
             step.status = TaskStatus.RUNNING
             step.started = time.time()
-            self._emit(task.emit_event("step.started", step_id=step.id, message=f"Step: {step.name}"))
+            self._emit(
+                task.emit_event("step.started", step_id=step.id, message=f"Step: {step.name}")
+            )
             self._save()
 
             for attempt in range(task.max_retries + 1):
@@ -340,7 +357,11 @@ class TaskManager:
                     step.result = result
                     step.completed = time.time()
                     step_results.append({"step": step.name, "status": "completed"})
-                    self._emit(task.emit_event("step.completed", step_id=step.id, message=f"Completed: {step.name}"))
+                    self._emit(
+                        task.emit_event(
+                            "step.completed", step_id=step.id, message=f"Completed: {step.name}"
+                        )
+                    )
                     break
 
                 except asyncio.CancelledError:
@@ -350,16 +371,31 @@ class TaskManager:
                     step.error = str(e)
                     if attempt < task.max_retries:
                         wait = (attempt + 1) * 2
-                        log.info("TaskManager: step %s failed (attempt %d/%d), retrying in %ds: %s",
-                                 step.name, attempt + 1, task.max_retries, wait, e)
-                        self._emit(task.emit_event("step.retry", step_id=step.id,
-                                                    message=f"Retry {attempt + 1}/{task.max_retries}: {e}"))
+                        log.info(
+                            "TaskManager: step %s failed (attempt %d/%d), retrying in %ds: %s",
+                            step.name,
+                            attempt + 1,
+                            task.max_retries,
+                            wait,
+                            e,
+                        )
+                        self._emit(
+                            task.emit_event(
+                                "step.retry",
+                                step_id=step.id,
+                                message=f"Retry {attempt + 1}/{task.max_retries}: {e}",
+                            )
+                        )
                         await asyncio.sleep(wait)
                     else:
                         step.status = TaskStatus.FAILED
                         step.completed = time.time()
-                        step_results.append({"step": step.name, "status": "failed", "error": str(e)})
-                        self._emit(task.emit_event("step.failed", step_id=step.id, message=f"Failed: {e}"))
+                        step_results.append(
+                            {"step": step.name, "status": "failed", "error": str(e)}
+                        )
+                        self._emit(
+                            task.emit_event("step.failed", step_id=step.id, message=f"Failed: {e}")
+                        )
 
             self._update_task_progress(task)
             self._save()
@@ -370,8 +406,12 @@ class TaskManager:
         task.duration_ms = (task.completed - task.started) * 1000
         task.progress = 100
         task.progress_label = "Done" if all_ok else "Failed"
-        self._emit(task.emit_event("task.completed" if all_ok else "task.failed",
-                                    message=f"Completed: {task.name}" if all_ok else f"Failed: {task.name}"))
+        self._emit(
+            task.emit_event(
+                "task.completed" if all_ok else "task.failed",
+                message=f"Completed: {task.name}" if all_ok else f"Failed: {task.name}",
+            )
+        )
         self._save()
 
         return {
@@ -406,13 +446,13 @@ class TaskManager:
 
     # ── Async Run (fire-and-forget with callback) ──
 
-    async def run_task_async(self, task_id: str, callback: Callable[[dict], None] | None = None) -> None:
+    async def run_task_async(
+        self, task_id: str, callback: Callable[[dict], None] | None = None
+    ) -> None:
         result = await self.run_task(task_id)
         if callback:
-            try:
+            with contextlib.suppress(Exception):
                 callback(result)
-            except Exception:
-                pass
 
     # ── Stats ──
 
@@ -430,7 +470,5 @@ class TaskManager:
         }
 
     def get_recent_events(self, limit: int = 50) -> list[TaskEvent]:
-        events = []
-        for task in self._tasks.values():
-            events.append(task.emit_event())
+        events = [task.emit_event() for task in self._tasks.values()]
         return sorted(events, key=lambda e: e.timestamp, reverse=True)[:limit]

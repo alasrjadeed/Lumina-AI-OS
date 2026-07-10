@@ -25,8 +25,7 @@ class PluginListingData(BaseModel):
 
 
 @router.get("/catalog")
-async def browse(category: str = Query(""), query: str = Query(""),
-                 sort: str = Query("downloads")):
+async def browse(category: str = Query(""), query: str = Query(""), sort: str = Query("downloads")):
     results = marketplace.browse(category=category, query=query, sort_by=sort)
     return {
         "plugins": [p.to_dict() for p in results],

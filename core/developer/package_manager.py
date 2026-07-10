@@ -57,14 +57,21 @@ class PackageManager:
                 pass
 
     def _save_index(self) -> None:
-        data = [{
-                "metadata": {"name": pkg.metadata.name, "version": pkg.metadata.version,
-                             "description": pkg.metadata.description, "author": pkg.metadata.author,
-                             "dependencies": pkg.metadata.dependencies,
-                             "min_sdk_version": pkg.metadata.min_sdk_version},
+        data = [
+            {
+                "metadata": {
+                    "name": pkg.metadata.name,
+                    "version": pkg.metadata.version,
+                    "description": pkg.metadata.description,
+                    "author": pkg.metadata.author,
+                    "dependencies": pkg.metadata.dependencies,
+                    "min_sdk_version": pkg.metadata.min_sdk_version,
+                },
                 "path": pkg.path,
                 "enabled": pkg.enabled,
-            } for pkg in self._installed.values()]
+            }
+            for pkg in self._installed.values()
+        ]
         with open(self._index_path(), "w") as f:
             json.dump(data, f, indent=2)
 
@@ -166,8 +173,11 @@ class PackageManager:
                     if hasattr(module, "metadata"):
                         m = module.metadata
                         return PackageMetadata(
-                            name=m.name, version=m.version, description=m.description,
-                            author=m.author, dependencies=m.dependencies,
+                            name=m.name,
+                            version=m.version,
+                            description=m.description,
+                            author=m.author,
+                            dependencies=m.dependencies,
                             min_sdk_version=getattr(m, "min_sdk_version", "1.0.0"),
                         )
             except Exception:

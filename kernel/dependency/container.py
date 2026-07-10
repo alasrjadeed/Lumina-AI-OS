@@ -179,10 +179,7 @@ class DIContainer:
         return self.resolve(name)
 
     def resolve_all(self) -> dict[str | type, Any]:
-        return {
-            reg.service: self.resolve(reg.service)
-            for reg in self._registry.all()
-        }
+        return {reg.service: self.resolve(reg.service) for reg in self._registry.all()}
 
     def _get_from_registration(
         self,

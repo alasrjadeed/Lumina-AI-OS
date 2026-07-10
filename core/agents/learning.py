@@ -48,12 +48,20 @@ class ProjectExperience:
     @classmethod
     def from_dict(cls, d: dict) -> ProjectExperience:
         return cls(
-            id=d["id"], project=d.get("project", ""), domain=d.get("domain", ""),
-            task=d["task"], agent=d.get("agent", ""), approach=d.get("approach", ""),
-            result=d.get("result", ""), duration_ms=d.get("duration_ms", 0),
-            success=d.get("success", True), learned=d.get("learned", ""),
-            tags=d.get("tags", []), created_at=d.get("created_at", 0),
-            reuse_count=d.get("reuse_count", 0), last_reused=d.get("last_reused", 0),
+            id=d["id"],
+            project=d.get("project", ""),
+            domain=d.get("domain", ""),
+            task=d["task"],
+            agent=d.get("agent", ""),
+            approach=d.get("approach", ""),
+            result=d.get("result", ""),
+            duration_ms=d.get("duration_ms", 0),
+            success=d.get("success", True),
+            learned=d.get("learned", ""),
+            tags=d.get("tags", []),
+            created_at=d.get("created_at", 0),
+            reuse_count=d.get("reuse_count", 0),
+            last_reused=d.get("last_reused", 0),
         )
 
 
@@ -101,18 +109,31 @@ class LearningEngine:
         with open(self._path(), "w") as f:
             json.dump([e.to_dict() for e in self._experiences[-500:]], f, indent=2)
         with open(self._patterns_path(), "w") as f:
-            json.dump({
-                "patterns": self._patterns,
-                "best_practices": self._best_practices,
-                "stats": self.get_stats(),
-            }, f, indent=2)
+            json.dump(
+                {
+                    "patterns": self._patterns,
+                    "best_practices": self._best_practices,
+                    "stats": self.get_stats(),
+                },
+                f,
+                indent=2,
+            )
 
     async def record(
-        self, project: str, domain: str, task: str, agent: str,
-        approach: str, result: str, duration_ms: float, success: bool,
-        learned: str = "", tags: list[str] | None = None,
+        self,
+        project: str,
+        domain: str,
+        task: str,
+        agent: str,
+        approach: str,
+        result: str,
+        duration_ms: float,
+        success: bool,
+        learned: str = "",
+        tags: list[str] | None = None,
     ) -> ProjectExperience:
         import uuid
+
         exp = ProjectExperience(
             id=uuid.uuid4().hex[:12],
             project=project,
@@ -141,7 +162,9 @@ class LearningEngine:
     def _extract_pattern(self, task: str, learned: str, domain: str):
         key = domain or "general"
         existing = self._patterns.get(key, "")
-        self._patterns[key] = f"{existing}\n- {task}: {learned[:200]}" if existing else f"- {task}: {learned[:200]}"
+        self._patterns[key] = (
+            f"{existing}\n- {task}: {learned[:200]}" if existing else f"- {task}: {learned[:200]}"
+        )
         self._patterns[key] = "\n".join(self._patterns[key].split("\n")[-20:])
 
     async def recall_similar(self, task: str, limit: int = 5) -> list[ProjectExperience]:
@@ -168,15 +191,14 @@ class LearningEngine:
         if not similar:
             return ""
 
-        parts = []
-        for exp in similar:
-            parts.append(
-                f"Project: {exp.project}\n"
-                f"Task: {exp.task}\n"
-                f"Approach: {exp.approach[:500]}\n"
-                f"Result: {'SUCCESS' if exp.success else 'FAILED'}\n"
-                f"Learned: {exp.learned[:300]}\n"
-            )
+        parts = [
+            f"Project: {exp.project}\n"
+            f"Task: {exp.task}\n"
+            f"Approach: {exp.approach[:500]}\n"
+            f"Result: {'SUCCESS' if exp.success else 'FAILED'}\n"
+            f"Learned: {exp.learned[:300]}\n"
+            for exp in similar
+        ]
 
         return "\n---\n".join(parts)
 
@@ -209,10 +231,7 @@ class LearningEngine:
         }
 
     async def generate_daily_summary(self) -> str:
-        recent = [
-            e for e in self._experiences
-            if time.time() - e.created_at < 86400
-        ]
+        recent = [e for e in self._experiences if time.time() - e.created_at < 86400]
         if not recent:
             return "No tasks completed today."
 
@@ -226,7 +245,7 @@ class LearningEngine:
             f"- {len(successful)} succeeded, {len(failed)} failed\n"
             f"- Average duration: {avg_duration:.1f}s\n"
             f"- New patterns learned: {len([e for e in recent if e.learned])}\n"
-            f"- Success rate: {len(successful)/max(len(recent),1)*100:.1f}%"
+            f"- Success rate: {len(successful) / max(len(recent), 1) * 100:.1f}%"
         )
 
 

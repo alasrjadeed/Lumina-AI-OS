@@ -48,6 +48,8 @@ async def test_dlq_latest_returns_most_recent():
         )
     latest = dlq.latest(limit=2)
     assert len(latest) == 2
+    assert latest[0].event is not None
+    assert latest[1].event is not None
     assert latest[0].event.name == "e3"
     assert latest[1].event.name == "e4"
 
@@ -57,7 +59,10 @@ async def test_dlq_clear():
     dlq = DeadLetterQueue()
     dlq.add(
         DeadLetterEntry(
-            event=Event(name="t"), attempts=1, exception="x", subscriber="h",
+            event=Event(name="t"),
+            attempts=1,
+            exception="x",
+            subscriber="h",
         ),
     )
     dlq.clear()
@@ -69,16 +74,24 @@ async def test_dlq_all():
     dlq = DeadLetterQueue()
     dlq.add(
         DeadLetterEntry(
-            event=Event(name="a"), attempts=1, exception="x", subscriber="h",
+            event=Event(name="a"),
+            attempts=1,
+            exception="x",
+            subscriber="h",
         ),
     )
     dlq.add(
         DeadLetterEntry(
-            event=Event(name="b"), attempts=1, exception="x", subscriber="h",
+            event=Event(name="b"),
+            attempts=1,
+            exception="x",
+            subscriber="h",
         ),
     )
     all_entries = dlq.all()
     assert len(all_entries) == 2
+    assert all_entries[0].event is not None
+    assert all_entries[1].event is not None
     assert all_entries[0].event.name == "a"
     assert all_entries[1].event.name == "b"
 
@@ -96,7 +109,10 @@ async def test_dlq_max_capacity():
             ),
         )
     assert dlq.count() == 3
-    names = [e.event.name for e in dlq.all()]
+    names = []
+    for e in dlq.all():
+        assert e.event is not None
+        names.append(e.event.name)
     assert names == ["e2", "e3", "e4"]
 
 
@@ -183,6 +199,7 @@ async def test_dlq_entry_metadata():
     assert entry.exception == "db timeout"
     assert entry.attempts == 2
     assert entry.subscriber == "handler"
+    assert entry.event is not None
     assert entry.event.name == "t"
     assert entry.failed_at is not None
     assert entry.id is not None

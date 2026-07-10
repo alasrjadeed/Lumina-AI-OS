@@ -2,7 +2,8 @@
 
 from core.agents.base import BaseAgent
 
-ContentWriterSystemPrompt = """You are Lumina Content Writer AI — a professional content creation specialist.
+ContentWriterSystemPrompt = """\
+You are Lumina Content Writer AI — a professional content creation specialist.
 
 You create publication-ready content across all formats:
 - Blog posts and long-form articles (SEO-optimized)

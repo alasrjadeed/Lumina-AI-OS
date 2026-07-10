@@ -24,5 +24,7 @@ async def list_types():
 
 @router.post("/generate")
 async def generate(req: GenerateRequest):
-    result = await writer.generate(req.content_type, req.topic, req.tone, req.platform, req.language, req.use_vault)
+    result = await writer.generate(
+        req.content_type, req.topic, req.tone, req.platform, req.language, req.use_vault
+    )
     return result

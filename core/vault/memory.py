@@ -1,4 +1,5 @@
-"""Business Memory — stores company data, clients, products, pricing, and auto-injects into AI context."""
+"""Business Memory — stores company data, clients, products, pricing,
+and auto-injects into AI context."""
 
 from __future__ import annotations
 
@@ -6,8 +7,6 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-
-from core.log import log
 
 VAULT_DIR = os.path.expanduser("~/.lumina/vault")
 
@@ -112,10 +111,14 @@ class BusinessMemory:
 
     def _load(self):
         for fname, attr in [
-            ("company", "_company"), ("brand", "_brand"),
-            ("clients", "_clients"), ("products", "_products"),
-            ("invoices", "_invoices"), ("templates", "_templates"),
-            ("pricing", "_pricing"), ("social", "_social"),
+            ("company", "_company"),
+            ("brand", "_brand"),
+            ("clients", "_clients"),
+            ("products", "_products"),
+            ("invoices", "_invoices"),
+            ("templates", "_templates"),
+            ("pricing", "_pricing"),
+            ("social", "_social"),
         ]:
             path = self._path(fname)
             if os.path.exists(path):
@@ -168,16 +171,31 @@ class BusinessMemory:
         return self._brand.to_css_vars()
 
     # ── Clients ──
-    def add_client(self, name: str, company: str = "", email: str = "",
-                   phone: str = "", status: str = "lead",
-                   source: str = "", notes: str = "",
-                   tags: list[str] | None = None) -> Client:
+    def add_client(
+        self,
+        name: str,
+        company: str = "",
+        email: str = "",
+        phone: str = "",
+        status: str = "lead",
+        source: str = "",
+        notes: str = "",
+        tags: list[str] | None = None,
+    ) -> Client:
         import uuid
+
         cid = uuid.uuid4().hex[:12]
         client = Client(
-            id=cid, name=name, company=company, email=email,
-            phone=phone, status=status, source=source, notes=notes,
-            tags=tags or [], created_at=time.time(),
+            id=cid,
+            name=name,
+            company=company,
+            email=email,
+            phone=phone,
+            status=status,
+            source=source,
+            notes=notes,
+            tags=tags or [],
+            created_at=time.time(),
         )
         self._clients[cid] = client
         self._save("clients", {k: v.to_dict() for k, v in self._clients.items()})
@@ -205,9 +223,14 @@ class BusinessMemory:
 
     def search_clients(self, query: str) -> list[Client]:
         q = query.lower()
-        return [c for c in self._clients.values()
-                if q in c.name.lower() or q in c.company.lower()
-                or q in c.email.lower() or any(q in t for t in c.tags)]
+        return [
+            c
+            for c in self._clients.values()
+            if q in c.name.lower()
+            or q in c.company.lower()
+            or q in c.email.lower()
+            or any(q in t for t in c.tags)
+        ]
 
     def delete_client(self, client_id: str) -> bool:
         if client_id in self._clients:
@@ -220,13 +243,25 @@ class BusinessMemory:
         return len(self._clients)
 
     # ── Products ──
-    def add_product(self, name: str, price: float, description: str = "",
-                    category: str = "", tags: list[str] | None = None) -> Product:
+    def add_product(
+        self,
+        name: str,
+        price: float,
+        description: str = "",
+        category: str = "",
+        tags: list[str] | None = None,
+    ) -> Product:
         import uuid
+
         pid = uuid.uuid4().hex[:12]
-        product = Product(id=pid, name=name, price=price,
-                          description=description, category=category,
-                          tags=tags or [])
+        product = Product(
+            id=pid,
+            name=name,
+            price=price,
+            description=description,
+            category=category,
+            tags=tags or [],
+        )
         self._products[pid] = product
         self._save("products", {k: v.to_dict() for k, v in self._products.items()})
         return product
@@ -245,23 +280,27 @@ class BusinessMemory:
         return False
 
     # ── Invoices ──
-    def create_invoice(self, client_id: str, items: list[dict],
-                       notes: str = "", due_days: int = 30) -> Invoice | None:
+    def create_invoice(
+        self, client_id: str, items: list[dict], notes: str = "", due_days: int = 30
+    ) -> Invoice | None:
         if client_id not in self._clients:
             return None
         import uuid
+
         iid = uuid.uuid4().hex[:12]
-        subtotal = sum(item.get("price", 0) * item.get("quantity", 1)
-                       for item in items)
+        subtotal = sum(item.get("price", 0) * item.get("quantity", 1) for item in items)
         tax = round(subtotal * 0.1, 2)  # default 10%
         inv = Invoice(
-            id=iid, client_id=client_id,
+            id=iid,
+            client_id=client_id,
             number=f"INV-{int(time.time())}",
             date=time.strftime("%Y-%m-%d"),
-            due_date=time.strftime("%Y-%m-%d",
-                                   time.localtime(time.time() + due_days * 86400)),
-            items=items, subtotal=subtotal, tax=tax,
-            total=subtotal + tax, notes=notes,
+            due_date=time.strftime("%Y-%m-%d", time.localtime(time.time() + due_days * 86400)),
+            items=items,
+            subtotal=subtotal,
+            tax=tax,
+            total=subtotal + tax,
+            notes=notes,
         )
         self._invoices[iid] = inv
         self._save("invoices", {k: v.to_dict() for k, v in self._invoices.items()})
@@ -273,8 +312,9 @@ class BusinessMemory:
 
         return inv
 
-    def list_invoices(self, status: str = "", client_id: str = "",
-                      limit: int = 50) -> list[Invoice]:
+    def list_invoices(
+        self, status: str = "", client_id: str = "", limit: int = 50
+    ) -> list[Invoice]:
         invs = list(self._invoices.values())
         if status:
             invs = [i for i in invs if i.status == status]
@@ -322,10 +362,10 @@ class BusinessMemory:
         return dict(self._social)
 
     # ── Pricing ──
-    def set_pricing(self, tier: str, price: float, currency: str = "USD",
-                    features: list[str] | None = None):
-        self._pricing[tier] = {"price": price, "currency": currency,
-                               "features": features or []}
+    def set_pricing(
+        self, tier: str, price: float, currency: str = "USD", features: list[str] | None = None
+    ):
+        self._pricing[tier] = {"price": price, "currency": currency, "features": features or []}
         self._save("pricing", self._pricing)
 
     def get_pricing(self, tier: str = "") -> dict:
@@ -345,30 +385,37 @@ class BusinessMemory:
                     parts.append(f"- {k.replace('_', ' ').title()}: {v}")
 
         if self._brand.name:
-            parts.append(f"\n## Brand\n"
-                         f"- Name: {self._brand.name}\n"
-                         f"- Tagline: {self._brand.tagline}\n"
-                         f"- Colors: {self._brand.primary_color}, "
-                         f"{self._brand.secondary_color}, {self._brand.accent_color}\n"
-                         f"- Fonts: {self._brand.font_heading} / {self._brand.font_body}\n"
-                         f"- Tone: {self._brand.tone}\n"
-                         f"- Voice: {self._brand.voice}")
+            parts.append(
+                f"\n## Brand\n"
+                f"- Name: {self._brand.name}\n"
+                f"- Tagline: {self._brand.tagline}\n"
+                f"- Colors: {self._brand.primary_color}, "
+                f"{self._brand.secondary_color}, {self._brand.accent_color}\n"
+                f"- Fonts: {self._brand.font_heading} / {self._brand.font_body}\n"
+                f"- Tone: {self._brand.tone}\n"
+                f"- Voice: {self._brand.voice}"
+            )
 
         if self._products:
             parts.append("\n## Products & Services")
-            for p in list(self._products.values())[:10]:
-                parts.append(f"- {p.name}: ${p.price:.2f} — {p.description[:100]}")
+            parts.extend(
+                f"- {p.name}: ${p.price:.2f} — {p.description[:100]}"
+                for p in list(self._products.values())[:10]
+            )
 
         if self._pricing:
             parts.append("\n## Pricing Tiers")
             for tier, info in self._pricing.items():
-                parts.append(f"- {tier}: ${info['price']}/mo "
-                             f"({', '.join(info.get('features', [])[:3])})")
+                parts.append(
+                    f"- {tier}: ${info['price']}/mo ({', '.join(info.get('features', [])[:3])})"
+                )
 
         if self._clients:
             parts.append(f"\n## Client Summary ({len(self._clients)} total)")
-            for c in list(self._clients.values())[:5]:
-                parts.append(f"- {c.name} ({c.company}): {c.status}, ${c.total_value:.0f}")
+            parts.extend(
+                f"- {c.name} ({c.company}): {c.status}, ${c.total_value:.0f}"
+                for c in list(self._clients.values())[:5]
+            )
 
         if self._social:
             parts.append("\n## Social Media Links")

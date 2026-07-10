@@ -189,10 +189,18 @@ class Authentication:
 
     def _save(self) -> None:
         data = {
-            "users": {u.username: {"id": u.id, "username": u.username,
-                      "password_hash": u.password_hash, "roles": u.roles,
-                      "api_keys": u.api_keys, "enabled": u.enabled,
-                      "created": u.created} for u in self._users.values()},
+            "users": {
+                u.username: {
+                    "id": u.id,
+                    "username": u.username,
+                    "password_hash": u.password_hash,
+                    "roles": u.roles,
+                    "api_keys": u.api_keys,
+                    "enabled": u.enabled,
+                    "created": u.created,
+                }
+                for u in self._users.values()
+            },
         }
         with open(self._storage_path, "w") as f:
             json.dump(data, f, indent=2)

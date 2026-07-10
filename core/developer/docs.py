@@ -46,7 +46,7 @@ class DocumentationGenerator:
                 cls = self._extract_class(node)
                 doc.classes.append(cls)
             elif isinstance(node, ast.FunctionDef):
-                if node.parent and isinstance(node.parent, ast.Module):
+                if hasattr(node, "parent") and node.parent and isinstance(node.parent, ast.Module):  # pyright: ignore[reportAttributeAccessIssue]
                     fn = self._extract_function(node)
                     doc.functions.append(fn)
         return doc
@@ -81,8 +81,7 @@ class DocumentationGenerator:
                 if cls.methods:
                     lines.append("**Methods:**\n")
                     lines.extend(
-                        f"- `{m.name}{m.signature}` — {m.docstring[:100]}"
-                        for m in cls.methods
+                        f"- `{m.name}{m.signature}` — {m.docstring[:100]}" for m in cls.methods
                     )
                     lines.append("")
         if module.functions:
@@ -96,8 +95,7 @@ class DocumentationGenerator:
     def generate_api_reference(self, modules: list[DocModule]) -> str:
         lines = ["# API Reference\n"]
         lines.extend(
-            f"- [`{mod.name}`](#module-{mod.name.lower().replace('.', '-')})"
-            for mod in modules
+            f"- [`{mod.name}`](#module-{mod.name.lower().replace('.', '-')})" for mod in modules
         )
         lines.append("")
         for mod in modules:
@@ -105,8 +103,9 @@ class DocumentationGenerator:
             lines.append("---\n")
         return "\n".join(lines)
 
-    def generate_readme(self, project_name: str, description: str = "",
-                        modules: list[DocModule] | None = None) -> str:
+    def generate_readme(
+        self, project_name: str, description: str = "", modules: list[DocModule] | None = None
+    ) -> str:
         lines = [
             f"# {project_name}\n",
             description,
@@ -128,13 +127,15 @@ class DocumentationGenerator:
             lines.extend(f"- `{mod.name}` — {mod.docstring[:80]}" for mod in modules)
         else:
             lines.append("- Core platform modules")
-        lines.extend([
-            "",
-            "## Documentation",
-            "",
-            "Full documentation at [docs.lumina.ai](https://docs.lumina.ai)",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Documentation",
+                "",
+                "Full documentation at [docs.lumina.ai](https://docs.lumina.ai)",
+                "",
+            ]
+        )
         return "\n".join(lines)
 
     def export_markdown(self, module: DocModule, output_path: str) -> str:

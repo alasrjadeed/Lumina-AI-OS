@@ -37,24 +37,30 @@ class CICD:
         raise ValueError(f"Unsupported provider: {self.config.provider}")
 
     def _github_workflow(self) -> dict:
-        steps = [
+        steps: list[dict[str, object]] = [
             {"uses": "actions/checkout@v4"},
         ]
         if self.config.node_version:
-            steps.append({
-                "name": "Setup Node",
-                "uses": "actions/setup-node@v4",
-                "with": {"node-version": self.config.node_version},
-            })
-        steps.append({
-            "name": "Setup Python",
-            "uses": "actions/setup-python@v5",
-            "with": {"python-version": self.config.python_version},
-        })
-        steps.append({
-            "name": "Install dependencies",
-            "run": "pip install -e .",
-        })
+            steps.append(
+                {
+                    "name": "Setup Node",
+                    "uses": "actions/setup-node@v4",
+                    "with": {"node-version": self.config.node_version},
+                }
+            )
+        steps.append(
+            {
+                "name": "Setup Python",
+                "uses": "actions/setup-python@v5",
+                "with": {"python-version": self.config.python_version},
+            }
+        )
+        steps.append(
+            {
+                "name": "Install dependencies",
+                "run": "pip install -e .",
+            }
+        )
         if self.config.lint_command:
             steps.append({"name": "Lint", "run": self.config.lint_command})
         if self.config.test_command:
@@ -62,19 +68,23 @@ class CICD:
         if self.config.build_command:
             steps.append({"name": "Build", "run": self.config.build_command})
         if self.config.docker_registry:
-            steps.append({
-                "name": "Docker Login",
-                "uses": "docker/login-action@v3",
-                "with": {"registry": self.config.docker_registry},
-            })
-            steps.append({
-                "name": "Build and push",
-                "uses": "docker/build-push-action@v5",
-                "with": {
-                    "push": True,
-                    "tags": f"{self.config.docker_registry}/lumina:${{{{ github.sha }}}}",
-                },
-            })
+            steps.append(
+                {
+                    "name": "Docker Login",
+                    "uses": "docker/login-action@v3",
+                    "with": {"registry": self.config.docker_registry},
+                }
+            )
+            steps.append(
+                {
+                    "name": "Build and push",
+                    "uses": "docker/build-push-action@v5",
+                    "with": {
+                        "push": True,
+                        "tags": f"{self.config.docker_registry}/lumina:${{{{ github.sha }}}}",
+                    },
+                }
+            )
         steps.extend(self.config.extra_steps)
         if self.config.deploy_command:
             steps.append({"name": "Deploy", "run": self.config.deploy_command})
@@ -146,7 +156,10 @@ class CICD:
             return {"success": False, "error": f"Unknown step: {step}"}
         try:
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
-            return {"success": result.returncode == 0, "output": result.stdout[-1000:],
-                    "error": result.stderr[-500:]}
+            return {
+                "success": result.returncode == 0,
+                "output": result.stdout[-1000:],
+                "error": result.stderr[-500:],
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}

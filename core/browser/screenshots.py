@@ -25,7 +25,9 @@ class ScreenshotManager:
         os.makedirs(output_dir, exist_ok=True)
 
     async def capture(
-        self, path: str = "", full_page: bool = True,
+        self,
+        path: str = "",
+        full_page: bool = True,
         quality: int | None = None,
     ) -> str:
         filename = path or f"screenshot_{int(time.time())}.png"

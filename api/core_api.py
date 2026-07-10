@@ -36,9 +36,9 @@ async def think(req: ThinkRequest):
 
 
 @router.post("/code")
-async def code_task(description: str = Query(""),
-                    project_dir: str = Query(""),
-                    frameworks: str = Query("")):
+async def code_task(
+    description: str = Query(""), project_dir: str = Query(""), frameworks: str = Query("")
+):
     """Handle a coding task with self-healing enabled."""
     fw_list = [f.strip() for f in frameworks.split(",") if f.strip()] if frameworks else None
     return await core_ai.code_task(description, project_dir, fw_list)
@@ -69,9 +69,14 @@ async def status():
 async def heal(req: HealRequest):
     """Run the self-healing code loop: write → run → fail → analyze → fix → retest."""
     self_healing.project_dir = req.project_dir
-    return (await self_healing.heal(
-        req.task, req.test_command, req.build_command, req.lint_command,
-    )).to_dict()
+    return (
+        await self_healing.heal(
+            req.task,
+            req.test_command,
+            req.build_command,
+            req.lint_command,
+        )
+    ).to_dict()
 
 
 @router.get("/heal/stats")

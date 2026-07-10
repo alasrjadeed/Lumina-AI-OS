@@ -41,8 +41,12 @@ async def list_contacts(search: str = ""):
 @router.post("/contacts")
 async def add_contact(req: ContactCreate):
     contact = crm.add_contact(
-        req.name, req.email, req.phone, req.company,
-        source=req.source, tags=req.tags,
+        req.name,
+        req.email,
+        req.phone,
+        req.company,
+        source=req.source,
+        tags=req.tags,
     )
     return contact
 

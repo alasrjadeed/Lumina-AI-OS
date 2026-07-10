@@ -39,12 +39,15 @@ class Docker:
         log.info("Dockerfile generated: %s", path)
         return path
 
-    def build_image(self, tag: str = "lumina:latest", dockerfile: str = "Dockerfile",
-                    context: str = ".") -> dict:
+    def build_image(
+        self, tag: str = "lumina:latest", dockerfile: str = "Dockerfile", context: str = "."
+    ) -> dict:
         try:
             result = subprocess.run(
                 ["docker", "build", "-t", tag, "-f", dockerfile, context],
-                capture_output=True, text=True, timeout=300,
+                capture_output=True,
+                text=True,
+                timeout=300,
             )
             ok = result.returncode == 0
             log.info("Docker build %s: %s", "succeeded" if ok else "failed", tag)
@@ -52,10 +55,15 @@ class Docker:
         except FileNotFoundError:
             return {"success": False, "error": "Docker not found"}
 
-    def run_container(self, image: str = "lumina:latest", name: str = "lumina",
-                      ports: dict[int, int] | None = None,
-                      env: dict[str, str] | None = None,
-                      detach: bool = True, remove: bool = True) -> dict:
+    def run_container(
+        self,
+        image: str = "lumina:latest",
+        name: str = "lumina",
+        ports: dict[int, int] | None = None,
+        env: dict[str, str] | None = None,
+        detach: bool = True,
+        remove: bool = True,
+    ) -> dict:
         cmd = ["docker", "run"]
         if detach:
             cmd.append("-d")
@@ -71,15 +79,21 @@ class Docker:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             ok = result.returncode == 0
-            return {"success": ok, "container_id": result.stdout.strip() if ok else "",
-                    "error": result.stderr.strip()}
+            return {
+                "success": ok,
+                "container_id": result.stdout.strip() if ok else "",
+                "error": result.stderr.strip(),
+            }
         except FileNotFoundError:
             return {"success": False, "error": "Docker not found"}
 
     def stop_container(self, name: str = "lumina") -> dict:
         try:
             result = subprocess.run(
-                ["docker", "stop", name], capture_output=True, text=True, timeout=30,
+                ["docker", "stop", name],
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             return {"success": result.returncode == 0, "output": result.stdout.strip()}
         except FileNotFoundError:
@@ -109,7 +123,9 @@ class Docker:
         try:
             result = subprocess.run(
                 ["docker", "image", "inspect", tag],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             return result.returncode == 0
         except FileNotFoundError:
@@ -120,7 +136,9 @@ class Docker:
         try:
             result = subprocess.run(
                 ["docker", "push", full_tag],
-                capture_output=True, text=True, timeout=300,
+                capture_output=True,
+                text=True,
+                timeout=300,
             )
             return {"success": result.returncode == 0, "output": result.stdout.strip()}
         except FileNotFoundError:

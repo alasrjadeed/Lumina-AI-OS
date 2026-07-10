@@ -33,19 +33,23 @@ class MemoryStore:
         if thread_id:
             for t in self._data.get("threads", []):
                 if t["id"] == thread_id:
-                    t["messages"].append({
-                        "role": role,
-                        "content": content,
-                        "timestamp": datetime.now().isoformat(),
-                    })
+                    t["messages"].append(
+                        {
+                            "role": role,
+                            "content": content,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
                     t["updated_at"] = datetime.now().isoformat()
                     self._save()
                     return
-        self._data["conversations"].append({
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().isoformat(),
-        })
+        self._data["conversations"].append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
         self._save()
 
     def get_recent_context(self, limit: int = 10, thread_id: str | None = None) -> str:
@@ -53,15 +57,9 @@ class MemoryStore:
             for t in self._data.get("threads", []):
                 if t["id"] == thread_id:
                     recent = t["messages"][-limit:]
-                    return "\n".join(
-                        f"{c['role']}: {c['content'][:200]}"
-                        for c in recent
-                    )
+                    return "\n".join(f"{c['role']}: {c['content'][:200]}" for c in recent)
         recent = self._data["conversations"][-limit:]
-        return "\n".join(
-            f"{c['role']}: {c['content'][:200]}"
-            for c in recent
-        )
+        return "\n".join(f"{c['role']}: {c['content'][:200]}" for c in recent)
 
     def get_conversations(self, limit: int = 10) -> list[dict]:
         return self._data["conversations"][-limit:]

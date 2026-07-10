@@ -29,8 +29,9 @@ class AndroidNotificationManager:
         self._monitoring = False
 
     def get_active(self) -> list[AndroidNotification]:
-        output = self.device.shell("dumpsys notification --noredact 2>/dev/null || "
-                                   "dumpsys notification 2>/dev/null")
+        output = self.device.shell(
+            "dumpsys notification --noredact 2>/dev/null || dumpsys notification 2>/dev/null"
+        )
         notifications = []
         current_pkg = ""
         current_title = ""
@@ -39,22 +40,30 @@ class AndroidNotificationManager:
             pkg_match = re.match(r"\s+NotificationRecord\(0x[0-9a-f]+\)\s+package=(.+?)\s", line)
             if pkg_match:
                 if current_pkg:
-                    notifications.append(AndroidNotification(
-                        package=current_pkg, title=current_title, text=current_text,
-                    ))
+                    notifications.append(
+                        AndroidNotification(
+                            package=current_pkg,
+                            title=current_title,
+                            text=current_text,
+                        )
+                    )
                 current_pkg = pkg_match.group(1)
                 current_title = ""
                 current_text = ""
-            title_match = re.search(r'title\s*=\s*(.+?)(?:,|$)', line)
+            title_match = re.search(r"title\s*=\s*(.+?)(?:,|$)", line)
             if title_match:
                 current_title = title_match.group(1).strip()
-            text_match = re.search(r'text\s*=\s*(.+?)(?:,|$)', line)
+            text_match = re.search(r"text\s*=\s*(.+?)(?:,|$)", line)
             if text_match:
                 current_text = text_match.group(1).strip()
         if current_pkg:
-            notifications.append(AndroidNotification(
-                package=current_pkg, title=current_title, text=current_text,
-            ))
+            notifications.append(
+                AndroidNotification(
+                    package=current_pkg,
+                    title=current_title,
+                    text=current_text,
+                )
+            )
         return notifications
 
     def get_history(self, limit: int = 50) -> list[AndroidNotification]:
@@ -81,7 +90,8 @@ class AndroidNotificationManager:
             for line in output.split("\n"):
                 notif_match = re.search(
                     r"notif.*?(?:title|text)[=:]\s*[\"']?(.+?)[\"']?\s*(?:,|$)",
-                    line, re.IGNORECASE,
+                    line,
+                    re.IGNORECASE,
                 )
                 if notif_match:
                     notification = AndroidNotification(
@@ -91,7 +101,7 @@ class AndroidNotificationManager:
                     )
                     self._notifications.append(notification)
                     if len(self._notifications) > self._max_history:
-                        self._notifications = self._notifications[-self._max_history:]
+                        self._notifications = self._notifications[-self._max_history :]
                     new_notifs.append(notification)
         except Exception:
             pass
@@ -108,9 +118,13 @@ class AndroidNotificationManager:
                 f"-e title '{escaped_title}' -e message '{escaped_msg}'"
             )
             self.device.shell(cmd)
-            self._notifications.append(AndroidNotification(
-                package=package, title=title, text=message,
-            ))
+            self._notifications.append(
+                AndroidNotification(
+                    package=package,
+                    title=title,
+                    text=message,
+                )
+            )
             log.info("Notification sent to device: %s", title)
             return True
         except Exception as e:

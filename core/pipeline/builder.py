@@ -18,14 +18,11 @@ import asyncio
 import json
 import os
 import re
-import time
-import traceback
-from typing import Any
 
 from core.log import log
 from core.provider import engine
-from core.task_manager import TaskManager, TaskPriority, task_manager as _tm_singleton
-
+from core.task_manager import TaskManager, TaskPriority
+from core.task_manager import task_manager as _tm_singleton
 
 MAX_HEAL_ITERATIONS = 5
 MAX_CONCURRENT_FILES = 8
@@ -39,22 +36,29 @@ class CodeToBuildPipeline:
         self._register_handlers()
 
     def _register_handlers(self) -> None:
-        self._tm.register_handlers({
-            "deep_architect": self._handle_deep_architect,
-            "foundation": self._handle_foundation,
-            "feature_gen": self._handle_feature_gen,
-            "feature_test": self._handle_feature_test,
-            "feature_fix": self._handle_feature_fix,
-            "integration": self._handle_integration,
-            "builder": self._handle_builder,
-            "reporter": self._handle_reporter,
-        })
+        self._tm.register_handlers(
+            {
+                "deep_architect": self._handle_deep_architect,
+                "foundation": self._handle_foundation,
+                "feature_gen": self._handle_feature_gen,
+                "feature_test": self._handle_feature_test,
+                "feature_fix": self._handle_feature_fix,
+                "integration": self._handle_integration,
+                "builder": self._handle_builder,
+                "reporter": self._handle_reporter,
+            }
+        )
 
     # ── Public API ──
 
-    async def launch(self, description: str, language: str = "python",
-                     framework: str = "", output_dir: str = "",
-                     headless: bool = True) -> dict:
+    async def launch(
+        self,
+        description: str,
+        language: str = "python",
+        framework: str = "",
+        output_dir: str = "",
+        headless: bool = True,
+    ) -> dict:
         """Launch a full autonomous project build from a description."""
         task = self._tm.create_task(
             name=f"Build: {description[:80]}",
@@ -64,46 +68,85 @@ class CodeToBuildPipeline:
             metadata={"language": language, "framework": framework, "output_dir": output_dir},
         )
 
-        project_name = re.sub(r'[^a-zA-Z0-9]+', '_', description.lower()).strip('_')[:30]
+        project_name = re.sub(r"[^a-zA-Z0-9]+", "_", description.lower()).strip("_")[:30]
 
         # Phase 1 — Deep architecture
-        s1 = self._tm.add_step(task.id, "Design architecture", "deep_architect",
-                                f"Deep architecture plan for: {description}",
-                                {"description": description, "language": language,
-                                 "framework": framework, "project_name": project_name})
+        s1 = self._tm.add_step(
+            task.id,
+            "Design architecture",
+            "deep_architect",
+            f"Deep architecture plan for: {description}",
+            {
+                "description": description,
+                "language": language,
+                "framework": framework,
+                "project_name": project_name,
+            },
+        )
         if not s1:
             return {"error": "Failed to create step"}
+        assert s1.id is not None
 
         # Phase 2 — Foundation
-        s2 = self._tm.add_step(task.id, "Create foundation", "foundation",
-                                "Generate project skeleton, configs, models, schema",
-                                {"description": description, "language": language,
-                                 "framework": framework, "project_name": project_name,
-                                 "output_dir": output_dir},
-                                depends_on=[s1.id])
+        s2 = self._tm.add_step(
+            task.id,
+            "Create foundation",
+            "foundation",
+            "Generate project skeleton, configs, models, schema",
+            {
+                "description": description,
+                "language": language,
+                "framework": framework,
+                "project_name": project_name,
+                "output_dir": output_dir,
+            },
+            depends_on=[s1.id],
+        )
+
+        assert s2 is not None and s2.id is not None
 
         # Phase 3 — Features (dynamic — steps added after plan is known)
         # The foundation handler will add feature steps dynamically
 
         # Phase 4 — Integration
-        s4 = self._tm.add_step(task.id, "Integration tests", "integration",
-                                "Run full integration tests across all features",
-                                {"project_name": project_name, "output_dir": output_dir},
-                                depends_on=[s2.id])
+        s4 = self._tm.add_step(
+            task.id,
+            "Integration tests",
+            "integration",
+            "Run full integration tests across all features",
+            {"project_name": project_name, "output_dir": output_dir},
+            depends_on=[s2.id],
+        )
+
+        assert s4 is not None and s4.id is not None
 
         # Phase 5 — Build
-        s5 = self._tm.add_step(task.id, "Build artifacts", "builder",
-                                "Generate final build, Docker, migrations",
-                                {"description": description, "language": language,
-                                 "framework": framework, "project_name": project_name,
-                                 "output_dir": output_dir},
-                                depends_on=[s4.id])
+        s5 = self._tm.add_step(
+            task.id,
+            "Build artifacts",
+            "builder",
+            "Generate final build, Docker, migrations",
+            {
+                "description": description,
+                "language": language,
+                "framework": framework,
+                "project_name": project_name,
+                "output_dir": output_dir,
+            },
+            depends_on=[s4.id],
+        )
+
+        assert s5 is not None and s5.id is not None
 
         # Phase 6 — Report
-        self._tm.add_step(task.id, "Report", "reporter",
-                           "Generate project summary",
-                           {"description": description, "project_name": project_name},
-                           depends_on=[s5.id])
+        self._tm.add_step(
+            task.id,
+            "Report",
+            "reporter",
+            "Generate project summary",
+            {"description": description, "project_name": project_name},
+            depends_on=[s5.id],
+        )
 
         return await self._tm.run_task(task.id)
 
@@ -127,13 +170,16 @@ Project name: {proj}
 Return JSON with this exact structure:
 {{
   "project_name": "{proj}",
-  "architecture": "brief description of the overall architecture (monolith, microservices, SPA, etc.)",
+  "architecture": "brief description of the overall architecture \
+(monolith, microservices, SPA, etc.)",
   "language": "{lang}",
   "framework": "{framework or "none"}",
   "database": {{
     "type": "postgresql/mysql/sqlite",
     "tables": [
-      {{"name": "table_name", "columns": [{{"name": "id", "type": "integer", "pk": true, "nullable": false}}, {{"name": "field", "type": "varchar(255)", "nullable": false}}], "indexes": ["field"]}}
+      {{"name": "table_name", "columns": [{{"name": "id", "type": "integer", \
+"pk": true, "nullable": false}},\
+ {{"name": "field", "type": "varchar(255)", "nullable": false}}], "indexes": ["field"]}}
     ]
   }},
   "api": [
@@ -154,15 +200,19 @@ Return JSON with this exact structure:
       "description": "user registration, login, password reset, role-based access",
       "order": 1,
       "files": [
-        {{"path": "backend/auth/routes.py", "description": "login/register/logout endpoints", "type": "backend"}},
-        {{"path": "frontend/src/pages/Login.tsx", "description": "login page component", "type": "frontend"}}
+        {{"path": "backend/auth/routes.py", "description": "login/register/logout endpoints", \
+"type": "backend"}},
+        {{"path": "frontend/src/pages/Login.tsx", "description": "login page component", \
+"type": "frontend"}}
       ],
       "dependencies": []
     }}
   ],
   "shared_files": [
-    {{"path": "backend/models.py", "description": "SQLAlchemy models for all tables", "type": "backend"}},
-    {{"path": "frontend/src/types.ts", "description": "shared TypeScript types", "type": "frontend"}},
+    {{"path": "backend/models.py", "description": "SQLAlchemy models for all tables", \
+"type": "backend"}},
+    {{"path": "frontend/src/types.ts", "description": "shared TypeScript types", \
+"type": "frontend"}},
     {{"path": "backend/config.py", "description": "configuration", "type": "backend"}}
   ],
   "dependencies": {{
@@ -190,8 +240,12 @@ Each feature should have 3-15 files."""
         plan = json.loads(match.group())
         features = plan.get("features", [])
         shared = plan.get("shared_files", [])
-        log.info("Architect: %d features, %d shared files, %d tables",
-                 len(features), len(shared), len(plan.get("database", {}).get("tables", [])))
+        log.info(
+            "Architect: %d features, %d shared files, %d tables",
+            len(features),
+            len(shared),
+            len(plan.get("database", {}).get("tables", [])),
+        )
         return plan
 
     # ═══════════════════════════════════════════════════════════════
@@ -200,7 +254,13 @@ Each feature should have 3-15 files."""
 
     async def _handle_foundation(self, params: dict) -> dict:
         plan_raw = params.get("plan")
-        plan = plan_raw if isinstance(plan_raw, dict) else json.loads(plan_raw) if isinstance(plan_raw, str) and plan_raw.startswith("{") else {}
+        plan = (
+            plan_raw
+            if isinstance(plan_raw, dict)
+            else json.loads(plan_raw)
+            if isinstance(plan_raw, str) and plan_raw.startswith("{")
+            else {}
+        )
 
         proj = params["project_name"]
         output_dir = params.get("output_dir", "")
@@ -238,28 +298,47 @@ Each feature should have 3-15 files."""
             feat_name = feat.get("name", "Feature")
             gen_step = self._tm.add_step(
                 params.get("_task_id", ""),
-                f"Generate: {feat_name}", "feature_gen",
+                f"Generate: {feat_name}",
+                "feature_gen",
                 f"Generate code for {feat_name}",
-                {"feature": feat, "project_name": proj, "output_dir": output_dir,
-                 "language": lang, "base_dir": base_dir, "plan": plan},
+                {
+                    "feature": feat,
+                    "project_name": proj,
+                    "output_dir": output_dir,
+                    "language": lang,
+                    "base_dir": base_dir,
+                    "plan": plan,
+                },
                 depends_on=[last_step_id] if last_step_id else [],
             )
             if gen_step:
                 test_step = self._tm.add_step(
                     params.get("_task_id", ""),
-                    f"Test: {feat_name}", "feature_test",
+                    f"Test: {feat_name}",
+                    "feature_test",
                     f"Test code for {feat_name}",
-                    {"feature": feat, "project_name": proj, "output_dir": output_dir,
-                     "language": lang, "base_dir": base_dir},
+                    {
+                        "feature": feat,
+                        "project_name": proj,
+                        "output_dir": output_dir,
+                        "language": lang,
+                        "base_dir": base_dir,
+                    },
                     depends_on=[gen_step.id],
                 )
                 if test_step:
                     fix_step = self._tm.add_step(
                         params.get("_task_id", ""),
-                        f"Fix: {feat_name}", "feature_fix",
+                        f"Fix: {feat_name}",
+                        "feature_fix",
                         f"Auto-fix issues in {feat_name}",
-                        {"feature": feat, "project_name": proj, "output_dir": output_dir,
-                         "language": lang, "base_dir": base_dir},
+                        {
+                            "feature": feat,
+                            "project_name": proj,
+                            "output_dir": output_dir,
+                            "language": lang,
+                            "base_dir": base_dir,
+                        },
                         depends_on=[test_step.id],
                     )
                     if fix_step:
@@ -275,8 +354,9 @@ Each feature should have 3-15 files."""
             "generated": generated,
         }
 
-    async def _generate_files_batch(self, base_dir: str, files: list[dict],
-                                     proj: str, lang: str, plan: dict) -> list[dict]:
+    async def _generate_files_batch(
+        self, base_dir: str, files: list[dict], proj: str, lang: str, plan: dict
+    ) -> list[dict]:
         """Generate multiple files in parallel batches."""
         generated = []
         sem = asyncio.Semaphore(MAX_CONCURRENT_FILES)
@@ -332,9 +412,7 @@ Return ONLY the code inside ``` block."""
 
         tasks = [_gen_one(f) for f in files]
         results = await asyncio.gather(*tasks)
-        for r in results:
-            if r:
-                generated.append(r)
+        generated.extend(r for r in results if r)
         return generated
 
     async def _generate_db_schema(self, base_dir: str, db: dict, lang: str, proj: str) -> None:
@@ -405,8 +483,9 @@ Use SQLAlchemy sessions. Include 3-5 sample records per table."""
             except Exception:
                 pass
 
-    async def _generate_project_config(self, base_dir: str, lang: str,
-                                        deps: dict, proj: str) -> None:
+    async def _generate_project_config(
+        self, base_dir: str, lang: str, deps: dict, proj: str
+    ) -> None:
         if lang == "python":
             backend_deps = deps.get("backend", ["flask", "sqlalchemy"])
             req_path = os.path.join(base_dir, "requirements.txt")
@@ -457,7 +536,8 @@ Return JSON:
             if os.path.exists(os.path.join(frontend_dir, "package.json")):
                 proc = await asyncio.create_subprocess_shell(
                     f"cd {frontend_dir} && npm install",
-                    stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.communicate()
                 log.info("  installed npm deps (exit %d)", proc.returncode)
@@ -482,23 +562,27 @@ Return JSON:
         log.info("  Generating feature '%s' (%d files)", feat_name, len(files))
 
         # Pass entire project context for cross-file consistency
-        context = json.dumps({
-            "project": proj,
-            "feature": feat_name,
-            "all_features": [f.get("name") for f in plan.get("features", [])],
-            "tables": plan.get("database", {}).get("tables", []),
-            "api_routes": plan.get("api", []),
-        })
+        context = json.dumps(
+            {
+                "project": proj,
+                "feature": feat_name,
+                "all_features": [f.get("name") for f in plan.get("features", [])],
+                "tables": plan.get("database", {}).get("tables", []),
+                "api_routes": plan.get("api", []),
+            }
+        )
 
         generated = await self._generate_files_batch(base_dir, files, proj, lang, plan)
 
         # Generate a basic test file for this feature
-        test_path = os.path.join(base_dir, "tests", f"test_{feat_name.lower().replace(' ', '_')}.py")
+        test_path = os.path.join(
+            base_dir, "tests", f"test_{feat_name.lower().replace(' ', '_')}.py"
+        )
         os.makedirs(os.path.dirname(test_path), exist_ok=True)
         prompt = f"""Generate a Python test file for the '{feat_name}' feature.
 
 Project: {proj}
-Feature files: {json.dumps([f['path'] for f in files], indent=2)}
+Feature files: {json.dumps([f["path"] for f in files], indent=2)}
 Context: {context}
 
 Return ONLY the test code inside ```python block.
@@ -510,7 +594,7 @@ Use pytest. Include at least 3 tests. Use fixtures where appropriate."""
             code = match.group(1).strip() if match else text.strip()
             with open(test_path, "w") as f:
                 f.write(code)
-            log.info("  test: tests/test_%s.py", feat_name.lower().replace(' ', '_'))
+            log.info("  test: tests/test_%s.py", feat_name.lower().replace(" ", "_"))
         except Exception as e:
             log.error("  test FAILED: %s", e)
 
@@ -533,7 +617,9 @@ Use pytest. Include at least 3 tests. Use fixtures where appropriate."""
             output_dir = params.get("output_dir", "")
             base_dir = os.path.join(output_dir or os.getcwd(), proj)
 
-        test_file = os.path.join(base_dir, "tests", f"test_{feat_name.lower().replace(' ', '_')}.py")
+        test_file = os.path.join(
+            base_dir, "tests", f"test_{feat_name.lower().replace(' ', '_')}.py"
+        )
 
         if not os.path.exists(test_file):
             return {"feature": feat_name, "success": True, "message": "No test file found"}
@@ -541,21 +627,35 @@ Use pytest. Include at least 3 tests. Use fixtures where appropriate."""
         log.info("  Testing feature '%s'", feat_name)
 
         # Run the specific test file
-        result = await tester.run(f"cd {base_dir} && python -m pytest tests/test_{feat_name.lower().replace(' ', '_')}.py -v", timeout=60, cwd=base_dir)
+        test_file = f"tests/test_{feat_name.lower().replace(' ', '_')}.py"
+        result = await tester.run(
+            f"cd {base_dir} && python -m pytest {test_file} -v",
+            timeout=60,
+            cwd=base_dir,
+        )
 
         # Also do a syntax check on all feature files
         syntax_errors = []
         for fi in feature.get("files", []):
             fpath = os.path.join(base_dir, fi.get("path", ""))
             if os.path.exists(fpath) and fpath.endswith(".py"):
-                sr = await tester.run(f"cd {base_dir} && python -c \"import ast; ast.parse(open('{fi['path']}').read())\"", timeout=15, cwd=base_dir)
+                sr = await tester.run(
+                    f"cd {base_dir} && python -c "
+                    f"\"import ast; ast.parse(open('{fi['path']}').read())\"",
+                    timeout=15,
+                    cwd=base_dir,
+                )
                 if not sr.success:
                     syntax_errors.append({"file": fi["path"], "error": sr.error[:300]})
 
         return {
             "feature": feat_name,
             "success": result.success and len(syntax_errors) == 0,
-            "test_result": {"success": result.success, "error": result.error[:500], "output": result.output[:500]},
+            "test_result": {
+                "success": result.success,
+                "error": result.error[:500],
+                "output": result.output[:500],
+            },
             "syntax_errors": syntax_errors,
             "base_dir": base_dir,
         }
@@ -591,8 +691,10 @@ Use pytest. Include at least 3 tests. Use fixtures where appropriate."""
             err_text = tr.get("error", "") or tr.get("output", "")
             if err_text:
                 errors.append({"source": "pytest", "text": err_text[:2000]})
-        for se in test_result.get("syntax_errors", []):
-            errors.append({"source": se.get("file", ""), "text": se.get("error", "")[:2000]})
+        errors.extend(
+            {"source": se.get("file", ""), "text": se.get("error", "")[:2000]}
+            for se in test_result.get("syntax_errors", [])
+        )
 
         if not errors:
             return {"feature": feat_name, "fixed": False, "message": "No errors to fix"}
@@ -604,8 +706,8 @@ Use pytest. Include at least 3 tests. Use fixtures where appropriate."""
 
 Project: {proj}
 Feature: {feat_name}
-Error source: {err['source']}
-Error: {err['text']}
+Error source: {err["source"]}
+Error: {err["text"]}
 
 Return JSON:
 {{
@@ -632,20 +734,27 @@ Return JSON:
 
                 if fix.get("command"):
                     proc = await asyncio.create_subprocess_shell(
-                        fix["command"], cwd=base_dir,
-                        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                        fix["command"],
+                        cwd=base_dir,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
                     )
                     await proc.communicate()
-                    fixes_applied.append({"command": fix["command"], "success": proc.returncode == 0})
+                    fixes_applied.append(
+                        {"command": fix["command"], "success": proc.returncode == 0}
+                    )
             except Exception as e:
                 log.error("    fix FAILED: %s", e)
 
         # Re-test after fixes
         if fixes_applied:
             from core.tester.engine import tester
+
+            test_file = f"tests/test_{feat_name.lower().replace(' ', '_')}.py"
             retest = await tester.run(
-                f"cd {base_dir} && python -m pytest tests/test_{feat_name.lower().replace(' ', '_')}.py -v",
-                timeout=60, cwd=base_dir,
+                f"cd {base_dir} && python -m pytest {test_file} -v",
+                timeout=60,
+                cwd=base_dir,
             )
             return {
                 "feature": feat_name,
@@ -672,13 +781,21 @@ Return JSON:
         results = {}
 
         # Run all tests
-        r = await tester.run(f"cd {base_dir} && python -m pytest tests/ -v --tb=short", timeout=120, cwd=base_dir)
-        results["all_tests"] = {"success": r.success, "error": r.error[:500], "output": r.output[:500]}
+        r = await tester.run(
+            f"cd {base_dir} && python -m pytest tests/ -v --tb=short", timeout=120, cwd=base_dir
+        )
+        results["all_tests"] = {
+            "success": r.success,
+            "error": r.error[:500],
+            "output": r.output[:500],
+        }
 
         # Check app imports
         r2 = await tester.run(
-            f"cd {base_dir} && python -c \"from backend.app import create_app; print('App imports OK')\"",
-            timeout=30, cwd=base_dir,
+            f'cd {base_dir} && python -c "from backend.app import '
+            f"create_app; print('App imports OK')\"",
+            timeout=30,
+            cwd=base_dir,
         )
         results["app_import"] = {"success": r2.success, "error": r2.error[:300]}
 
@@ -702,7 +819,8 @@ Use Flask test client or FastAPI TestClient."""
                     f.write(code)
                 r3 = await tester.run(
                     f"cd {base_dir} && python -m pytest tests/test_integration.py -v",
-                    timeout=60, cwd=base_dir,
+                    timeout=60,
+                    cwd=base_dir,
                 )
                 results["integration_test"] = {"success": r3.success, "error": r3.error[:300]}
             except Exception as e:
@@ -750,12 +868,16 @@ Return JSON:
                     pass
 
             # Re-run failed tests
-            r = await tester.run(f"cd {base_dir} && python -m pytest tests/ -v --tb=short", timeout=120, cwd=base_dir)
+            r = await tester.run(
+                f"cd {base_dir} && python -m pytest tests/ -v --tb=short", timeout=120, cwd=base_dir
+            )
             results["all_tests"] = {"success": r.success, "error": r.error[:500]}
             heal_count += 1
 
         return {
-            "success": all(v.get("success") if isinstance(v, dict) else False for v in results.values()),
+            "success": all(
+                v.get("success") if isinstance(v, dict) else False for v in results.values()
+            ),
             "results": results,
             "heal_iterations": heal_count,
         }
@@ -776,14 +898,17 @@ Return JSON:
         if lang == "python":
             proc = await asyncio.create_subprocess_shell(
                 f"cd {base_dir} && python -m compileall -q . 2>/dev/null",
-                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
             await proc.communicate()
             artifacts.append({"type": "bytecode_compile", "success": proc.returncode == 0})
 
             total_size = self._dir_size(base_dir)
             total_files = self._file_count(base_dir)
-            artifacts.append({"type": "project_stats", "file_count": total_files, "size_bytes": total_size})
+            artifacts.append(
+                {"type": "project_stats", "file_count": total_files, "size_bytes": total_size}
+            )
 
             # Generate README
             desc = params.get("description", proj)
@@ -809,14 +934,17 @@ Return ONLY the markdown content."""
             if os.path.exists(os.path.join(frontend_dir, "package.json")):
                 proc = await asyncio.create_subprocess_shell(
                     f"cd {frontend_dir} && npm run build 2>&1",
-                    stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
                 )
                 stdout, stderr = await proc.communicate()
-                artifacts.append({
-                    "type": "npm_build",
-                    "success": proc.returncode == 0,
-                    "output": (stdout.decode() if stdout else "")[-500:],
-                })
+                artifacts.append(
+                    {
+                        "type": "npm_build",
+                        "success": proc.returncode == 0,
+                        "output": (stdout.decode() if stdout else "")[-500:],
+                    }
+                )
 
         return {
             "language": lang,

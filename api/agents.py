@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core.agents.runner import runner, AGENT_METADATA
+from core.agents.runner import AGENT_METADATA, runner
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
@@ -74,10 +74,18 @@ async def run_agent_stream(req: AgentTask):
     run = await runner.run(req.agent, req.task, req.context, req.model)
 
     async def event_stream():
-        yield f"data: {json.dumps({'type': 'start', 'run_id': run.run_id, 'agent_id': run.agent_id, 'agent_name': run.agent_name})}\n\n"
+        data = json.dumps(
+            {
+                "type": "start",
+                "run_id": run.run_id,
+                "agent_id": run.agent_id,
+                "agent_name": run.agent_name,
+            }
+        )
+        yield f"data: {data}\n\n"
         yield f"data: {json.dumps({'type': 'status', 'status': run.status})}\n\n"
         if run.output:
-            for chunk in [run.output[i:i+500] for i in range(0, len(run.output), 500)]:
+            for chunk in [run.output[i : i + 500] for i in range(0, len(run.output), 500)]:
                 yield f"data: {json.dumps({'type': 'output', 'text': chunk})}\n\n"
         yield f"data: {json.dumps({'type': 'done', 'run': run.to_dict()})}\n\n"
 
@@ -86,6 +94,9 @@ async def run_agent_stream(req: AgentTask):
 
 @router.post("/run/batch")
 async def run_batch(req: BatchTask):
-    tasks = [{"agent_id": t.agent, "task": t.task, "context": t.context, "model": t.model} for t in req.tasks]
+    tasks = [
+        {"agent_id": t.agent, "task": t.task, "context": t.context, "model": t.model}
+        for t in req.tasks
+    ]
     results = await runner.run_batch(tasks)
     return {"runs": [r.to_dict() for r in results], "total": len(results)}

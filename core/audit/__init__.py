@@ -6,14 +6,12 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
-from enum import Enum
-
-from core.log import log
+from enum import StrEnum
 
 AUDIT_DIR = os.path.expanduser("~/.lumina/audit")
 
 
-class AuditAction(str, Enum):
+class AuditAction(StrEnum):
     READ = "read"
     CREATE = "create"
     UPDATE = "update"
@@ -42,9 +40,14 @@ class AuditEntry:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, "action": self.action.value, "agent": self.agent,
-            "target": self.target, "description": self.description,
-            "details": self.details, "status": self.status, "error": self.error,
+            "id": self.id,
+            "action": self.action.value,
+            "agent": self.agent,
+            "target": self.target,
+            "description": self.description,
+            "details": self.details,
+            "status": self.status,
+            "error": self.error,
             "rollback_possible": self.rollback_possible,
             "rollback_info": self.rollback_info,
             "timestamp": self.timestamp,
@@ -53,10 +56,13 @@ class AuditEntry:
     @classmethod
     def from_dict(cls, d: dict) -> AuditEntry:
         return cls(
-            id=d["id"], action=AuditAction(d.get("action", "execute")),
-            agent=d.get("agent", ""), target=d.get("target", ""),
+            id=d["id"],
+            action=AuditAction(d.get("action", "execute")),
+            agent=d.get("agent", ""),
+            target=d.get("target", ""),
             description=d.get("description", ""),
-            details=d.get("details", {}), status=d.get("status", "completed"),
+            details=d.get("details", {}),
+            status=d.get("status", "completed"),
             error=d.get("error", ""),
             rollback_possible=d.get("rollback_possible", False),
             rollback_info=d.get("rollback_info", {}),
@@ -95,11 +101,17 @@ class AuditTrail:
             json.dump([e.to_dict() for e in self._entries[-2000:]], f, indent=2)
 
     def log(
-        self, action: AuditAction, agent: str, target: str,
-        description: str, details: dict | None = None,
-        rollback_possible: bool = False, rollback_info: dict | None = None,
+        self,
+        action: AuditAction,
+        agent: str,
+        target: str,
+        description: str,
+        details: dict | None = None,
+        rollback_possible: bool = False,
+        rollback_info: dict | None = None,
     ) -> AuditEntry:
         import uuid
+
         entry = AuditEntry(
             id=uuid.uuid4().hex[:12],
             action=action,
@@ -128,10 +140,15 @@ class AuditTrail:
         return entry
 
     def log_error(
-        self, agent: str, target: str, error: str, description: str = "",
+        self,
+        agent: str,
+        target: str,
+        error: str,
+        description: str = "",
         details: dict | None = None,
     ) -> AuditEntry:
         import uuid
+
         entry = AuditEntry(
             id=uuid.uuid4().hex[:12],
             action=AuditAction.EXECUTE,
@@ -149,13 +166,18 @@ class AuditTrail:
 
     def _query_by_date(self, date_str: str) -> list[AuditEntry]:
         return [
-            e for e in self._entries
+            e
+            for e in self._entries
             if time.strftime("%Y-%m-%d", time.localtime(e.timestamp)) == date_str
         ]
 
     def query(
-        self, agent: str = "", action: str = "", status: str = "",
-        since: float = 0, limit: int = 100,
+        self,
+        agent: str = "",
+        action: str = "",
+        status: str = "",
+        since: float = 0,
+        limit: int = 100,
     ) -> list[AuditEntry]:
         results = list(self._entries)
         if agent:
@@ -180,8 +202,7 @@ class AuditTrail:
             by_agent[e.agent] = by_agent.get(e.agent, 0) + 1
             by_action[e.action.value] = by_action.get(e.action.value, 0) + 1
             if e.status == "failed":
-                errors.append({"agent": e.agent, "target": e.target[:100],
-                               "error": e.error[:200]})
+                errors.append({"agent": e.agent, "target": e.target[:100], "error": e.error[:200]})
 
         return {
             "date": today,
@@ -210,11 +231,11 @@ class AuditTrail:
 
         lines = [
             f"# Audit Report — {date_str}",
-            f"",
+            "",
             f"**Total actions:** {len(day_entries)}",
-            f"",
-            f"| Action | Count |",
-            f"|--------|-------|",
+            "",
+            "| Action | Count |",
+            "|--------|-------|",
             f"| Reads | {reads} |",
             f"| Creates | {creates} |",
             f"| Updates | {updates} |",
@@ -222,16 +243,16 @@ class AuditTrail:
             f"| Sends | {sends} |",
             f"| Deploys | {deploys} |",
             f"| **Errors** | **{errors}** |",
-            f"",
+            "",
         ]
 
         if errors > 0:
             lines.append("## Errors")
-            for e in day_entries:
-                if e.status == "failed":
-                    lines.append(
-                        f"- [{e.agent}] {e.target[:80]}: {e.error[:120]}"
-                    )
+            lines.extend(
+                f"- [{e.agent}] {e.target[:80]}: {e.error[:120]}"
+                for e in day_entries
+                if e.status == "failed"
+            )
             lines.append("")
 
         agents = set(e.agent for e in day_entries)
@@ -240,11 +261,12 @@ class AuditTrail:
             for agent_name in sorted(agents):
                 count = sum(1 for e in day_entries if e.agent == agent_name)
                 agent_errors = sum(
-                    1 for e in day_entries
-                    if e.agent == agent_name and e.status == "failed"
+                    1 for e in day_entries if e.agent == agent_name and e.status == "failed"
                 )
-                lines.append(f"- {agent_name}: {count} action(s)"
-                             + (f", {agent_errors} error(s)" if agent_errors else ""))
+                lines.append(
+                    f"- {agent_name}: {count} action(s)"
+                    + (f", {agent_errors} error(s)" if agent_errors else "")
+                )
 
         return "\n".join(lines)
 
@@ -254,8 +276,10 @@ class AuditTrail:
             "today": len(self._query_by_date(time.strftime("%Y-%m-%d"))),
             "unique_agents": len({e.agent for e in self._entries}),
             "error_rate": round(
-                sum(1 for e in self._entries if e.status == "failed") /
-                max(len(self._entries), 1) * 100, 1
+                sum(1 for e in self._entries if e.status == "failed")
+                / max(len(self._entries), 1)
+                * 100,
+                1,
             ),
             "rollback_entries": sum(1 for e in self._entries if e.rollback_possible),
         }

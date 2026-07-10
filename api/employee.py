@@ -2,13 +2,12 @@
 
 import asyncio
 import json
-import time
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core.employee.orchestrator import employee, load_memory, TOOLS
+from core.employee.orchestrator import TOOLS, employee, load_memory
 
 router = APIRouter(prefix="/employee", tags=["Employee"])
 
@@ -48,7 +47,7 @@ async def execute_goal_stream(req: GoalRequest):
             try:
                 data = await asyncio.wait_for(queue.get(), timeout=1.0)
                 yield f"data: {json.dumps(data)}\n\n"
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if execute_task.done():
                     break
                 yield f"data: {json.dumps({'type': 'heartbeat'})}\n\n"
@@ -74,15 +73,18 @@ async def manage_memory(req: MemoryRequest):
     elif req.action == "set":
         memory.setdefault("knowledge", {})[req.key] = req.value
         from core.employee.orchestrator import save_memory
+
         save_memory(memory)
         return {"status": "ok", "key": req.key}
     elif req.action == "set_context":
         memory.setdefault("contexts", {})["current"] = req.value
         from core.employee.orchestrator import save_memory
+
         save_memory(memory)
         return {"status": "ok", "context": req.value[:100]}
     elif req.action == "clear":
         from core.employee.orchestrator import save_memory
+
         save_memory({"missions": [], "knowledge": {}, "preferences": {}, "contexts": {}})
         return {"status": "cleared"}
     return {"status": "error", "error": "Unknown action"}

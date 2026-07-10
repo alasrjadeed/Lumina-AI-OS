@@ -83,7 +83,7 @@ def test_inject_with_container_resolves_dep():
     def needs_dep(dep: MyDep) -> int:
         return dep.value
 
-    assert needs_dep() == 42
+    assert needs_dep() == 42  # pyright: ignore[reportCallIssue]
 
 
 def test_inject_with_missing_type_uses_default():

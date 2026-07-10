@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import time
 import uuid
 from datetime import datetime
 from typing import Any
@@ -19,31 +18,117 @@ HISTORY_PATH = os.path.join(STORAGE_DIR, "automation_history.json")
 
 TRIGGER_TYPES = [
     {"id": "manual", "label": "Manual", "description": "Run manually from the UI or API"},
-    {"id": "schedule", "label": "Schedule (Cron)", "description": "Run on a cron schedule", "config": {"cron": ""}},
-    {"id": "webhook", "label": "Webhook", "description": "Trigger via HTTP webhook call", "config": {"token": ""}},
-    {"id": "file_change", "label": "File Change", "description": "Run when a file is created or modified", "config": {"path": "", "pattern": ""}},
-    {"id": "time", "label": "Time Delay", "description": "Run after a specified delay", "config": {"delay_seconds": 60}},
-    {"id": "interval", "label": "Interval", "description": "Run on a fixed interval", "config": {"interval_seconds": 300}},
+    {
+        "id": "schedule",
+        "label": "Schedule (Cron)",
+        "description": "Run on a cron schedule",
+        "config": {"cron": ""},
+    },
+    {
+        "id": "webhook",
+        "label": "Webhook",
+        "description": "Trigger via HTTP webhook call",
+        "config": {"token": ""},
+    },
+    {
+        "id": "file_change",
+        "label": "File Change",
+        "description": "Run when a file is created or modified",
+        "config": {"path": "", "pattern": ""},
+    },
+    {
+        "id": "time",
+        "label": "Time Delay",
+        "description": "Run after a specified delay",
+        "config": {"delay_seconds": 60},
+    },
+    {
+        "id": "interval",
+        "label": "Interval",
+        "description": "Run on a fixed interval",
+        "config": {"interval_seconds": 300},
+    },
 ]
 
 ACTION_TYPES = [
-    {"id": "shell", "label": "Shell Command", "description": "Execute a shell command", "config": {"command": "", "timeout": 30}},
-    {"id": "http_request", "label": "HTTP Request", "description": "Make an HTTP request", "config": {"url": "", "method": "GET", "headers": {}, "body": ""}},
-    {"id": "ai_task", "label": "AI Task", "description": "Ask the AI to perform a task", "config": {"prompt": "", "model": ""}},
-    {"id": "file_operation", "label": "File Operation", "description": "Read, write, copy, or delete files", "config": {"operation": "read", "path": "", "content": ""}},
-    {"id": "notification", "label": "Notification", "description": "Send a desktop notification", "config": {"title": "", "message": ""}},
-    {"id": "employee_task", "label": "Employee Task", "description": "Delegate to Autonomous Employee", "config": {"goal": ""}},
-    {"id": "wait", "label": "Wait / Sleep", "description": "Pause execution for a duration", "config": {"seconds": 5}},
-    {"id": "condition", "label": "Condition", "description": "Conditional branching (if/else)", "config": {"condition": "", "then_steps": [], "else_steps": []}},
-    {"id": "log", "label": "Log Message", "description": "Write a message to the execution log", "config": {"level": "info", "message": ""}},
-    {"id": "script", "label": "Python Script", "description": "Execute a Python code snippet", "config": {"code": ""}},
-    {"id": "send_email", "label": "Send Email", "description": "Send an email notification", "config": {"to": "", "subject": "", "body": ""}},
+    {
+        "id": "shell",
+        "label": "Shell Command",
+        "description": "Execute a shell command",
+        "config": {"command": "", "timeout": 30},
+    },
+    {
+        "id": "http_request",
+        "label": "HTTP Request",
+        "description": "Make an HTTP request",
+        "config": {"url": "", "method": "GET", "headers": {}, "body": ""},
+    },
+    {
+        "id": "ai_task",
+        "label": "AI Task",
+        "description": "Ask the AI to perform a task",
+        "config": {"prompt": "", "model": ""},
+    },
+    {
+        "id": "file_operation",
+        "label": "File Operation",
+        "description": "Read, write, copy, or delete files",
+        "config": {"operation": "read", "path": "", "content": ""},
+    },
+    {
+        "id": "notification",
+        "label": "Notification",
+        "description": "Send a desktop notification",
+        "config": {"title": "", "message": ""},
+    },
+    {
+        "id": "employee_task",
+        "label": "Employee Task",
+        "description": "Delegate to Autonomous Employee",
+        "config": {"goal": ""},
+    },
+    {
+        "id": "wait",
+        "label": "Wait / Sleep",
+        "description": "Pause execution for a duration",
+        "config": {"seconds": 5},
+    },
+    {
+        "id": "condition",
+        "label": "Condition",
+        "description": "Conditional branching (if/else)",
+        "config": {"condition": "", "then_steps": [], "else_steps": []},
+    },
+    {
+        "id": "log",
+        "label": "Log Message",
+        "description": "Write a message to the execution log",
+        "config": {"level": "info", "message": ""},
+    },
+    {
+        "id": "script",
+        "label": "Python Script",
+        "description": "Execute a Python code snippet",
+        "config": {"code": ""},
+    },
+    {
+        "id": "send_email",
+        "label": "Send Email",
+        "description": "Send an email notification",
+        "config": {"to": "", "subject": "", "body": ""},
+    },
 ]
 
 
 class StepModel:
-    def __init__(self, id: str, action: str, name: str, config: dict | None = None,
-                 depends_on: list[str] | None = None):
+    def __init__(
+        self,
+        id: str,
+        action: str,
+        name: str,
+        config: dict | None = None,
+        depends_on: list[str] | None = None,
+    ):
         self.id = id
         self.action = action
         self.name = name
@@ -51,8 +136,13 @@ class StepModel:
         self.depends_on = depends_on or []
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "action": self.action, "name": self.name,
-                "config": self.config, "depends_on": self.depends_on}
+        return {
+            "id": self.id,
+            "action": self.action,
+            "name": self.name,
+            "config": self.config,
+            "depends_on": self.depends_on,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> StepModel:
@@ -73,11 +163,18 @@ class TriggerConfig:
 
 
 class WorkflowModel:
-    def __init__(self, id: str, name: str, description: str = "",
-                 trigger: TriggerConfig | None = None,
-                 steps: list[StepModel] | None = None,
-                 enabled: bool = True, created_at: str = "",
-                 updated_at: str = "", tags: list[str] | None = None):
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        description: str = "",
+        trigger: TriggerConfig | None = None,
+        steps: list[StepModel] | None = None,
+        enabled: bool = True,
+        created_at: str = "",
+        updated_at: str = "",
+        tags: list[str] | None = None,
+    ):
         self.id = id
         self.name = name
         self.description = description
@@ -89,17 +186,24 @@ class WorkflowModel:
         self.tags = tags or []
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "name": self.name, "description": self.description,
-                "trigger": self.trigger.to_dict(),
-                "steps": [s.to_dict() for s in self.steps],
-                "enabled": self.enabled,
-                "created_at": self.created_at, "updated_at": self.updated_at,
-                "tags": self.tags}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "trigger": self.trigger.to_dict(),
+            "steps": [s.to_dict() for s in self.steps],
+            "enabled": self.enabled,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "tags": self.tags,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> WorkflowModel:
         return cls(
-            id=d["id"], name=d["name"], description=d.get("description", ""),
+            id=d["id"],
+            name=d["name"],
+            description=d.get("description", ""),
             trigger=TriggerConfig.from_dict(d.get("trigger", {})),
             steps=[StepModel.from_dict(s) for s in d.get("steps", [])],
             enabled=d.get("enabled", True),
@@ -110,9 +214,16 @@ class WorkflowModel:
 
 
 class ExecutionLog:
-    def __init__(self, run_id: str, workflow_id: str, started_at: str,
-                 status: str = "running", steps: list[dict] | None = None,
-                 error: str = "", trigger_info: str = ""):
+    def __init__(
+        self,
+        run_id: str,
+        workflow_id: str,
+        started_at: str,
+        status: str = "running",
+        steps: list[dict] | None = None,
+        error: str = "",
+        trigger_info: str = "",
+    ):
         self.run_id = run_id
         self.workflow_id = workflow_id
         self.started_at = started_at
@@ -123,16 +234,28 @@ class ExecutionLog:
         self.trigger_info = trigger_info
 
     def to_dict(self) -> dict:
-        return {"run_id": self.run_id, "workflow_id": self.workflow_id,
-                "started_at": self.started_at, "completed_at": self.completed_at,
-                "status": self.status, "steps": self.steps,
-                "error": self.error, "trigger_info": self.trigger_info}
+        return {
+            "run_id": self.run_id,
+            "workflow_id": self.workflow_id,
+            "started_at": self.started_at,
+            "completed_at": self.completed_at,
+            "status": self.status,
+            "steps": self.steps,
+            "error": self.error,
+            "trigger_info": self.trigger_info,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> ExecutionLog:
-        e = cls(d["run_id"], d["workflow_id"], d["started_at"],
-                d.get("status", "running"), d.get("steps", []),
-                d.get("error", ""), d.get("trigger_info", ""))
+        e = cls(
+            d["run_id"],
+            d["workflow_id"],
+            d["started_at"],
+            d.get("status", "running"),
+            d.get("steps", []),
+            d.get("error", ""),
+            d.get("trigger_info", ""),
+        )
         e.completed_at = d.get("completed_at", "")
         return e
 
@@ -198,15 +321,22 @@ class AutomationEngine:
     def get_workflow(self, workflow_id: str) -> WorkflowModel | None:
         return self._workflows.get(workflow_id)
 
-    def create_workflow(self, name: str, description: str = "",
-                        trigger: TriggerConfig | None = None,
-                        steps: list[StepModel] | None = None,
-                        tags: list[str] | None = None) -> WorkflowModel:
+    def create_workflow(
+        self,
+        name: str,
+        description: str = "",
+        trigger: TriggerConfig | None = None,
+        steps: list[StepModel] | None = None,
+        tags: list[str] | None = None,
+    ) -> WorkflowModel:
         wf_id = uuid.uuid4().hex[:12]
         wf = WorkflowModel(
-            id=wf_id, name=name, description=description,
+            id=wf_id,
+            name=name,
+            description=description,
             trigger=trigger or TriggerConfig(),
-            steps=steps or [], tags=tags or [],
+            steps=steps or [],
+            tags=tags or [],
         )
         self._workflows[wf_id] = wf
         if wf.trigger.type == "webhook":
@@ -299,10 +429,13 @@ class AutomationEngine:
 
             for step in wf.steps:
                 step_result = {
-                    "step_id": step.id, "step_name": step.name,
-                    "action": step.action, "status": "running",
+                    "step_id": step.id,
+                    "step_name": step.name,
+                    "action": step.action,
+                    "status": "running",
                     "started_at": datetime.now().isoformat(),
-                    "output": "", "error": "",
+                    "output": "",
+                    "error": "",
                 }
                 log_entry.steps.append(step_result)
                 try:
@@ -329,21 +462,27 @@ class AutomationEngine:
         self._save_history()
         return run_id
 
-    async def _run_action(self, step: StepModel, wf_id: str = "",
-                          step_outputs: dict[str, Any] | None = None) -> Any:
+    async def _run_action(
+        self, step: StepModel, wf_id: str = "", step_outputs: dict[str, Any] | None = None
+    ) -> Any:
         action = step.action
         config = step.config
 
         if action == "shell":
             return await _action_shell(config.get("command", ""), config.get("timeout", 30))
         elif action == "http_request":
-            return await _action_http(config.get("url", ""), config.get("method", "GET"),
-                                       config.get("headers", {}), config.get("body", ""))
+            return await _action_http(
+                config.get("url", ""),
+                config.get("method", "GET"),
+                config.get("headers", {}),
+                config.get("body", ""),
+            )
         elif action == "ai_task":
             return await _action_ai(config.get("prompt", ""), config.get("model", ""))
         elif action == "file_operation":
-            return _action_file(config.get("operation", "read"), config.get("path", ""),
-                                config.get("content", ""))
+            return _action_file(
+                config.get("operation", "read"), config.get("path", ""), config.get("content", "")
+            )
         elif action == "notification":
             return _action_notify(config.get("title", ""), config.get("message", ""))
         elif action == "employee_task":
@@ -381,6 +520,7 @@ class AutomationEngine:
 
 # ── Action Implementations ──
 
+
 async def _action_shell(command: str, timeout: int = 30) -> str:
     proc = await asyncio.create_subprocess_shell(
         command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -392,14 +532,16 @@ async def _action_shell(command: str, timeout: int = 30) -> str:
         if err:
             return f"STDOUT:\n{out}\nSTDERR:\n{err}" if out else f"STDERR:\n{err}"
         return out or "(no output)"
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         return f"(timed out after {timeout}s)"
 
 
-async def _action_http(url: str, method: str = "GET", headers: dict | None = None,
-                       body: str = "") -> str:
+async def _action_http(
+    url: str, method: str = "GET", headers: dict | None = None, body: str = ""
+) -> str:
     import httpx
+
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             if method.upper() == "GET":
@@ -418,7 +560,6 @@ async def _action_http(url: str, method: str = "GET", headers: dict | None = Non
 
 
 async def _action_ai(prompt: str, model: str = "") -> str:
-    from core.provider import engine as ai_engine
     messages = [{"role": "user", "content": prompt}]
     kwargs = {}
     if model:
@@ -448,6 +589,7 @@ def _action_file(operation: str, path: str, content: str = "") -> str:
         return f"Not found: {path}"
     elif operation == "copy":
         import shutil
+
         parts = content.split("|")
         dst = parts[0] if parts else path + ".copy"
         shutil.copy2(path, dst)
@@ -463,6 +605,7 @@ def _action_file(operation: str, path: str, content: str = "") -> str:
 def _action_notify(title: str, message: str) -> str:
     try:
         import subprocess
+
         subprocess.run(["notify-send", title, message], timeout=5, capture_output=True)
         return f"Notification sent: {title} — {message}"
     except Exception as e:
@@ -472,6 +615,7 @@ def _action_notify(title: str, message: str) -> str:
 async def _action_employee(goal: str) -> str:
     try:
         from core.employee.orchestrator import employee
+
         result = await employee.execute(goal)
         return json.dumps(result, indent=2)[:2000]
     except Exception as e:
@@ -481,6 +625,7 @@ async def _action_employee(goal: str) -> str:
 async def _action_script(code: str) -> str:
     import sys
     from io import StringIO
+
     old_stdout = sys.stdout
     sys.stdout = captured = StringIO()
     try:
@@ -513,20 +658,29 @@ async def _action_condition(config: dict, step_outputs: dict, wf_id: str) -> str
     for step_data in branch:
         s = StepModel.from_dict(step_data)
         try:
-            out = await _action_http if s.action == "http_request" else None
+            # pyright: ignore[reportGeneralTypeIssues]
+            await _action_http(
+                s.config.get("url", ""), s.config.get("method", "GET")
+            ) if s.action == "http_request" else None
             if s.action == "shell":
                 branch_results.append(await _action_shell(s.config.get("command", "")))
             elif s.action == "http_request":
-                branch_results.append(await _action_http(s.config.get("url", ""), s.config.get("method", "GET")))
+                branch_results.append(
+                    await _action_http(s.config.get("url", ""), s.config.get("method", "GET"))
+                )
             elif s.action == "ai_task":
                 branch_results.append(await _action_ai(s.config.get("prompt", "")))
             elif s.action == "notification":
-                branch_results.append(_action_notify(s.config.get("title", ""), s.config.get("message", "")))
+                branch_results.append(
+                    _action_notify(s.config.get("title", ""), s.config.get("message", ""))
+                )
             elif s.action == "wait":
                 await asyncio.sleep(s.config.get("seconds", 5))
                 branch_results.append(f"Slept {s.config.get('seconds', 5)}s")
             elif s.action == "log":
-                branch_results.append(f"[{s.config.get('level', 'info')}] {s.config.get('message', '')}")
+                branch_results.append(
+                    f"[{s.config.get('level', 'info')}] {s.config.get('message', '')}"
+                )
             else:
                 branch_results.append(f"Condition sub-step '{s.action}' executed")
         except Exception as e:

@@ -211,7 +211,9 @@ def main():
     p_code = sub.add_parser("code", help="Generate code")
     p_code.add_argument("description", nargs="*", help="What to generate")
     p_code.add_argument(
-        "-l", "--language", default="python",
+        "-l",
+        "--language",
+        default="python",
         help="Language (python, js, ts, java, kotlin, go, rust, sql, dart, ...)",
     )
 

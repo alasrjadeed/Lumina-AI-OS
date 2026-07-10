@@ -87,21 +87,45 @@ def _load_data() -> None:
 
 def _save_data() -> None:
     with open(_storage_path, "w") as f:
-        json.dump({
-            "campaigns": {k: {"name": c.name, "channel": c.channel.value, "budget": c.budget,
-                              "spent": c.spent, "impressions": c.impressions, "clicks": c.clicks,
-                              "conversions": c.conversions, "status": c.status,
-                              "start_date": c.start_date, "end_date": c.end_date}
-                          for k, c in _campaigns.items()},
-            "content": [{"title": c.title, "content": c.content, "channel": c.channel,
-                         "scheduled": c.scheduled, "status": c.status, "tags": c.tags}
-                        for c in _content_calendar],
-        }, f, indent=2)
+        json.dump(
+            {
+                "campaigns": {
+                    k: {
+                        "name": c.name,
+                        "channel": c.channel.value,
+                        "budget": c.budget,
+                        "spent": c.spent,
+                        "impressions": c.impressions,
+                        "clicks": c.clicks,
+                        "conversions": c.conversions,
+                        "status": c.status,
+                        "start_date": c.start_date,
+                        "end_date": c.end_date,
+                    }
+                    for k, c in _campaigns.items()
+                },
+                "content": [
+                    {
+                        "title": c.title,
+                        "content": c.content,
+                        "channel": c.channel,
+                        "scheduled": c.scheduled,
+                        "status": c.status,
+                        "tags": c.tags,
+                    }
+                    for c in _content_calendar
+                ],
+            },
+            f,
+            indent=2,
+        )
 
 
 def create_campaign(name: str, channel: str = "email", budget: float = 0.0) -> MarketingCampaign:
     campaign = MarketingCampaign(
-        name=name, channel=ChannelType(channel), budget=budget,
+        name=name,
+        channel=ChannelType(channel),
+        budget=budget,
         start_date=time.time(),
     )
     _campaigns[name] = campaign
@@ -187,10 +211,20 @@ def get_campaign_metrics(name: str) -> dict:
     }
 
 
-def schedule_content(title: str, content: str, channel: str = "web",
-                     scheduled_time: float = 0.0, tags: list[str] | None = None) -> ContentItem:
-    item = ContentItem(title=title, content=content, channel=channel,
-                       scheduled=scheduled_time or time.time(), tags=tags or [])
+def schedule_content(
+    title: str,
+    content: str,
+    channel: str = "web",
+    scheduled_time: float = 0.0,
+    tags: list[str] | None = None,
+) -> ContentItem:
+    item = ContentItem(
+        title=title,
+        content=content,
+        channel=channel,
+        scheduled=scheduled_time or time.time(),
+        tags=tags or [],
+    )
     _content_calendar.append(item)
     _save_data()
     return item

@@ -28,9 +28,6 @@ class RetryPolicy:
         """
         Exponential backoff.
         """
-        delay = (
-            self.initial_delay
-            * (self.backoff_multiplier ** max(0, attempt - 1))
-        )
+        delay = self.initial_delay * (self.backoff_multiplier ** max(0, attempt - 1))
 
         return min(delay, self.max_delay)

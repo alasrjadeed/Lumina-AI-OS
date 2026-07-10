@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import cv2  # pyright: ignore[reportMissingImports]
+    import face_recognition  # pyright: ignore[reportMissingImports]
+    import numpy as np
 
 from core.log import log
 
@@ -21,15 +26,14 @@ except ImportError:
     CV2_AVAILABLE = False
 
 try:
-    import face_recognition
+    import face_recognition  # pyright: ignore[reportMissingImports]
 
     FACE_RECOGNITION_AVAILABLE = True
 except ImportError:
     FACE_RECOGNITION_AVAILABLE = False
 
 
-class FaceError(Exception):
-    ...
+class FaceError(Exception): ...
 
 
 @dataclass
@@ -130,8 +134,10 @@ class FaceDetector:
         return result
 
     async def _detect_face_recognition(
-        self, frame_np: np.ndarray,
-        img_w: int, img_h: int,
+        self,
+        frame_np: np.ndarray,
+        img_w: int,
+        img_h: int,
     ) -> FaceResult:
         try:
             rgb = cv2.cvtColor(frame_np, cv2.COLOR_BGR2RGB)
@@ -142,8 +148,10 @@ class FaceDetector:
             for loc, enc in zip(locations, encodings):
                 top, right, bottom, left = loc
                 norm_bbox = (
-                    left / img_w, top / img_h,
-                    (right - left) / img_w, (bottom - top) / img_h,
+                    left / img_w,
+                    top / img_h,
+                    (right - left) / img_w,
+                    (bottom - top) / img_h,
                 )
 
                 name = None
@@ -164,15 +172,20 @@ class FaceDetector:
             return FaceResult(image_width=img_w, image_height=img_h)
 
     async def _detect_opencv(
-        self, frame_np: np.ndarray,
-        img_w: int, img_h: int,
+        self,
+        frame_np: np.ndarray,
+        img_w: int,
+        img_h: int,
     ) -> FaceResult:
         gray = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)
-        face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        face_cascade = cv2.CascadeClassifier(  # pyright: ignore[reportAttributeAccessIssue]
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"  # pyright: ignore[reportAttributeAccessIssue]
         )
         faces_rect = face_cascade.detectMultiScale(
-            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
         )
 
         faces: list[Face] = []

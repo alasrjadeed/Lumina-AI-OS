@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from core.log import log
-from core.vision.camera import CameraDevice, Frame
+from core.vision.camera import CameraDevice
 from core.vision.description import SceneDescriber
 from core.vision.detector import ObjectDetector
 from core.vision.face import FaceDetector
@@ -123,10 +125,8 @@ class VisualCortex:
         self._mode = WatchMode.IDLE
         if self._watch_task:
             self._watch_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._watch_task
-            except asyncio.CancelledError:
-                pass
             self._watch_task = None
         log.info("Vision: VisualCortex stopped watching")
 
@@ -197,7 +197,9 @@ class VisualCortex:
         return obs
 
     async def _observe_detections(
-        self, frame_np: Any, obs: Observation,
+        self,
+        frame_np: Any,
+        obs: Observation,
     ) -> None:
         if not self._detector:
             return
@@ -215,13 +217,16 @@ class VisualCortex:
             log.error("Vision: Face detection error: %s", e)
 
     async def _observe_description(
-        self, frame_np: Any, obs: Observation,
+        self,
+        frame_np: Any,
+        obs: Observation,
     ) -> None:
         if not self._describer:
             return
         try:
             obs.description = await self._describer.describe(
-                frame_np, detail="brief",
+                frame_np,
+                detail="brief",
             )
         except Exception as e:
             log.error("Vision: Description error: %s", e)
@@ -240,7 +245,9 @@ class VisualCortex:
         return obs.summary or "I see nothing in particular."
 
     async def look_for(
-        self, target: str, timeout: float = 30.0,
+        self,
+        target: str,
+        timeout: float = 30.0,
     ) -> str:
         target = target.lower()
         if not self._running:
@@ -252,7 +259,7 @@ class VisualCortex:
                 return f"I see {target} right now."
             await asyncio.sleep(self._watch_interval)
             obs = await self._observe()
-            if target in [l.lower() for l in obs.labels]:
+            if target in [label.lower() for label in obs.labels]:
                 return f"I found {target}!"
 
         recent = self._memory.get_recent(seconds=30)
@@ -260,7 +267,9 @@ class VisualCortex:
         for o in recent:
             seen_labels.update(o.labels)
         if seen_labels:
-            return f"I looked but didn't see {target}. I have seen: {', '.join(sorted(seen_labels))}."
+            return (
+                f"I looked but didn't see {target}. I have seen: {', '.join(sorted(seen_labels))}."
+            )
         return f"I searched for {target} but couldn't find it."
 
     async def describe_current_scene(self) -> str:
@@ -287,7 +296,9 @@ class VisualCortex:
         if current.people_count:
             context_parts.append(f"People: {current.people_count}")
         if current.description and current.description.lighting:
-            context_parts.append(f"Lighting: {current.description.lighting}, Mood: {current.description.mood}")
+            context_parts.append(
+                f"Lighting: {current.description.lighting}, Mood: {current.description.mood}"
+            )
 
         context_str = "\n".join(context_parts) if context_parts else "No visual data available."
 
@@ -300,6 +311,7 @@ The user asks: "{question}"
 Answer conversationally based on what you can see. If you don't have enough visual info, say so."""
 
         try:
+            assert self._ai_engine is not None
             resp = await self._ai_engine.chat([{"role": "user", "content": prompt}])
             return resp.get("message", {}).get("content", "I'm not sure what to say about that.")
         except Exception as e:
@@ -308,7 +320,9 @@ Answer conversationally based on what you can see. If you don't have enough visu
     def _summarize_observation(self, obs: Observation, context: str | None = None) -> str:
         parts = []
         if obs.people_count > 0:
-            parts.append(f"I can see {obs.people_count} person{'s' if obs.people_count > 1 else ''}")
+            parts.append(
+                f"I can see {obs.people_count} person{'s' if obs.people_count > 1 else ''}"
+            )
         if obs.labels:
             parts.append(f"I notice {', '.join(obs.labels[:8])}")
         if obs.description and obs.description.summary:

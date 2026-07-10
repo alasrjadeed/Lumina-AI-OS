@@ -26,14 +26,18 @@ Documentation = "https://docs.lumina.ai"
 Source = "https://github.com/lumina-ai/lumina"
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.backends._legacy:_Backend"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["lumina*", "core*", "api*", "cli*", "kernel*", "config*", "mcp_server*", "jarvis*"]
 
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "SIM", "PERF", "PLC"]
+ignore = ["PLC0415"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"

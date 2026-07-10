@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
 
 from core.log import log
 from core.provider import engine
 from core.vault.store import vault
 
-
 CAPABILITIES = {
     "browser": "Control Chrome browser — navigate, click, fill forms, take screenshots",
-    "content": "Write blogs, emails, social posts, product descriptions, meta tags, quotes, invoices",
+    "content": "Write blogs, emails, social posts, product descriptions, meta tags, "
+    "quotes, invoices",
     "crm": "Manage contacts, deals, pipeline stages, sales analytics",
     "seo": "Analyze websites, generate meta tags, track keywords, site audits",
     "social": "Manage Facebook & Instagram pages, create posts, reply to comments, create ads",
@@ -22,7 +21,8 @@ CAPABILITIES = {
     "files": "Browse, read, create, and delete files on the local system",
     "android": "Control connected Android devices via ADB — tap, type, screenshot, install apps",
     "desktop": "Execute system commands, manage applications, clipboard operations",
-    "vision": "Use the camera to see — capture images, detect objects, recognize faces, describe scenes",
+    "vision": "Use the camera to see — capture images, detect objects, recognize faces, "
+    "describe scenes",
 }
 
 
@@ -85,7 +85,8 @@ Return ONLY JSON:
  "params": {{...relevant parameters...}},
  "summary": "brief description"}}
 
-For content actions, params should include: type (blog|email|social_post|product_description|meta_title|meta_description|faq|landing_page|quote|invoice|whatsapp), topic, tone
+For content actions, params should include: type (blog|email|social_post|product_description|\
+meta_title|meta_description|faq|landing_page|quote|invoice|whatsapp), topic, tone
 For browser: task description
 For CRM: sub_action (add_contact|add_deal|summary|list_contacts|list_deals)
 For SEO: sub_action (audit|meta|keywords), url
@@ -110,6 +111,7 @@ For chat: just the conversation"""
 
     async def _handle_content(self, params: dict, command: str) -> dict:
         from core.writer.generator import writer
+
         ctype = params.get("type", "blog")
         topic = params.get("topic") or params.get("text") or command
         tone = params.get("tone", "professional")
@@ -118,19 +120,27 @@ For chat: just the conversation"""
 
     async def _handle_browser(self, params: dict, command: str) -> dict:
         from core.browser.agent import browser_agent
+
         task = params.get("task") or params.get("text") or command
         result = await browser_agent.execute(task, headless=False)
         return {"action": "browser", "result": result}
 
     async def _handle_crm(self, params: dict) -> dict:
         from core.crm.pipeline import crm
+
         sub = params.get("sub_action", "summary")
         if sub == "summary" or sub == "list":
             return {"action": "crm", "result": crm.get_sales_summary()}
         elif sub == "add_contact":
-            return {"action": "crm", "result": crm.add_contact(params.get("name", ""), params.get("email", ""))}
+            return {
+                "action": "crm",
+                "result": crm.add_contact(params.get("name", ""), params.get("email", "")),
+            }
         elif sub == "add_deal":
-            return {"action": "crm", "result": crm.add_deal(params.get("title", ""), float(params.get("value", 0)), "")}
+            return {
+                "action": "crm",
+                "result": crm.add_deal(params.get("title", ""), float(params.get("value", 0)), ""),
+            }
         elif sub == "list_contacts":
             return {"action": "crm", "result": crm.list_contacts()}
         elif sub == "list_deals":
@@ -139,6 +149,7 @@ For chat: just the conversation"""
 
     async def _handle_seo(self, params: dict) -> dict:
         from core.seo.analytics import seo
+
         sub = params.get("sub_action", "")
         if sub == "sites":
             return {"action": "seo", "result": seo.list_sites()}
@@ -146,6 +157,7 @@ For chat: just the conversation"""
 
     async def _handle_social(self, params: dict) -> dict:
         from core.social.manager import social
+
         sub = params.get("sub_action", "")
         if sub == "add_page":
             p = social.add_page(params.get("name", ""), params.get("platform", "facebook"))
@@ -157,12 +169,18 @@ For chat: just the conversation"""
 
     async def _handle_whatsapp(self, params: dict) -> dict:
         from core.whatsapp.business import waba
+
         sub = params.get("sub_action", "")
         if sub == "add_product":
-            p = waba.add_product(params.get("name", ""), params.get("description", ""), float(params.get("price", 0)))
+            p = waba.add_product(
+                params.get("name", ""), params.get("description", ""), float(params.get("price", 0))
+            )
             return {"action": "whatsapp", "result": f"Product added: {p.name} (${p.price})"}
         elif sub == "send":
-            return {"action": "whatsapp", "result": f"Send message to {params.get('to', '')}: {params.get('text', '')}"}
+            return {
+                "action": "whatsapp",
+                "result": f"Send message to {params.get('to', '')}: {params.get('text', '')}",
+            }
         return {"action": "whatsapp", "result": waba.get_stats()}
 
     async def _handle_vault(self, params: dict) -> dict:
@@ -177,6 +195,7 @@ For chat: just the conversation"""
 
     async def _handle_android(self, params: dict) -> dict:
         from core.android.device import android
+
         sub = params.get("sub_action", "")
         if sub == "screenshot" and android.is_connected:
             path = android.screenshot()
@@ -184,10 +203,15 @@ For chat: just the conversation"""
         elif sub == "type" and android.is_connected:
             android.input_text(params.get("text", ""))
             return {"action": "android", "result": "Text typed"}
-        return {"action": "android", "result": "Android device: " + ("connected" if android.is_connected else "not connected")}
+        return {
+            "action": "android",
+            "result": "Android device: "
+            + ("connected" if android.is_connected else "not connected"),
+        }
 
     async def _handle_files(self, params: dict) -> dict:
         import os
+
         sub = params.get("sub_action", "list")
         path = params.get("path", ".")
         if sub == "list":
@@ -196,8 +220,8 @@ For chat: just the conversation"""
         return {"action": "files", "result": "File operations ready"}
 
     async def _handle_vision(self, params: dict) -> dict:
-        from core.vision import CameraDevice, ObjectDetector, FaceDetector, SceneDescriber
         from core.provider import engine as ai_engine
+        from core.vision import CameraDevice, FaceDetector, ObjectDetector, SceneDescriber
 
         sub = params.get("sub_action", "capture")
         camera = CameraDevice(device_id=0)

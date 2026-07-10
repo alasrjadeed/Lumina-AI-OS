@@ -3,8 +3,6 @@ from __future__ import annotations
 import difflib
 import re
 import time
-from collections.abc import Callable
-from typing import Any
 
 
 class EchoDetector:
@@ -15,6 +13,7 @@ class EchoDetector:
     - Short-term and long-term utterance history
     - Time-weighted scoring (recent echoes weigh more)
     """
+
     def __init__(
         self,
         similarity_threshold: float = 0.55,
@@ -98,7 +97,7 @@ class EchoDetector:
         words = text.split()
         ngrams: set[str] = set()
         for i in range(len(words) - self.ngram_size + 1):
-            ngrams.add(" ".join(words[i:i + self.ngram_size]))
+            ngrams.add(" ".join(words[i : i + self.ngram_size]))
         return ngrams
 
     @staticmethod

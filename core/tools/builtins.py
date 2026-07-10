@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import math
+from typing import Any
 
 import httpx
 
@@ -11,8 +12,7 @@ from core.tools.base import Tool, ToolResult
 class CalculatorTool(Tool):
     name = "calculator"
     description = (
-        "Evaluate a mathematical expression. "
-        "Supports +, -, *, /, **, %, and common math functions."
+        "Evaluate a mathematical expression. Supports +, -, *, /, **, %, and common math functions."
     )
     parameters = {
         "type": "object",
@@ -25,7 +25,7 @@ class CalculatorTool(Tool):
         "required": ["expression"],
     }
 
-    async def execute(self, expression: str, **kwargs) -> ToolResult:
+    async def execute(self, expression: str, **kwargs: Any) -> ToolResult:  # pyright: ignore[reportIncompatibleMethodOverride]
         allowed = set("0123456789.+-*/%()[] ,e")
         safe = all(c in allowed or c.isalpha() for c in expression)
         if not safe:
@@ -46,7 +46,7 @@ class CurrentDateTimeTool(Tool):
         "properties": {},
     }
 
-    async def execute(self, **kwargs) -> ToolResult:
+    async def execute(self, **kwargs: Any) -> ToolResult:  # pyright: ignore[reportIncompatibleMethodOverride]
         now = datetime.datetime.now().isoformat()
         return ToolResult(success=True, output=now, data={"datetime": now, "timezone": "local"})
 
@@ -62,7 +62,7 @@ class WebFetchTool(Tool):
         "required": ["url"],
     }
 
-    async def execute(self, url: str, **kwargs) -> ToolResult:
+    async def execute(self, url: str, **kwargs: Any) -> ToolResult:  # pyright: ignore[reportIncompatibleMethodOverride]
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(url)
@@ -89,7 +89,7 @@ class FileReadTool(Tool):
         "required": ["path"],
     }
 
-    async def execute(self, path: str, limit: int = 5000, **kwargs) -> ToolResult:
+    async def execute(self, path: str, limit: int = 5000, **kwargs: Any) -> ToolResult:  # pyright: ignore[reportIncompatibleMethodOverride]
         try:
             with open(path) as f:
                 content = f.read(limit)

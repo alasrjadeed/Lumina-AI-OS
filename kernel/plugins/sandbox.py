@@ -6,6 +6,9 @@ import multiprocessing
 import os
 import sys
 import traceback
+from multiprocessing.connection import (
+    Connection as MultiprocessingConnection,  # pyright: ignore[reportAttributeAccessIssue]
+)
 from typing import Any
 
 from kernel.log import setup_log
@@ -19,7 +22,7 @@ def _sandbox_target(
     plugin_dir: str,
     module_name: str,
     entry_point: str,
-    conn: multiprocessing.Connection,
+    conn: MultiprocessingConnection,
 ) -> None:
     """Entry point for the sandbox subprocess."""
     sys.path.insert(0, os.path.dirname(plugin_dir))
@@ -76,7 +79,7 @@ class SandboxedPlugin:
         self._entry_point = entry_point
         self._timeout = timeout
         self._process: multiprocessing.Process | None = None
-        self._conn: multiprocessing.Connection | None = None
+        self._conn: MultiprocessingConnection | None = None
 
     async def start(self) -> None:
         parent_conn, child_conn = multiprocessing.Pipe(duplex=True)
@@ -90,11 +93,10 @@ class SandboxedPlugin:
         self._conn = parent_conn
 
         loop = asyncio.get_running_loop()
+        assert self._conn is not None
         resp = await loop.run_in_executor(None, self._conn.recv)
         if resp.get("status") != "ok":
-            raise RuntimeError(
-                f"Sandbox startup failed for '{self._name}': {resp.get('error')}"
-            )
+            raise RuntimeError(f"Sandbox startup failed for '{self._name}': {resp.get('error')}")
         log.info("Sandbox started: %s (pid=%d)", self._name, self._process.pid)
 
     async def stop(self) -> None:
@@ -124,11 +126,10 @@ class SandboxedPlugin:
         loop = asyncio.get_running_loop()
 
         def _send_recv() -> dict:
+            assert self._conn is not None
             self._conn.send({"cmd": method, "args": args, "kwargs": kwargs})
             if not self._conn.poll(self._timeout):
-                raise TimeoutError(
-                    f"Sandbox call '{method}' timed out after {self._timeout}s"
-                )
+                raise TimeoutError(f"Sandbox call '{method}' timed out after {self._timeout}s")
             return self._conn.recv()
 
         resp = await loop.run_in_executor(None, _send_recv)

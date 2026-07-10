@@ -31,8 +31,10 @@ class PageInteractor:
         self._page = page
 
     async def wait(
-        self, strategy: WaitStrategy = WaitStrategy.VISIBLE,
-        selector: str = "", timeout: float = 5000,
+        self,
+        strategy: WaitStrategy = WaitStrategy.VISIBLE,
+        selector: str = "",
+        timeout: float = 5000,
     ) -> bool:
         try:
             if strategy == WaitStrategy.VISIBLE and selector:
@@ -56,7 +58,8 @@ class PageInteractor:
             return False
 
     async def scroll(
-        self, direction: ScrollDirection | str = ScrollDirection.DOWN,
+        self,
+        direction: ScrollDirection | str = ScrollDirection.DOWN,
         amount: int = 300,
     ) -> None:
         dir_map = {
@@ -119,10 +122,7 @@ class PageInteractor:
             await self._page.close()
 
     async def get_tabs(self) -> list[dict]:
-        return [
-            {"url": p.url, "title": await p.title()}
-            for p in self._page.context.pages
-        ]
+        return [{"url": p.url, "title": await p.title()} for p in self._page.context.pages]
 
     async def inject_css(self, css: str) -> None:
         await self._page.add_style_tag(content=css)

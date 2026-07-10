@@ -6,7 +6,7 @@ import uuid
 import pytest
 
 from kernel.events.builtins.logging import LoggingMiddleware
-from kernel.events.builtins.metrics import MetricsMiddleware
+from kernel.events.builtins.metrics import MetricsMiddleware  # pyright: ignore[reportAbstractUsage]
 from kernel.events.builtins.rate_limit import RateLimitMiddleware, TokenBucket
 from kernel.events.builtins.tracing import TracingMiddleware
 from kernel.events.builtins.validation import ValidationMiddleware
@@ -16,6 +16,7 @@ from kernel.events.subscription import Subscription
 # ---------------------------------------------------------------------------
 # LoggingMiddleware
 # ---------------------------------------------------------------------------
+
 
 class TestLoggingMiddleware:
     @pytest.fixture
@@ -40,19 +41,19 @@ class TestLoggingMiddleware:
 
     @pytest.mark.asyncio
     async def test_before_handler_returns_event(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         e = Event(name="test")
         result = await mw.before_handler(sub, e)
         assert result is e
 
     @pytest.mark.asyncio
     async def test_after_handler_does_not_raise(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         await mw.after_handler(sub, Event(name="test"))
 
     @pytest.mark.asyncio
     async def test_on_exception_does_not_raise(self, mw):
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         await mw.on_exception(sub, Event(name="test"), ValueError("x"))
 
     @pytest.mark.asyncio
@@ -63,6 +64,7 @@ class TestLoggingMiddleware:
 # ---------------------------------------------------------------------------
 # MetricsMiddleware
 # ---------------------------------------------------------------------------
+
 
 class TestMetricsMiddleware:
     @pytest.fixture
@@ -84,14 +86,14 @@ class TestMetricsMiddleware:
     async def test_after_handler_tracks_duration(self, mw):
         e = Event(name="a", correlation_id="c1")
         await mw.before_publish(e)
-        await mw.after_handler(Subscription(topic="t", handler=lambda e: None), e)
+        await mw.after_handler(Subscription(topic="t", handler=lambda e: None), e)  # pyright: ignore[reportArgumentType]
         assert mw._per_type["a"].dispatched == 1
         assert mw._per_type["a"].total_duration > 0
 
     @pytest.mark.asyncio
     async def test_on_exception_increments_failed(self, mw):
         e = Event(name="a")
-        await mw.on_exception(Subscription(topic="t", handler=lambda e: None), e, ValueError("x"))
+        await mw.on_exception(Subscription(topic="t", handler=lambda e: None), e, ValueError("x"))  # pyright: ignore[reportArgumentType]
         assert mw._per_type["a"].failed == 1
 
     @pytest.mark.asyncio
@@ -110,6 +112,7 @@ class TestMetricsMiddleware:
 # ---------------------------------------------------------------------------
 # ValidationMiddleware
 # ---------------------------------------------------------------------------
+
 
 class TestValidationMiddleware:
     @pytest.fixture
@@ -147,6 +150,7 @@ class TestValidationMiddleware:
     async def test_remove_validator(self, mw):
         def v(ev):
             return True
+
         mw.add_validator("t", v)
         assert mw.remove_validator("t", v) is True
         assert "t" not in mw._validators
@@ -176,6 +180,7 @@ class TestValidationMiddleware:
 # TracingMiddleware
 # ---------------------------------------------------------------------------
 
+
 class TestTracingMiddleware:
     @pytest.fixture
     def mw(self):
@@ -198,14 +203,14 @@ class TestTracingMiddleware:
     @pytest.mark.asyncio
     async def test_before_handler_propagates_id(self, mw):
         e = Event(name="test", correlation_id="abc")
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         result = await mw.before_handler(sub, e)
         assert result.correlation_id == "abc"
 
     @pytest.mark.asyncio
     async def test_before_handler_no_id_does_nothing(self, mw):
         e = Event(name="test")
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         result = await mw.before_handler(sub, e)
         assert result.correlation_id == ""
 
@@ -219,7 +224,7 @@ class TestTracingMiddleware:
     async def test_propagate_false_returns_same_event(self, mw):
         mw._propagate = False
         e = Event(name="test", correlation_id="abc")
-        sub = Subscription(topic="t", handler=lambda e: None)
+        sub = Subscription(topic="t", handler=lambda e: None)  # pyright: ignore[reportArgumentType]
         result = await mw.before_handler(sub, e)
         assert result is e
 
@@ -227,6 +232,7 @@ class TestTracingMiddleware:
 # ---------------------------------------------------------------------------
 # TokenBucket
 # ---------------------------------------------------------------------------
+
 
 class TestTokenBucket:
     def test_initial_tokens(self):
@@ -246,6 +252,7 @@ class TestTokenBucket:
 # ---------------------------------------------------------------------------
 # RateLimitMiddleware
 # ---------------------------------------------------------------------------
+
 
 class TestRateLimitMiddleware:
     @pytest.fixture

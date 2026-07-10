@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from typing import Any
 
 try:
-    from PySide6.QtWidgets import QApplication, QMainWindow
+    from PySide6.QtWidgets import QApplication, QMainWindow  # pyright: ignore[reportMissingImports]
+
     HAS_PYSIDE = True
 except ImportError:
     QApplication = None
@@ -110,8 +111,10 @@ class AppWindow:
         if not HAS_PYSIDE:
             log.warning("PySide6 not installed")
             return False
+        assert QApplication is not None
         self._qt_app = QApplication.instance() or QApplication([])
         self._qt_app.setApplicationName(self.title)
+        assert QMainWindow is not None
         self._qt_window = QMainWindow()
         self._qt_window.setWindowTitle(self.title)
         self._qt_window.resize(self.state.width, self.state.height)
@@ -125,6 +128,7 @@ class AppWindow:
         if not self._qt_window and not self.initialize_pyside():
             log.info("AppWindow: running in headless mode")
             return False
+        assert self._qt_window is not None
         self._qt_window.show()
         return True
 
@@ -146,8 +150,10 @@ class AppWindow:
 
     def save_state(self, path: str) -> None:
         data = {
-            "x": self.state.x, "y": self.state.y,
-            "width": self.state.width, "height": self.state.height,
+            "x": self.state.x,
+            "y": self.state.y,
+            "width": self.state.width,
+            "height": self.state.height,
             "maximized": self.state.maximized,
             "theme": self.theme.theme,
         }

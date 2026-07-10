@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 ROUTINE_DIR = os.path.expanduser("~/.lumina/routine")
 
@@ -26,11 +25,16 @@ class DailyReport:
 
     def to_dict(self) -> dict:
         return {
-            "date": self.date, "tasks_completed": self.tasks_completed,
-            "tasks_failed": self.tasks_failed, "agents_used": self.agents_used,
-            "total_duration_ms": self.total_duration_ms, "highlights": self.highlights,
-            "issues": self.issues, "pending_approvals": self.pending_approvals,
-            "lessons_learned": self.lessons_learned, "created_at": self.created_at,
+            "date": self.date,
+            "tasks_completed": self.tasks_completed,
+            "tasks_failed": self.tasks_failed,
+            "agents_used": self.agents_used,
+            "total_duration_ms": self.total_duration_ms,
+            "highlights": self.highlights,
+            "issues": self.issues,
+            "pending_approvals": self.pending_approvals,
+            "lessons_learned": self.lessons_learned,
+            "created_at": self.created_at,
         }
 
 
@@ -55,27 +59,34 @@ class AutonomousRoutine:
                 with open(path) as f:
                     data = json.load(f)
                 for rd in data.get("reports", []):
-                    self._reports.append(DailyReport(
-                        date=rd["date"], tasks_completed=rd["tasks_completed"],
-                        tasks_failed=rd.get("tasks_failed", 0),
-                        agents_used=rd.get("agents_used", []),
-                        total_duration_ms=rd.get("total_duration_ms", 0),
-                        highlights=rd.get("highlights", []),
-                        issues=rd.get("issues", []),
-                        pending_approvals=rd.get("pending_approvals", 0),
-                        lessons_learned=rd.get("lessons_learned", []),
-                        created_at=rd.get("created_at", 0),
-                    ))
+                    self._reports.append(
+                        DailyReport(
+                            date=rd["date"],
+                            tasks_completed=rd["tasks_completed"],
+                            tasks_failed=rd.get("tasks_failed", 0),
+                            agents_used=rd.get("agents_used", []),
+                            total_duration_ms=rd.get("total_duration_ms", 0),
+                            highlights=rd.get("highlights", []),
+                            issues=rd.get("issues", []),
+                            pending_approvals=rd.get("pending_approvals", 0),
+                            lessons_learned=rd.get("lessons_learned", []),
+                            created_at=rd.get("created_at", 0),
+                        )
+                    )
                 self._checklist = data.get("checklist", [])
             except Exception:
                 pass
 
     def _save(self):
         with open(self._path(), "w") as f:
-            json.dump({
-                "reports": [r.to_dict() for r in self._reports[-30:]],
-                "checklist": self._checklist,
-            }, f, indent=2)
+            json.dump(
+                {
+                    "reports": [r.to_dict() for r in self._reports[-30:]],
+                    "checklist": self._checklist,
+                },
+                f,
+                indent=2,
+            )
 
     @property
     def status(self) -> str:
@@ -84,7 +95,7 @@ class AutonomousRoutine:
     async def morning_startup(self) -> dict:
         """Run the morning startup routine — check status, prioritize, report."""
         self._status = "starting"
-        start = time.time()
+        time.time()
 
         report = DailyReport(
             date=time.strftime("%Y-%m-%d"),
@@ -110,7 +121,11 @@ class AutonomousRoutine:
         }
 
     async def add_completed_task(
-        self, agent: str, task: str, duration_ms: float, success: bool,
+        self,
+        agent: str,
+        task: str,
+        duration_ms: float,
+        success: bool,
     ):
         if self._reports:
             r = self._reports[-1]
@@ -140,14 +155,15 @@ class AutonomousRoutine:
             f"## Daily Report — {r.date}\n\n"
             f"- **Tasks**: {r.tasks_completed} completed, {r.tasks_failed} failed\n"
             f"- **Agents used**: {', '.join(r.agents_used) if r.agents_used else 'none'}\n"
-            f"- **Duration**: {r.total_duration_ms/1000:.1f}s\n"
+            f"- **Duration**: {r.total_duration_ms / 1000:.1f}s\n"
             f"- **Pending approvals**: {r.pending_approvals}\n\n"
-            f"### Highlights\n" +
-            "\n".join(f"- {h}" for h in r.highlights[:10]) + "\n\n" +
-            f"### Issues\n" +
-            "\n".join(f"- {i}" for i in r.issues[:10]) +
-            "\n\n### Lessons\n" +
-            "\n".join(f"- {l}" for l in r.lessons_learned[:10])
+            f"### Highlights\n"
+            + "\n".join(f"- {h}" for h in r.highlights[:10])
+            + "\n\n"
+            + "### Issues\n"
+            + "\n".join(f"- {i}" for i in r.issues[:10])
+            + "\n\n### Lessons\n"
+            + "\n".join(f"- {lesson}" for lesson in r.lessons_learned[:10])
         )
 
     async def evening_shutdown(self) -> dict:

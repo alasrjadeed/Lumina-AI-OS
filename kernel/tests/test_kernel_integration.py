@@ -27,9 +27,7 @@ async def test_init_publishes_initialized_event(kernel):
     async def handler(event: Event):
         received.append(event.name)
 
-    await kernel.event_bus.register(
-        Subscription(topic="kernel.initialized", handler=handler)
-    )
+    await kernel.event_bus.register(Subscription(topic="kernel.initialized", handler=handler))
     await kernel.init()
     await kernel.event_bus.join()
     await kernel.shutdown()
@@ -64,9 +62,7 @@ async def test_shutdown_publishes_shutdown_event(kernel):
     async def handler(event: Event):
         received.append(event.name)
 
-    await kernel.event_bus.register(
-        Subscription(topic="kernel.shutdown", handler=handler)
-    )
+    await kernel.event_bus.register(Subscription(topic="kernel.shutdown", handler=handler))
     await kernel.init()
     await kernel.shutdown()
     await kernel.event_bus.join()
@@ -110,9 +106,7 @@ async def test_full_publish_consume_through_kernel(kernel):
     async def handler(event: Event):
         received.append((event.name, event.payload))
 
-    await kernel.event_bus.register(
-        Subscription(topic="custom.event", handler=handler)
-    )
+    await kernel.event_bus.register(Subscription(topic="custom.event", handler=handler))
     await kernel.init()
     await kernel.event_bus.publish(Event(name="custom.event", payload=42))
     await kernel.event_bus.join()
@@ -149,9 +143,7 @@ async def test_middleware_tracing_in_kernel(kernel):
     async def handler(event: Event):
         received.append(event.correlation_id)
 
-    await kernel.event_bus.register(
-        Subscription(topic="trace.test", handler=handler)
-    )
+    await kernel.event_bus.register(Subscription(topic="trace.test", handler=handler))
     await kernel.init()
     await kernel.event_bus.publish(Event(name="trace.test"))
     await kernel.event_bus.join()
@@ -169,9 +161,7 @@ async def test_middleware_validation_rejects(kernel):
 
     await kernel.init()
     with pytest.raises(Exception, match="Validation failed"):
-        await kernel.event_bus.publish(
-            Event(name="must.be.five", payload=3)
-        )
+        await kernel.event_bus.publish(Event(name="must.be.five", payload=3))
     await kernel.shutdown()
 
 
@@ -186,13 +176,9 @@ async def test_middleware_validation_allows(kernel):
     async def handler(event: Event):
         received.append(event.payload)
 
-    await kernel.event_bus.register(
-        Subscription(topic="must.be.five", handler=handler)
-    )
+    await kernel.event_bus.register(Subscription(topic="must.be.five", handler=handler))
     await kernel.init()
-    await kernel.event_bus.publish(
-        Event(name="must.be.five", payload=5)
-    )
+    await kernel.event_bus.publish(Event(name="must.be.five", payload=5))
     await kernel.event_bus.join()
     await kernel.shutdown()
 
@@ -201,7 +187,7 @@ async def test_middleware_validation_allows(kernel):
 
 @pytest.mark.asyncio
 async def test_middleware_metrics_in_kernel(kernel):
-    mw = MetricsMiddleware()
+    mw = MetricsMiddleware()  # pyright: ignore[reportAbstractUsage]
     kernel.event_bus.add_middleware(mw)
 
     await kernel.init()

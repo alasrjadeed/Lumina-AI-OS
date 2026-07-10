@@ -26,12 +26,14 @@ class TabManager:
         current = self._page
         result = []
         for i, p in enumerate(pages):
-            result.append(TabInfo(
-                id=i,
-                url=p.url,
-                title=await p.title(),
-                active=p == current,
-            ))
+            result.append(
+                TabInfo(
+                    id=i,
+                    url=p.url,
+                    title=await p.title(),
+                    active=p == current,
+                )
+            )
         return result
 
     async def switch_to(self, index: int) -> bool:
@@ -103,16 +105,10 @@ class TabManager:
         return len(self._page.context.pages)
 
     async def get_by_url(self, url_pattern: str) -> list[TabInfo]:
-        return [
-            t for t in await self.list_tabs()
-            if url_pattern in t.url
-        ]
+        return [t for t in await self.list_tabs() if url_pattern in t.url]
 
     async def get_by_title(self, title_pattern: str) -> list[TabInfo]:
-        return [
-            t for t in await self.list_tabs()
-            if title_pattern.lower() in t.title.lower()
-        ]
+        return [t for t in await self.list_tabs() if title_pattern.lower() in t.title.lower()]
 
     async def bring_to_front(self, index: int) -> bool:
         return await self.switch_to(index)

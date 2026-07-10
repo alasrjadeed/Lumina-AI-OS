@@ -28,9 +28,15 @@ class TestPluginDiscovery:
         pm = PluginManager()
         found = pm.discover()
         names = [p.split("/")[-1].replace(".py", "") for p in found]
-        expected = {"seo_suite", "crm", "whatsapp_automation",
-                    "email_automation", "lead_management",
-                    "marketing", "reporting"}
+        expected = {
+            "seo_suite",
+            "crm",
+            "whatsapp_automation",
+            "email_automation",
+            "lead_management",
+            "marketing",
+            "reporting",
+        }
         assert expected.issubset(set(names))
 
 
@@ -40,7 +46,7 @@ class TestSEOSuitePlugin:
         assert pm.load("seo_suite")
         info = pm.get_plugin("seo_suite")
         assert info is not None
-        assert info.metadata.name == "SEO Suite"
+        assert info is not None and info.metadata.name == "SEO Suite"
         pm.unload("seo_suite")
 
     def test_module_functions(self):
@@ -54,9 +60,12 @@ class TestSEOSuitePlugin:
         assert any("test" in k.get("keyword", "") for k in kws)
 
     def test_audit_result_dataclass(self):
-        ar = seo_plugin.AuditResult(url="https://test.com", score=85.0,
-                                    issues=[{"type": "test", "severity": "low"}],
-                                    suggestions=["fix it"])
+        ar = seo_plugin.AuditResult(
+            url="https://test.com",
+            score=85.0,
+            issues=[{"type": "test", "severity": "low"}],
+            suggestions=["fix it"],
+        )
         assert ar.score == 85.0
         assert len(ar.issues) == 1
         d = ar.to_dict()
@@ -77,7 +86,7 @@ class TestCRMPlugin:
         pm = PluginManager()
         assert pm.load("crm")
         info = pm.get_plugin("crm")
-        assert info.metadata.name == "CRM"
+        assert info is not None and info.metadata.name == "CRM"
         pm.unload("crm")
 
     def test_contact_crud(self):
@@ -131,7 +140,8 @@ class TestEmailAutomationPlugin:
 
     def test_template_crud(self):
         email_plugin.create_template(
-            "welcome", "Welcome {name}!",
+            "welcome",
+            "Welcome {name}!",
             "Hello {name}, welcome to our service",
         )
         t = email_plugin.get_template("welcome")
@@ -166,13 +176,13 @@ class TestLeadManagementPlugin:
     def test_update_lead(self):
         lead = lead_plugin.add_lead("Bob", "bob@test.com")
         updated = lead_plugin.update_lead(lead.id, name="Bobby", company="Corp")
-        assert updated.name == "Bobby"
+        assert updated is not None and updated.name == "Bobby"
 
     def test_update_status(self):
         lead = lead_plugin.add_lead("Charlie", "charlie@test.com")
         assert lead_plugin.update_status(lead.id, "qualified")
         fetched = lead_plugin.get_lead(lead.id)
-        assert fetched.status == "qualified"
+        assert fetched is not None and fetched.status == "qualified"
 
     def test_list_leads_filter(self):
         lead_plugin.add_lead("Diana", source="referral")
@@ -211,7 +221,8 @@ class TestMarketingPlugin:
         c = marketing_plugin.create_campaign("Summer Sale", "email", 1000)
         assert c.status == "draft"
         assert marketing_plugin.launch_campaign("Summer Sale")
-        assert marketing_plugin.get_campaign("Summer Sale").status == "active"
+        camp = marketing_plugin.get_campaign("Summer Sale")
+        assert camp is not None and camp.status == "active"
         assert marketing_plugin.pause_campaign("Summer Sale")
         assert marketing_plugin.complete_campaign("Summer Sale")
 
@@ -253,7 +264,8 @@ class TestReportingPlugin:
         reporting_plugin.create_report("Data Report")
         reporting_plugin.add_section("Data Report", "Details")
         reporting_plugin.add_table_data(
-            "Data Report", "Details",
+            "Data Report",
+            "Details",
             [{"name": "A", "value": 1}, {"name": "B", "value": 2}],
         )
         reports = reporting_plugin.list_reports()
@@ -285,10 +297,12 @@ class TestReportingPlugin:
         assert "HTML Test" in content
 
     def test_generate_summary_report(self):
-        report = reporting_plugin.generate_summary_report([
-            {"name": "A", "value": 100},
-            {"name": "B", "value": 200},
-        ])
+        report = reporting_plugin.generate_summary_report(
+            [
+                {"name": "A", "value": 100},
+                {"name": "B", "value": 200},
+            ]
+        )
         assert report.title == "Summary Report"
         assert len(report.sections) >= 2
 
@@ -319,7 +333,7 @@ class TestPluginHookIntegration:
         pm = PluginManager()
         count = pm.load_all()
         assert count >= 7
-        names = {p.metadata.name for p in pm.list_plugins()}
+        names = {p.metadata.name for p in pm.list_plugins() if p is not None}
         assert "SEO Suite" in names
         assert "CRM" in names
         assert "WhatsApp Automation" in names
