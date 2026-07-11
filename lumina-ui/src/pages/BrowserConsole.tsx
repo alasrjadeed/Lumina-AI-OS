@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, ArrowRight, MousePointer, Type, Code, Image, X } from 'lucide-react';
+import { Globe, ArrowRight, MousePointer, Type, Image } from 'lucide-react';
 
 export default function BrowserConsole() {
   const [url, setUrl] = useState('');
@@ -17,7 +17,7 @@ export default function BrowserConsole() {
     setLoading(true);
     try {
       const res = await fetch('/api/browser/navigate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
-      const data = await res.json();
+      await res.json();
       addLog(`Navigated to ${url}`);
       const contentRes = await fetch('/api/browser/content');
       const contentData = await contentRes.json();

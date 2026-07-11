@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Activity, Play, Loader2, CheckCircle, XCircle, Plus, Trash2,
-  Power, PowerOff, Clock, Globe, FileText, Bell, Terminal,
-  Code2, Mail, User, LogIn, Eye, EyeOff, Copy, RefreshCw,
-  Settings2, ListOrdered, Workflow, History, Zap, Webhook,
-  ToggleLeft, ToggleRight, ChevronRight, ChevronDown, Brain, GitBranch,
+  Activity, Play, Loader2, CheckCircle, Plus, Trash2,
+  Clock, Globe, FileText, Bell, Terminal,
+  Code2, Mail, User, RefreshCw,
+  Settings2, ListOrdered, Workflow, History, Zap,
+  ToggleLeft, ToggleRight, ChevronRight, Brain, GitBranch,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -101,7 +101,7 @@ export default function Automation() {
       setTriggers(tr.triggers);
       setActions(ac.actions);
       setHistory(hist.history);
-    } catch (e: any) {
+    } catch {
       addToast('Failed to load automation data', 'error');
     }
   }, [addToast]);
@@ -544,7 +544,7 @@ export default function Automation() {
                 )}
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Steps</p>
-                  {selectedRun.steps.map((s, i) => (
+                  {selectedRun.steps.map((s, _i) => (
                     <div key={s.step_id} className={`rounded-xl border p-4 ${
                       s.status === 'success' ? 'bg-emerald-500/5 border-emerald-800/30' :
                       s.status === 'failed' ? 'bg-red-500/5 border-red-800/30' : 'bg-slate-900/50 border-white/10'

@@ -29,6 +29,9 @@ import CodingAgent from './pages/CodingAgent';
 import MultiAgent from './pages/MultiAgent';
 import Projects from './pages/Projects';
 import VisualFlows from './pages/VisualFlows';
+import Help from './pages/Help';
+import SkillsPresets from './pages/SkillsPresets';
+import About from './pages/About';
 import ToastContainer from './components/ui/Toast';
 
 export default function App() {
@@ -65,6 +68,9 @@ export default function App() {
           <Route path="/multi-agent" element={<MultiAgent />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/visual-flows" element={<VisualFlows />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/skills" element={<SkillsPresets />} />
         </Routes>
       </Layout>
       <ToastContainer />

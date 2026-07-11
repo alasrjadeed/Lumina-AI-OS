@@ -10,6 +10,7 @@ class ModelCapability:
     context_window: int = 4096
     supports_tools: bool = False
     supports_streaming: bool = False
+    supports_vision: bool = False
     cost_per_1k_input: float = 0.0
     cost_per_1k_output: float = 0.0
     capabilities: list[str] = field(default_factory=lambda: ["general"])

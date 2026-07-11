@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   Bot, Code2, Play, Loader2, CheckCircle, XCircle, AlertCircle,
-  GitBranch, GitCommit, FileSearch, TestTube, RefreshCw,
-  Wrench, Brain, BookOpen, Settings2, ChevronRight, Send,
-  FolderOpen, FileCode, Terminal, Bug, Star, Clock,
+  GitCommit, FileSearch, TestTube, RefreshCw,
+  Wrench, Brain, BookOpen, Settings2, ChevronRight,
+  FolderOpen, FileCode, Terminal, Bug, Star,
 } from 'lucide-react';
 
 interface Phase {

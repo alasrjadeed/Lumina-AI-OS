@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Monitor, Play, Loader2, CheckCircle, XCircle, AlertCircle,
-  Terminal, Grid3X3, Maximize2, Minimize2, X, Clipboard,
-  Bell, HardDrive, Cpu, BarChart3, ExternalLink, Palette,
-  Globe, Code2, FileText, Send, ChevronRight, RefreshCw,
+  Terminal, Maximize2, Minimize2, X,
+  Bell, Cpu, BarChart3, ExternalLink, Palette,
+  Globe, Code2, RefreshCw,
 } from 'lucide-react';
 
 interface CmdResult {
@@ -47,35 +47,43 @@ export default function DesktopControl() {
   const fetchStats = useCallback(async () => {
     try {
       const r = await fetch('/desktop/stats');
-      setStats(await r.json());
-    } catch {}
+      if (r.ok) setStats(await r.json());
+    } catch {
+      setLogs(l => [...l, '✗ Failed to fetch system stats']);
+    }
   }, []);
 
   const fetchApps = useCallback(async () => {
     try {
       const r = await fetch('/desktop/apps?running_only=true');
-      const d = await r.json();
-      setApps(d.apps || []);
+      if (r.ok) {
+        const d = await r.json();
+        setApps(d.apps || []);
+      }
     } catch {}
   }, []);
 
   const fetchWindows = useCallback(async () => {
     try {
       const r = await fetch('/desktop/windows');
-      const d = await r.json();
-      setWindows(d.windows || []);
+      if (r.ok) {
+        const d = await r.json();
+        setWindows(d.windows || []);
+      }
     } catch {}
   }, []);
 
   const fetchClipboard = useCallback(async () => {
     try {
       const r = await fetch('/desktop/clipboard');
-      const d = await r.json();
-      setClipboard(d.content || '');
+      if (r.ok) {
+        const d = await r.json();
+        setClipboard(d.content || '');
+      }
     } catch {}
   }, []);
 
-  useEffect(() => { fetchStats(); fetchWindows(); }, []);
+  useEffect(() => { fetchStats(); fetchApps(); fetchWindows(); fetchClipboard(); }, [fetchStats, fetchApps, fetchWindows, fetchClipboard]);
 
   const runAgent = async () => {
     if (!task.trim() || running) return;
@@ -88,6 +96,10 @@ export default function DesktopControl() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task, timeout: 60 }),
       });
+      if (!r.ok) {
+        const text = await r.text().catch(() => '');
+        throw new Error(text || `Server returned ${r.status}`);
+      }
       const data = await r.json();
       setResults(data.results || []);
       setLogs(l => [...l, ...(data.results || []).map((res: any) =>
@@ -111,6 +123,10 @@ export default function DesktopControl() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, path: name, args: [] }),
       });
+      if (!r.ok) {
+        const text = await r.text().catch(() => '');
+        throw new Error(text || `Server returned ${r.status}`);
+      }
       const d = await r.json();
       setLogs(l => [...l, `✓ ${name} launched (PID ${d.app?.pid || '?'})`]);
       await fetchApps();
@@ -122,11 +138,12 @@ export default function DesktopControl() {
   const winAction = async (action: string, title: string) => {
     setLogs(l => [...l, `> ${action} "${title}"...`]);
     try {
-      await fetch(`/desktop/windows/${action}?title=${encodeURIComponent(title)}`, { method: 'POST' });
+      const r = await fetch(`/desktop/windows/${action}?title=${encodeURIComponent(title)}`, { method: 'POST' });
+      if (!r.ok) throw new Error(`Server returned ${r.status}`);
       setLogs(l => [...l, `✓ ${action} ${title}`]);
       await fetchWindows();
     } catch (e: any) {
-      setLogs(l => [...l, `✗ ${e.message}`]);
+      setLogs(l => [...l, `✗ ${action}: ${e.message}`]);
     }
   };
 
@@ -276,7 +293,16 @@ export default function DesktopControl() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <button onClick={() => fetch('/desktop/apps/kill?' + new URLSearchParams({ name: a.name }), { method: 'POST' }).then(() => fetchApps())}
+                    <button onClick={async () => {
+                      try {
+                        const r = await fetch('/desktop/apps/kill?' + new URLSearchParams({ name: a.name }), { method: 'POST' });
+                        if (!r.ok) throw new Error('Kill failed');
+                        setLogs(l => [...l, `✓ Killed ${a.name}`]);
+                        await fetchApps();
+                      } catch (e: any) {
+                        setLogs(l => [...l, `✗ Kill ${a.name}: ${e.message}`]);
+                      }
+                    }}
                       className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all">
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -332,29 +358,55 @@ export default function DesktopControl() {
           <div className="bento-card space-y-3">
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => fetch('/desktop/notify?' + new URLSearchParams({ title: 'Lumina', message: 'Desktop Control active', level: 'info' }), { method: 'POST' })}
+              <button onClick={async () => {
+                try {
+                  const r = await fetch('/desktop/notify?' + new URLSearchParams({ title: 'Lumina', message: 'Desktop Control active', level: 'info' }), { method: 'POST' });
+                  if (!r.ok) throw new Error(`${r.status}`);
+                  setLogs(l => [...l, '✓ Notification sent']);
+                } catch (e: any) {
+                  setLogs(l => [...l, `✗ Notification: ${e.message}`]);
+                }
+              }}
                 className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-slate-300 transition-all flex items-center gap-2">
                 <Bell className="w-3.5 h-3.5" /> Test Notification
               </button>
-              <button onClick={() => fetch('/desktop/apps/launch/terminal', { method: 'POST' })}
+              <button onClick={async () => {
+                try {
+                  const r = await fetch('/desktop/apps/launch/terminal', { method: 'POST' });
+                  if (!r.ok) throw new Error(`${r.status}`);
+                  setLogs(l => [...l, '✓ Terminal opened']);
+                } catch (e: any) {
+                  setLogs(l => [...l, `✗ Terminal: ${e.message}`]);
+                }
+              }}
                 className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-slate-300 transition-all flex items-center gap-2">
                 <Terminal className="w-3.5 h-3.5" /> Open Terminal
               </button>
               <button onClick={async () => {
-                const r = await fetch('/desktop/execute', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ command: 'date' }),
-                });
-                const d = await r.json();
-                setLogs(l => [...l, `> date: ${d.stdout}`]);
+                try {
+                  const r = await fetch('/desktop/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'date' }),
+                  });
+                  if (!r.ok) throw new Error(`${r.status}`);
+                  const d = await r.json();
+                  setLogs(l => [...l, `> date: ${d.stdout || ''}`]);
+                } catch (e: any) {
+                  setLogs(l => [...l, `✗ Execute: ${e.message}`]);
+                }
               }} className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-slate-300 transition-all flex items-center gap-2">
                 <BarChart3 className="w-3.5 h-3.5" /> Run: date
               </button>
               <button onClick={async () => {
-                const r = await fetch('/desktop/processes');
-                const d = await r.json();
-                setLogs(l => [...l, `> ${d.count} processes running`]);
+                try {
+                  const r = await fetch('/desktop/processes');
+                  if (!r.ok) throw new Error(`${r.status}`);
+                  const d = await r.json();
+                  setLogs(l => [...l, `> ${d.count} processes running`]);
+                } catch (e: any) {
+                  setLogs(l => [...l, `✗ Processes: ${e.message}`]);
+                }
               }} className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-slate-300 transition-all flex items-center gap-2">
                 <Cpu className="w-3.5 h-3.5" /> List Processes
               </button>
@@ -364,7 +416,11 @@ export default function DesktopControl() {
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">System Log</h2>
             <div className="space-y-1 max-h-[200px] overflow-auto">
               {logs.filter(l => l.startsWith('>')).slice(-10).map((l, i) => (
-                <div key={i} className="text-xs text-slate-500 font-mono px-2 py-1">{l}</div>
+                <div key={i} className={`text-xs font-mono px-2 py-1 rounded ${
+                  l.startsWith('✓') ? 'text-emerald-400' :
+                  l.startsWith('✗') ? 'text-red-400' :
+                  l.startsWith('>') ? 'text-lumina-400' : 'text-slate-500'
+                }`}>{l}</div>
               ))}
               {logs.length === 0 && <p className="text-xs text-slate-500">No activity yet</p>}
             </div>

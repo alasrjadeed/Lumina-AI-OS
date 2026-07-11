@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Folder, File, Plus, Trash2, Download, Upload, RefreshCw,
+  Folder, File, Plus, RefreshCw,
   Search, Code2, ChevronRight, ChevronDown, Save, Copy,
-  ExternalLink, GitBranch, FileText, X, Play,
-  Edit3, FolderPlus, FilePlus, ArrowLeft, MoreVertical,
-  Layers, CheckCircle, FolderOpen, Home, Package, Settings,
-  Terminal, StopCircle, Maximize2, Minimize2,
-  Command, SearchCode, Keyboard, Braces, PanelRight,
-  SplitSquareVertical, BookOpen, Wand2, Sparkles, Bot,
-  Send, MessageSquare, Loader2,
+  GitBranch, FileText, X, Play,
+  Edit3, FolderOpen, Home,
+  Terminal, StopCircle,
+  Command, SearchCode, Braces,
+  Sparkles, Bot, Send,
+  Loader2,
 } from 'lucide-react';
-import PageHeader from '../components/ui/PageHeader';
-import Card, { CardSection } from '../components/ui/Card';
 import { useToast } from '../hooks/useToast';
 
 const BASE = '/api/projects';
@@ -43,14 +40,6 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-async function put<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -136,8 +125,6 @@ export default function Projects() {
   const [paletteQuery, setPaletteQuery] = useState('');
   const [cursorLine, setCursorLine] = useState(1);
   const [cursorCol, setCursorCol] = useState(1);
-  const [showExplorer, setShowExplorer] = useState(true);
-  const [showProjectSidebar, setShowProjectSidebar] = useState(true);
   const [tabSize, setTabSize] = useState(2);
   const [showGoToLine, setShowGoToLine] = useState(false);
   const [gotoLine, setGotoLine] = useState('');
@@ -467,21 +454,6 @@ export default function Projects() {
     setPaletteQuery('');
     item.action();
   };
-
-  const checkServerStatus = useCallback(async () => {
-    if (!selectedProject) return;
-    try {
-      const d = await get<{ status: string; running: boolean; command: string }>(`/server/status?project_id=${selectedProject.id}`);
-      if (d.running) {
-        setServerRunning(true);
-        setServerCommand(d.command);
-        setTerminalOpen(true);
-        const od = await get<{ output: string[]; total_lines: number }>(`/server/output?project_id=${selectedProject.id}&since_line=0`);
-        setTerminalOutput(od.output);
-        setTerminalLine(od.total_lines);
-      }
-    } catch {}
-  }, [selectedProject]);
 
   const selectProject = (p: ProjectInfo) => {
     setSelectedProject(p);

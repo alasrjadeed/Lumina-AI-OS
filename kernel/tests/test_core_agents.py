@@ -1,10 +1,31 @@
 from __future__ import annotations
 
 import pytest
+from unittest.mock import AsyncMock
 
 from core.agents.base import AgentResult, BaseAgent
 from core.tools.base import Tool, ToolResult
 from core.tools.registry import ToolRegistry
+
+
+@pytest.fixture(autouse=True)
+def _mock_engine(monkeypatch):
+    """Mock AIEngine.chat to avoid requiring a running provider."""
+
+    async def mock_chat(messages, tools=None, **kwargs):
+        if tools:
+            return {"message": {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [{
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {"name": "mock", "arguments": '{"x": 5}'},
+                }],
+            }}
+        return {"message": {"role": "assistant", "content": "Hello! I am TestBot."}}
+
+    monkeypatch.setattr("core.agents.base.engine.chat", mock_chat)
 
 
 class TestAgentResult:

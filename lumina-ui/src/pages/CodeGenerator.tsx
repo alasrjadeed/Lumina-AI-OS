@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Code2, Loader2, Copy, Check, Play, Download, Trash2,
+  Code2, Loader2, Copy, Check, Play, Download,
   Globe, Monitor, Cpu, FileType, Sparkles, History, BookTemplate,
-  ChevronRight, RefreshCw, Zap, Layers, Clock, Search,
+  ChevronRight, RefreshCw, Zap, Layers, Search,
   FileCode, Braces, Terminal, Database, Hash, Palette,
-  ArrowRight, X, Plus,
+  ArrowRight,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -66,20 +66,6 @@ async function get<T>(path: string): Promise<T> {
   return res.json();
 }
 
-function detectLang(label: string): string {
-  const langs = ['python', 'javascript', 'typescript', 'html', 'css', 'java', 'go', 'rust', 'kotlin', 'sql', 'bash', 'c', 'cpp', 'php', 'ruby', 'swift', 'dart'];
-  const lower = label.toLowerCase();
-  if (lower === 'js') return 'javascript';
-  if (lower === 'ts') return 'typescript';
-  if (lower === 'py') return 'python';
-  if (lower === 'rs') return 'rust';
-  if (lower === 'kt') return 'kotlin';
-  if (lower === 'rb') return 'ruby';
-  if (lower === 'sh') return 'bash';
-  for (const l of langs) { if (lower.includes(l)) return l; }
-  return '';
-}
-
 const LANG_COLORS: Record<string, string> = {
   python: '#3572A5', javascript: '#f7df1e', typescript: '#3178c6',
   html: '#e34c26', css: '#563d7c', java: '#b07219',
@@ -99,11 +85,9 @@ export default function CodeGenerator() {
   const [explanation, setExplanation] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [testUrl, setTestUrl] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templateFilter, setTemplateFilter] = useState('');
-  const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
   const { addToast } = useToast();
 
   const loadFrameworks = useCallback(async (l: string) => {

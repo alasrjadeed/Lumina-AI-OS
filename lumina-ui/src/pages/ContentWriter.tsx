@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  PenTool, Sparkles, Copy, CheckCircle, Loader2, Globe, Type, Quote,
+  PenTool, Sparkles, Copy, CheckCircle, Loader2,
   MessageSquare, ShoppingBag, FileText, Mail, Image, HelpCircle,
-  Layout, ArrowLeft, Hash, Smartphone, DollarSign, FileSignature,
-  Clock, History, BookTemplate, Download, Trash2, Eye, ChevronRight,
-  Tag, Palette, Zap, Search, Star,
+  Layout, Hash, Smartphone, DollarSign, FileSignature,
+  History, BookTemplate, Download, Trash2, ChevronRight,
+  Tag, Search,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -118,7 +118,6 @@ export default function ContentWriter() {
 
   const downloadContent = () => {
     if (!result?.content) return;
-    const ct = contentTypes.find(c => c.key === result.type);
     const filename = `${result.type}_${Date.now()}.md`;
     const blob = new Blob([result.content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Bot, Play, Loader2, CheckCircle, XCircle, Plus, Trash2, Search,
-  Clock, Code2, Globe, BarChart3, Bug, FileText, UserPlus, Mail,
+  Bot, Play, Loader2, Plus, Trash2, Search,
+  Code2, Globe, BarChart3, Bug, FileText, UserPlus, Mail,
   Phone, UserCheck, Headphones, Palette, PenTool, Video, Mic,
   PenLine, Megaphone, History, LayoutDashboard, Layers, ArrowRight,
-  ChevronRight, RefreshCw, Sparkles, Zap, Timer,
+  ChevronRight, RefreshCw, Zap, Timer,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -61,11 +61,10 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 export default function Agents() {
   const [tab, setTab] = useState('dashboard');
   const [agents, setAgents] = useState<AgentInfo[]>([]);
-  const [categories, setCategories] = useState<Record<string, AgentInfo[]>>({});
+  const [_categories, setCategories] = useState<Record<string, AgentInfo[]>>({});
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
 
   // Workspace state
@@ -376,7 +375,7 @@ export default function Agents() {
             {batchResults.length > 0 && (
               <Card hover={false} className="space-y-3">
                 <CardSection label={`Results (${batchResults.filter(r => r.status === 'success').length}/${batchResults.length})`}>
-                  {batchResults.map((r, i) => (
+                  {batchResults.map((r, _i) => (
                     <div key={r.run_id} className={`rounded-xl border p-4 ${
                       r.status === 'success' ? 'bg-emerald-500/5 border-emerald-800/30' : 'bg-red-500/5 border-red-800/30'
                     }`}>

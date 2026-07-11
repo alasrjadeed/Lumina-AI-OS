@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  Store, MessageSquare, Phone, QrCode, Settings, Send, Plus, Trash2, Upload, Download, Bot,
-  Package, DollarSign, TrendingUp, Grid3X3, Image, Loader2, CheckCircle, XCircle, Smartphone,
-  Globe, Search, User, Clock, ChevronDown, Copy, Camera,
+  Store, MessageSquare, Phone, QrCode, Settings, Send, Plus, Trash2, Download, Bot,
+  Package, DollarSign, TrendingUp, Grid3X3, Image, Loader2, CheckCircle, Smartphone,
+  Search, User, Clock, Copy, Camera,
 } from 'lucide-react';
 
 interface Product { id: string; name: string; description: string; price: number; image_url: string; category: string; status: string; }
@@ -63,8 +63,6 @@ export default function WhatsAppBusiness() {
       setMessage('');
     } catch { setSent(l => [...l, { to, msg: message, ok: false }]); }
   };
-
-  const totalValue = products.reduce((a, p) => a + p.price, 0);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Store },

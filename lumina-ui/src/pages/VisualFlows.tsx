@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  GitBranch, Plus, Play, Save, Trash2, RefreshCw, X,
-  ArrowRight, Move, Zap, Settings, Download, Upload,
-  ChevronRight, Activity, Clock,
+  GitBranch, Play, Save, Trash2, X,
+  ArrowRight,
 } from 'lucide-react';
-import PageHeader from '../components/ui/PageHeader';
-import Card from '../components/ui/Card';
 import { useToast } from '../hooks/useToast';
 
 const BASE = '/api/visual-flows';
@@ -216,7 +213,6 @@ export default function VisualFlows() {
     setExecuting(true);
     setExecResult(null);
     try {
-      const payload = { flow_id: activeFlow?.id || '', nodes, edges };
       const r = await post<any>('/execute', { flow_id: activeFlow?.id || '', input_text: '' });
       setExecResult(r);
       addToast('Flow executed', 'success');
@@ -314,7 +310,6 @@ export default function VisualFlows() {
           onDrop={e => {
             e.preventDefault();
             const type = e.dataTransfer.getData('type');
-            const label = e.dataTransfer.getData('label');
             if (type && canvasRef.current) {
               const rect = canvasRef.current.getBoundingClientRect();
               const p = palette.find(p => p.type === type);

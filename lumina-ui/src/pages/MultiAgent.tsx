@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Crown, Code, Bug, Palette, Globe, Container, Shield, Database,
   Smartphone, Megaphone, BarChart3, FileText, Headphones, ClipboardList,
-  Bot, Play, Loader2, CheckCircle, XCircle, AlertTriangle, Clock,
-  ArrowRight, ChevronRight, RefreshCw, Search, Zap, Timer, Layers,
-  Users, Network, GitBranch, Sparkles, Activity, Plus, X, Menu,
+  Bot, Loader2, Clock,
+  ArrowRight, ChevronRight, RefreshCw, Search, Zap, Timer,
+  Users, Network, GitBranch,
   TrendingUp, HelpCircle, AtSign, Calculator, Calendar, Share2, PenLine,
   Eye,
 } from 'lucide-react';
@@ -29,12 +29,6 @@ interface OrchestrationRun {
   run_id: string; task: string; phases: TaskStep[];
   status: string; output: string; error: string;
   started_at: number; completed_at: number; duration_ms: number;
-}
-
-interface AgentRun {
-  run_id: string; agent_id: string; agent_name: string; task: string;
-  status: string; output: string; error: string;
-  started_at: string; completed_at: string; duration_ms: number;
 }
 
 interface TeamsData {
@@ -122,7 +116,6 @@ export default function MultiAgent() {
   const [teams, setTeams] = useState<TeamsData | null>(null);
   const [orchRuns, setOrchRuns] = useState<OrchestrationRun[]>([]);
   const [selectedOrch, setSelectedOrch] = useState<OrchestrationRun | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const [task, setTask] = useState('');
   const [orchestrating, setOrchestrating] = useState(false);
@@ -314,21 +307,7 @@ Examples:
                 <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Phases</p>
               )}
               <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                {currentOrch.phases.map((phase, i) => {
-                  const Icon = getAgentIcon(
-                    Object.entries({
-                      planner: 'planner', programmer: 'programmer', tester: 'tester',
-                      designer: 'designer', 'browser operator': 'browser_operator',
-                      'devops engineer': 'devops_engineer', 'security auditor': 'security_auditor',
-                      'database engineer': 'database_engineer', 'mobile developer': 'mobile_developer',
-                      'marketing agent': 'marketing_agent', 'finance agent': 'finance_agent',
-                      'documentation writer': 'documentation_writer', 'voice assistant': 'voice_assistant',
-                      'sales agent': 'sales_agent', 'customer support': 'customer_support_agent',
-                      'email manager': 'email_manager', accountant: 'accountant',
-                      'personal assistant': 'personal_assistant', 'social media manager': 'social_media_manager',
-                      'proposal writer': 'proposal_writer', 'security monitor': 'security_monitor',
-                    }).find(([, v]) => v === phase.agent.toLowerCase().replace(/\s+/g, '_'))?.[0] || phase.agent
-                  );
+                {currentOrch.phases.map((phase) => {
                   const agentKey = phase.agent.toLowerCase().replace(/\s+/g, '_');
                   const canonicalKey = Object.keys({
                     planner: 1, programmer: 1, tester: 1, designer: 1,

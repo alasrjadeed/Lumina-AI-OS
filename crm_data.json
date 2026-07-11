@@ -313,6 +313,146 @@
       "source": "manual",
       "created_at": "2026-07-10T13:16:27.209034",
       "tags": []
+    },
+    {
+      "id": "32",
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-11T12:30:29.778137",
+      "tags": []
+    },
+    {
+      "id": "33",
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "",
+      "company": "",
+      "source": "manual",
+      "created_at": "2026-07-11T12:31:04.242905",
+      "tags": []
+    },
+    {
+      "id": "34",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:07:13.107378",
+      "tags": []
+    },
+    {
+      "id": "35",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:13:00.864663",
+      "tags": []
+    },
+    {
+      "id": "36",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:21:13.743749",
+      "tags": []
+    },
+    {
+      "id": "37",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:24:35.098212",
+      "tags": []
+    },
+    {
+      "id": "38",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:36:38.225190",
+      "tags": []
+    },
+    {
+      "id": "39",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:39:21.658750",
+      "tags": []
+    },
+    {
+      "id": "40",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:49:29.850591",
+      "tags": []
+    },
+    {
+      "id": "41",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T13:55:27.235587",
+      "tags": []
+    },
+    {
+      "id": "42",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T14:03:19.982794",
+      "tags": []
+    },
+    {
+      "id": "43",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T14:15:07.106642",
+      "tags": []
+    },
+    {
+      "id": "44",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T14:25:32.863068",
+      "tags": []
+    },
+    {
+      "id": "45",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-11T16:11:41.833132",
+      "tags": []
     }
   ],
   "deals": [
@@ -531,6 +671,132 @@
       "stage": "qualified",
       "created_at": "2026-07-10T13:16:27.211809",
       "updated_at": "2026-07-10T13:16:27.213208"
+    },
+    {
+      "id": "25",
+      "title": "Test Deal",
+      "value": 1000.0,
+      "contact_id": "test-contact",
+      "stage": "lead",
+      "created_at": "2026-07-11T12:30:29.793305",
+      "updated_at": "2026-07-11T12:30:29.793321"
+    },
+    {
+      "id": "26",
+      "title": "Test Deal",
+      "value": 1000.0,
+      "contact_id": "test-contact",
+      "stage": "lead",
+      "created_at": "2026-07-11T12:31:04.265951",
+      "updated_at": "2026-07-11T12:31:04.265963"
+    },
+    {
+      "id": "27",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:07:13.110517",
+      "updated_at": "2026-07-11T13:07:13.112115"
+    },
+    {
+      "id": "28",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:13:00.867873",
+      "updated_at": "2026-07-11T13:13:00.869655"
+    },
+    {
+      "id": "29",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:21:13.747134",
+      "updated_at": "2026-07-11T13:21:13.749015"
+    },
+    {
+      "id": "30",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:24:35.102538",
+      "updated_at": "2026-07-11T13:24:35.104564"
+    },
+    {
+      "id": "31",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:36:38.230699",
+      "updated_at": "2026-07-11T13:36:38.232559"
+    },
+    {
+      "id": "32",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:39:21.661762",
+      "updated_at": "2026-07-11T13:39:21.663436"
+    },
+    {
+      "id": "33",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:49:29.853783",
+      "updated_at": "2026-07-11T13:49:29.855798"
+    },
+    {
+      "id": "34",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T13:55:27.239432",
+      "updated_at": "2026-07-11T13:55:27.241710"
+    },
+    {
+      "id": "35",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T14:03:19.986289",
+      "updated_at": "2026-07-11T14:03:19.988426"
+    },
+    {
+      "id": "36",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T14:15:07.109978",
+      "updated_at": "2026-07-11T14:15:07.143047"
+    },
+    {
+      "id": "37",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T14:25:32.867005",
+      "updated_at": "2026-07-11T14:25:32.869494"
+    },
+    {
+      "id": "38",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-11T16:11:41.836338",
+      "updated_at": "2026-07-11T16:11:41.838235"
     }
   ],
   "activities": [

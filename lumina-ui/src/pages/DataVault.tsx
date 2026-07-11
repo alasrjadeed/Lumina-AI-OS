@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Shield, Plus, Trash2, Copy, CheckCircle, Search, Edit3,
   Save, User, Briefcase, Building2, Hash, Globe, Mail, Phone,
-  MapPin, Link, FileText, Star, RefreshCw, AlertCircle,
-  Brain, Key, Lock, Eye, EyeOff, X, ChevronRight,
-  Download, Upload, Sparkles, CheckSquare, Box,
+  MapPin, Link, FileText, Star, RefreshCw,
+  Brain, Key, Eye, EyeOff, X,
+  Download, Sparkles,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
-import Card, { CardSection } from '../components/ui/Card';
+import { CardSection } from '../components/ui/Card';
 import { useToast } from '../hooks/useToast';
 
 const BASE = '/api/vault';

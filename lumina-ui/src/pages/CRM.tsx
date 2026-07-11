@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import {
-  BarChart3, Plus, User, DollarSign, TrendingUp, Target,
-  CheckCircle, XCircle, Search, Phone, Mail, Building2,
-  Tag, Calendar, ArrowUpRight, Clock, Filter,
-  Edit3, Trash2, RefreshCw, Activity, Zap, Users, ChevronDown,
+  BarChart3, Plus, DollarSign, TrendingUp, Target,
+  XCircle, Search, Phone, Mail, Building2,
+  RefreshCw, Activity, Users, ChevronDown,
 } from 'lucide-react';
 
 interface Contact { id: string; name: string; email: string; phone?: string; company?: string; }
@@ -30,7 +29,6 @@ export default function CRM() {
   const [showAddDeal, setShowAddDeal] = useState(false);
   const [newName, setNewName] = useState(''); const [newEmail, setNewEmail] = useState(''); const [newPhone, setNewPhone] = useState(''); const [newCompany, setNewCompany] = useState('');
   const [dealTitle, setDealTitle] = useState(''); const [dealValue, setDealValue] = useState(''); const [dealStage, setDealStage] = useState('lead');
-  const [dragging, setDragging] = useState<string | null>(null);
 
   const fetchData = () => {
     api.crmSummary().then(setSummary).catch(() => {});

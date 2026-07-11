@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  MessageSquare, Send, CheckCircle, XCircle, QrCode, Smartphone,
-  Loader2, RefreshCw, Copy, Clock, Trash2, History, FileText,
-  Image, Phone, ExternalLink, AlertCircle, Star, Zap,
+  MessageSquare, Send, CheckCircle, XCircle, QrCode,
+  Loader2, Copy, Trash2, History, FileText,
+  Phone, ExternalLink, Star, Zap,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';

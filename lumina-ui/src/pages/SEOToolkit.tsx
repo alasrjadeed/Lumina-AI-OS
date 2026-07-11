@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import {
-  Search, Globe, Plus, Trash2, FileText, BarChart3, TrendingUp,
+  Search, Globe, Plus, Trash2, TrendingUp,
   CheckCircle, AlertTriangle, XCircle, ExternalLink, Loader2,
-  Zap, Eye, Hash, Link2, Image, Type, Clock, Shield, Sparkles,
-  Activity, Award, ChevronRight, Download, RefreshCw, Target,
-  Users, Flag, ArrowUp, ArrowDown, Minus, ChartNoAxesColumn, Copy,
+  Zap, Hash, Link2, Image, Sparkles,
+  Activity, Award, ChevronRight, Users,
+  ArrowUp, ArrowDown, Minus, Copy,
 } from 'lucide-react';
 
 interface Site { id: string; url: string; name: string; }
@@ -72,7 +72,6 @@ export default function SEOToolkit() {
       const hasSchema = html.includes('schema.org') || html.includes('application/ld+json');
       const hasCanonical = html.includes('rel="canonical"');
       const hasRobots = html.includes('content="index') || html.includes('name="robots"');
-      const loadTime = (html.match(/<meta[^>]*http-equiv=["']refresh["']/i) ? 0 : 1);
 
       const issues: string[] = [];
       if (!titleMatch) issues.push('Missing <title> tag — critical for SEO');

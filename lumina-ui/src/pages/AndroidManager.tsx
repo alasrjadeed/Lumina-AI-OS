@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { Smartphone, Terminal, Play, Image, List, RotateCw, Keyboard, MousePointer, Type, Delete, CornerDownLeft, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Home, ArrowLeftFromLine, Power, Volume2, VolumeX, Search, Menu, TvMinimalPlay, MegaphoneOff, Download, Upload, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Smartphone, Terminal, Play, List, RotateCw, Keyboard, MousePointer, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Home, ArrowLeftFromLine, Power, Volume2, VolumeX, Search, Menu, TvMinimalPlay, Download, Upload, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
 
 interface Device { serial: string; }
 
@@ -9,21 +9,6 @@ const keyRows = [
   [{ label: 'a', key: 'a' }, { label: 's', key: 's' }, { label: 'd', key: 'd' }, { label: 'f', key: 'f' }, { label: 'g', key: 'g' }, { label: 'h', key: 'h' }, { label: 'j', key: 'j' }, { label: 'k', key: 'k' }, { label: 'l', key: 'l' }],
   [{ label: '⇧', key: 'shift' }, { label: 'z', key: 'z' }, { label: 'x', key: 'x' }, { label: 'c', key: 'c' }, { label: 'v', key: 'v' }, { label: 'b', key: 'b' }, { label: 'n', key: 'n' }, { label: 'm', key: 'm' }, { label: '⌫', key: 'del' }],
   [{ label: '123', key: 'num' }, { label: ',', key: ',' }, { label: ' ', key: 'space', wide: true }, { label: '.', key: '.' }, { label: '⏎', key: 'enter' }],
-];
-
-const DEMO_APPS = [
-  { name: 'Settings', pkg: 'com.android.settings' },
-  { name: 'Chrome', pkg: 'com.android.chrome' },
-  { name: 'Camera', pkg: 'com.android.camera2' },
-  { name: 'Files', pkg: 'com.android.documentsui' },
-  { name: 'Maps', pkg: 'com.google.android.apps.maps' },
-  { name: 'YouTube', pkg: 'com.google.android.youtube' },
-  { name: 'Calculator', pkg: 'com.android.calculator2' },
-  { name: 'Calendar', pkg: 'com.android.calendar' },
-  { name: 'Contacts', pkg: 'com.android.contacts' },
-  { name: 'Phone', pkg: 'com.android.dialer' },
-  { name: 'Messages', pkg: 'com.android.messaging' },
-  { name: 'Play Store', pkg: 'com.android.vending' },
 ];
 
 const sysKeys = [
@@ -70,9 +55,6 @@ export default function AndroidManager() {
   const [apkStatus, setApkStatus] = useState('');
   const [apkInstalling, setApkInstalling] = useState(false);
   const [installedApps, setInstalledApps] = useState<string[]>([]);
-  const [previewImg, setPreviewImg] = useState('');
-  const [previewApp, setPreviewApp] = useState('');
-  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => { api.androidDevices().then(d => { setDevices(d.devices); if (d.devices.length) setSelected(d.devices[0].serial); }).catch(() => {}); }, []);
 

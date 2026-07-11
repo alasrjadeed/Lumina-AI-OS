@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   Brain, Activity, Database, Save, Play, TrendingUp,
-  Search, Clock, Star, BarChart3, Layers, Zap,
-  ChevronRight, Loader2, RefreshCw, Trash2, CheckCircle,
-  XCircle, AlertCircle, BookOpen, Target, Eye,
+  Search, Layers, Zap,
+  Loader2, RefreshCw,
+  BookOpen,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -22,10 +22,6 @@ interface Pattern {
 
 interface Workflow {
   name: string; steps: number; created?: string;
-}
-
-interface MemoryField {
-  form_id: string; field: string; value: string;
 }
 
 export default function LearningAgent() {

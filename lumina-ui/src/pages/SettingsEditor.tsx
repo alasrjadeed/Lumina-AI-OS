@@ -4,7 +4,6 @@ import {
   Save, Eye, EyeOff, CheckCircle, XCircle, Cpu,
   Shield, Server, Activity, RefreshCw, Smartphone,
   Zap, Sliders, Terminal, Lock,
-  LayoutDashboard, MessageSquare, Code2, Bot,
   BarChart3, Globe, Folder, Search, PenTool, Brain, Bug,
   ListOrdered, User, Store, Camera, Ear, Wrench, Database,
   UserCog, Sparkles, Monitor, GitBranch,
@@ -24,11 +23,11 @@ interface FeatureDef {
 }
 
 const FEATURES: FeatureDef[] = [
-  { id: 'chat', label: 'Chat', description: 'AI chat with conversation history', icon: MessageSquare, category: 'Core', service: 'ai_engine' },
-  { id: 'codeGenerator', label: 'Code Generator', description: 'Generate code from description', icon: Code2, category: 'Core', service: 'ai_engine' },
-  { id: 'codeReview', label: 'Code Review', description: 'Automated code review & fixes', icon: Code2, category: 'Core', service: 'ai_engine' },
+  { id: 'chat', label: 'Chat', description: 'AI chat with conversation history', icon: Activity, category: 'Core', service: 'ai_engine' },
+  { id: 'codeGenerator', label: 'Code Generator', description: 'Generate code from description', icon: PenTool, category: 'Core', service: 'ai_engine' },
+  { id: 'codeReview', label: 'Code Review', description: 'Automated code review & fixes', icon: Brain, category: 'Core', service: 'ai_engine' },
   { id: 'codingAgent', label: 'Coding Agent', description: 'Autonomous AI engineer — plan, edit, test & heal code', icon: GitBranch, category: 'Core', service: 'ai_engine' },
-  { id: 'agents', label: 'Agents', description: 'Run specialized AI agents', icon: Bot, category: 'Core', service: 'agents' },
+  { id: 'agents', label: 'Agents', description: 'Run specialized AI agents', icon: Cpu, category: 'Core', service: 'agents' },
   { id: 'voiceAssistant', label: 'Voice Control', description: 'Voice commands & audio recording', icon: Ear, category: 'Core', service: 'voice_controller' },
   { id: 'automation', label: 'Automation', description: 'Advanced workflow builder, triggers & execution engine', icon: Wrench, category: 'Core', service: 'automation_engine' },
 
@@ -44,7 +43,7 @@ const FEATURES: FeatureDef[] = [
   { id: 'browserAgent', label: 'Browser Agent', description: 'AI-powered browser automation', icon: Globe, category: 'Tools', service: 'browser' },
   { id: 'fileManager', label: 'File Manager', description: 'Browse & edit server files', icon: Folder, category: 'Tools', service: 'desktop' },
   { id: 'android', label: 'Android Manager', description: 'ADB device control & app mgmt', icon: Smartphone, category: 'Tools', service: 'android' },
-  { id: 'whatsapp', label: 'WhatsApp Messenger', description: 'Send & receive WhatsApp messages', icon: MessageSquare, category: 'Tools', service: 'whatsapp' },
+  { id: 'whatsapp', label: 'WhatsApp Messenger', description: 'Send & receive WhatsApp messages', icon: Smartphone, category: 'Tools', service: 'whatsapp' },
   { id: 'whatsappBusiness', label: 'WA Business', description: 'WhatsApp Business catalog & orders', icon: Store, category: 'Tools', service: 'whatsapp' },
   { id: 'taskQueue', label: 'Task Queue', description: 'Multi-step pipeline orchestration', icon: ListOrdered, category: 'Tools', service: 'pipeline_builder' },
   { id: 'dataVault', label: 'Data Vault', description: 'Secure credential & key storage', icon: Database, category: 'Tools' },
@@ -74,6 +73,8 @@ function loadFeatures(): Record<string, boolean> {
 }
 
 export default function SettingsEditor() {
+  const [authEnabled] = useState(false);
+  const [whatsappReview] = useState('pending');
   const [providers] = useState<Provider[]>([
     { name: 'ollama', label: 'Ollama', key: 'OLLAMA_BASE_URL', type: 'local', configured: true },
     { name: 'openai', label: 'OpenAI', key: 'OPENAI_API_KEY', type: 'api', configured: false },
@@ -264,7 +265,7 @@ export default function SettingsEditor() {
               <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2"><Shield className="w-4 h-4" /> Authentication</h2>
               <div className="flex items-center justify-between py-3 border-b border-white/5">
                 <div><p className="text-sm text-slate-200">API Authentication</p><p className="text-xs text-slate-500">Require API key for all requests</p></div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${false ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>{false ? 'Enabled' : 'Disabled'}</div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${authEnabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>{authEnabled ? 'Enabled' : 'Disabled'}</div>
               </div>
               <div><label className="text-xs text-slate-400 block mb-1">API Keys (comma separated)</label><input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono outline-none focus:border-lumina-500/50" placeholder="key1, key2, key3" /></div>
               <div><label className="text-xs text-slate-400 block mb-1">Master Key</label><input type="password" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono outline-none focus:border-lumina-500/50" placeholder="Set LUMINA_MASTER_KEY in .env" /></div>
@@ -281,7 +282,7 @@ export default function SettingsEditor() {
             <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2"><Smartphone className="w-4 h-4" /> WhatsApp Configuration</h2>
             <div className="flex items-center justify-between py-3 border-b border-white/5">
               <div><p className="text-sm text-slate-200">WhatsApp API</p><p className="text-xs text-slate-500">Meta Cloud API (free up to 1,000 convos/month)</p></div>
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${false ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>Pending Review</div>
+              <div className={`px-3 py-1 rounded-full text-xs font-medium ${whatsappReview === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>Pending Review</div>
             </div>
             <div><label className="text-xs text-slate-400 block mb-1">API Token</label><input type="password" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono outline-none focus:border-lumina-500/50" placeholder="Paste Meta token when approved" /></div>
             <div><label className="text-xs text-slate-400 block mb-1">Phone Number ID</label><input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono outline-none focus:border-lumina-500/50" defaultValue="1257983506231819" /></div>

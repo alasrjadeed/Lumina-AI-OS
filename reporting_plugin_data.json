@@ -16,7 +16,7 @@
           "chart_type": "metrics"
         }
       ],
-      "generated": 1783678587.282979
+      "generated": 1783775501.9043715
     },
     {
       "title": "Data Report",
@@ -27,7 +27,7 @@
           "chart_type": "table"
         }
       ],
-      "generated": 1783678587.2854846
+      "generated": 1783775501.9064283
     },
     {
       "title": "CSV Test",
@@ -45,7 +45,7 @@
           "chart_type": "metrics"
         }
       ],
-      "generated": 1783678587.2896311
+      "generated": 1783775501.9100962
     },
     {
       "title": "JSON Test",
@@ -63,7 +63,7 @@
           "chart_type": "table"
         }
       ],
-      "generated": 1783678587.293812
+      "generated": 1783775501.9148161
     },
     {
       "title": "HTML Test",
@@ -81,7 +81,7 @@
           "chart_type": "table"
         }
       ],
-      "generated": 1783678587.2976384
+      "generated": 1783775501.9190888
     },
     {
       "title": "Summary Report",
@@ -110,7 +110,7 @@
           "chart_type": "table"
         }
       ],
-      "generated": 1783678587.3012903
+      "generated": 1783775501.9221785
     }
   ]
 }

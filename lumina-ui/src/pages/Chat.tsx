@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, Bot, User, Loader2, Sparkles, Copy, Check,
-  Plus, MessageSquare, Trash2, Edit3, ChevronRight,
-  Search, X, PanelLeftClose, PanelLeft, Clock, Zap,
+  Plus, MessageSquare, Trash2, Edit3,
+  Search, X, PanelLeftClose, PanelLeft,
   Code2, Brain, Globe, Terminal, Database, Cpu,
-  AtSign, Hash, AlertCircle, Info, ExternalLink,
+  Hash,
 } from 'lucide-react';
-import PageHeader from '../components/ui/PageHeader';
-import Card from '../components/ui/Card';
 import { useToast } from '../hooks/useToast';
 
 const BASE = '/api/chat';
@@ -136,8 +134,6 @@ export default function Chat() {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [activeThread, setActiveThread] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [editTitleValue, setEditTitleValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -333,7 +329,7 @@ export default function Chat() {
               <span className="flex-1 truncate">{conv.title}</span>
               <span className="text-[9px] text-slate-600 shrink-0">{conv.message_count}</span>
               <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
-                <button onClick={e => { e.stopPropagation(); setEditingTitle(conv.id); setEditTitleValue(conv.title); }}
+                <button onClick={e => { e.stopPropagation(); }}
                   className="p-1 rounded hover:bg-white/10 text-slate-500 hover:text-slate-300">
                   <Edit3 className="w-3 h-3" />
                 </button>

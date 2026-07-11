@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bot, Activity, Zap, Shield, Globe, Server, Users, CheckCircle,
+  Bot, Activity, Zap, Globe, Server, CheckCircle,
   Cpu, HardDrive, Clock, BarChart3, MessageSquare, Code2, Bug,
   Layers, Radio, Database, UserCheck, Briefcase, TrendingUp,
-  RefreshCw, Loader2, ArrowRight, ChevronRight, PoundSterling,
-  Wifi, Smartphone, Eye, Heart, Terminal, BookOpen, AlertTriangle,
-  PieChart, Gauge, Sparkles, FileCode, Workflow,
+  RefreshCw, ArrowRight, ChevronRight,
+  Smartphone, Eye, Heart, Terminal, BookOpen,
+  PieChart, Gauge, Sparkles, FileCode,
 } from 'lucide-react';
-import PageHeader from '../components/ui/PageHeader';
-import Card, { CardSection } from '../components/ui/Card';
+import Card from '../components/ui/Card';
 
 const BASE = '/api';
 
@@ -61,11 +60,9 @@ export default function Dashboard() {
   const [chatThreads, setChatThreads] = useState(0);
   const [codeReviews, setCodeReviews] = useState(0);
   const [whatsapp, setWhatsapp] = useState<any>(null);
-  const [error, setError] = useState('');
 
   const loadAll = useCallback(async () => {
     setRefreshing(true);
-    setError('');
     try {
       const results = await Promise.allSettled([
         get('/system/health'),
@@ -105,9 +102,7 @@ export default function Dashboard() {
       if (results[12].status === 'fulfilled') setChatThreads((results[12].value as any).total || 0);
       if (results[13].status === 'fulfilled') setCodeReviews((results[13].value as any).total || 0);
       if (results[14].status === 'fulfilled') setWhatsapp(results[14].value);
-    } catch (e: any) {
-      setError(e.message);
-    }
+    } catch { }
     setRefreshing(false);
     setLoaded(true);
   }, []);
@@ -159,7 +154,6 @@ export default function Dashboard() {
     return href ? <Link to={href}>{inner}</Link> : inner;
   };
 
-  const cardClasses = 'text-slate-400 hover:text-slate-200';
   const navBtn = (s: Section) => (
     <button key={s.id} onClick={() => setActiveSection(s.id)}
       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all whitespace-nowrap ${

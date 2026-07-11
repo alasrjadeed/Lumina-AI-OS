@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Camera, Play, Square, Eye, Scan, Brain, MessageSquare,
-  Loader2, Image, History, RefreshCw, Trash2, Download,
-  Copy, CheckCircle, AlertCircle, ChevronRight, Maximize2,
-  Minimize2, Search, Zap, Clock, Star, List,
+  Camera, Square, Eye, Scan, Brain, MessageSquare,
+  Loader2, History, RefreshCw, Trash2,
+  Copy, AlertCircle, Maximize2,
+  Minimize2, Search, Zap,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';

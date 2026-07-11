@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  Bot, Play, Loader2, CheckCircle, XCircle, Clock, AlertCircle,
+  Bot, Loader2, CheckCircle, XCircle, Clock, AlertCircle,
   Sparkles, Globe, Code2, Terminal, FileText, Folder, BookOpen,
-  Bell, Search, Activity, ChevronRight, Send, RefreshCw, Trash2,
-  Brain, Zap, MessageSquare,
+  Bell, Search, Activity, RefreshCw, Trash2,
+  Brain, Zap,
 } from 'lucide-react';
 
 interface ToolCall {
@@ -21,24 +21,6 @@ interface Step {
   status: string;
   error?: string;
   tool_calls?: ToolCall[];
-}
-
-interface StreamEvent {
-  type: string;
-  mission_id?: string;
-  step_id?: string;
-  summary?: string;
-  steps?: Step[];
-  name?: string;
-  description?: string;
-  tool?: string;
-  args?: Record<string, any>;
-  result?: string;
-  error?: string;
-  report?: string;
-  duration?: number;
-  steps_total?: number;
-  steps_ok?: number;
 }
 
 const toolIcons: Record<string, any> = {
@@ -73,7 +55,6 @@ export default function AutonomousEmployee() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [report, setReport] = useState('');
   const [output, setOutput] = useState<string[]>([]);
-  const [activeTool, setActiveTool] = useState<string | null>(null);
   const [tools, setTools] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [memory, setMemory] = useState<any>(null);

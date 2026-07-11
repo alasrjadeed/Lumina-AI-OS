@@ -46,6 +46,10 @@ from api.tester import router as tester_router
 from api.vault import router as vault_router
 from api.vision import router as vision_router
 from api.visual_flows import router as visual_flows_router
+from api.skills import router as skills_router
+from api.presets import router as presets_router
+from api.connectors import router as connectors_router
+from api.community_skills import router as community_skills_router
 from api.voice import router as voice_router
 from api.whatsapp import router as whatsapp_router
 from api.writer import router as writer_router
@@ -208,6 +212,10 @@ app.include_router(core_api_router)
 app.include_router(multiagent_router)
 app.include_router(projects_router)
 app.include_router(visual_flows_router)
+app.include_router(skills_router)
+app.include_router(presets_router)
+app.include_router(connectors_router)
+app.include_router(community_skills_router)
 
 
 @app.get("/")

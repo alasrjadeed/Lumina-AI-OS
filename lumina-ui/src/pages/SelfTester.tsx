@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Bug, Play, Loader2, CheckCircle, XCircle, RefreshCw, Terminal,
   RotateCw, History, BookTemplate, Search, ChevronRight,
-  Clock, AlertTriangle, TrendingUp, Star, Layers, Code2,
-  FlaskConical, FileCode, Wrench, ArrowRight, Zap, Gauge,
+  Clock, AlertTriangle,
+  FlaskConical, Wrench, ArrowRight,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';

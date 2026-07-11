@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
-  Globe, Camera, Plus, Trash2, Send, Calendar, Image,
-  BarChart3, Bot, Loader2, CheckCircle, XCircle,
-  MessageSquare, Megaphone, TrendingUp, Users, FileText,
-  Search, RefreshCw, Clock, Heart, Share2, MessageCircle,
-  Edit3, ExternalLink, ChevronRight, Star, Target,
+  Globe, Camera, Plus, Send,
+  BarChart3, Loader2, CheckCircle, XCircle,
+  MessageSquare, Users,
+  Search, RefreshCw, Heart, Share2, MessageCircle,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';

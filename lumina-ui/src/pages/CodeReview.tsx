@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Code2, Loader2, Search, Shield, Bug, Zap, Palette,
   CheckCircle, FileText, AlertTriangle, AlertCircle, Info,
-  ArrowRight, ChevronRight, RefreshCw, History, Layers,
-  Sparkles, X, Clock,
+  ArrowRight, ChevronRight, RefreshCw, History,
+  Sparkles,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -119,9 +119,6 @@ export default function CodeReview() {
     setLanguage(lang);
     setCode(SAMPLES[lang] || '');
   };
-
-  const countBySeverity = (issues: Issue[], sev: string) =>
-    issues.filter(i => i.severity === sev).length;
 
   const tabs = [
     { id: 'review', label: 'Review', icon: Code2 },

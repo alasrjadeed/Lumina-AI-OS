@@ -3,8 +3,8 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, MessageSquare, Code2,   Bot, Settings,
   BarChart3, Globe, Folder, Search, Smartphone, MessageSquare as WhatsAppIcon,
-  Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink, Cpu,
-  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown,
+  Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
+  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle,
 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
@@ -41,6 +41,7 @@ const navSections = [
     links: [
       { to: '/desktop', label: 'Desktop', icon: Monitor },
       { to: '/browser/agent', label: 'Browser Agent', icon: Bot },
+      { to: '/skills', label: 'Skills & Presets', icon: Puzzle },
       { to: '/files', label: 'Files', icon: Folder },
       { to: '/vision', label: 'Vision', icon: Camera },
       { to: '/android', label: 'Android', icon: Smartphone },
@@ -55,6 +56,7 @@ const navSections = [
       { to: '/users', label: 'Users', icon: User },
       { to: '/vault', label: 'Data Vault', icon: Shield },
       { to: '/settings', label: 'Settings', icon: Settings },
+      { to: '/help', label: 'Help Guide', icon: BookOpen },
     ],
   },
 ];
@@ -192,15 +194,55 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const toggleSidebar = () => setSidebarCollapsed(prev => !prev);
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const toggleDarkMode = () => {
+    addToast('Dark mode is the default theme', 'info');
+  };
+
+  const handleMenuAction = (item: { label: string; shortcut?: string }) => {
+    const actionMap: Record<string, () => void> = {
+      'New Tab': () => addTab('New Tab', '/'),
+      'Open File...': () => addToast('File browser: select a file to open', 'info'),
+      Save: () => addToast('State saved', 'success'),
+      Export: () => addToast('Export feature coming soon', 'info'),
+      Undo: () => addToast('Undo (Ctrl+Z)', 'info'),
+      Redo: () => addToast('Redo (Ctrl+Shift+Z)', 'info'),
+      Cut: () => addToast('Cut to clipboard', 'info'),
+      Copy: () => addToast('Copied to clipboard', 'info'),
+      Paste: () => addToast('Paste from clipboard', 'info'),
+      'Toggle Sidebar': () => toggleSidebar(),
+      'Full Screen': () => toggleFullscreen(),
+      'Dark Mode': () => toggleDarkMode(),
+      'Run Agent': () => navigate('/agents'),
+      'Generate Code': () => navigate('/code'),
+      'Heal Task': () => navigate('/automation'),
+      'New CRM Contact': () => navigate('/crm?tab=contacts'),
+      'New Deal': () => navigate('/crm?tab=deals'),
+      'Analyze SEO': () => navigate('/seo'),
+      'Browser Screenshot': () => navigate('/browser/agent'),
+      'Browser Console': () => navigate('/browser/agent'),
+      'API Reference': () => window.open('/docs', '_blank'),
+      'Plugin Manager': () => navigate('/settings'),
+      Documentation: () => navigate('/help'),
+      'About Lumina': () => navigate('/about'),
+    };
+    (actionMap[item.label] || (() => addToast(`${item.label} action`, 'info')))();
+  };
+
   return (
     <div className="h-screen flex flex-col bg-slate-950 text-slate-200 select-none">
       <div className="flex items-center h-9 bg-slate-900 border-b border-white/5 px-2 shrink-0 relative z-50">
-        <div className="flex items-center gap-1 mr-4">
-          <div className="w-5 h-5 rounded bg-gradient-to-br from-lumina-400 to-lumina-600 flex items-center justify-center mr-2">
-            <Cpu className="w-3 h-3 text-white" />
+          <div className="flex items-center gap-1 mr-4">
+            <img src="/lumina.png" alt="Lumina" className="w-5 h-5 mr-2" />
+            <span className="text-xs font-semibold text-white/80">Lumina</span>
           </div>
-          <span className="text-xs font-semibold text-white/80">Lumina</span>
-        </div>
         {menuItems.map(menu => (
           <div key={menu.label} className="relative" onMouseLeave={() => setActiveMenu(null)}>
             <button
@@ -218,7 +260,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   item.type === 'separator' ? (
                     <div key={i} className="h-px bg-white/5 my-1" />
                   ) : (
-                    <button key={i} onClick={() => { setActiveMenu(null); addToast(`${item.label} action`, 'info'); }}
+                    <button key={i} onClick={() => { setActiveMenu(null); handleMenuAction(item); }}
                       className="w-full flex items-center justify-between px-4 py-1.5 text-xs text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
                     >
                       <span>{item.label}</span>

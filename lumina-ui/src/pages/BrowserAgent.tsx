@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Globe, MousePointer, Type, Camera, Navigation, Play,
-  Square, Terminal, Loader2, CheckCircle, XCircle, AlertCircle,
-  Clock, Copy, ExternalLink, RefreshCw, History, Code,
-  Pen, Target, Eye, FileText, Link, ChevronRight,
-  ArrowLeft, ArrowRight, Home, Search, Zap,
+  Globe, MousePointer, Camera, Navigation, Play,
+  Terminal, Loader2, CheckCircle, XCircle,
+  Clock, RefreshCw, History,
+  Pen, Link, ChevronRight, Zap,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';

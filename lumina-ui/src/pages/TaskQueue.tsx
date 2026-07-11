@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
   Layers, Play, Plus, Trash2, Loader2, CheckCircle, XCircle,
-  Clock, BarChart3, List, Settings, ChevronRight, GripVertical,
-  Terminal, AlertCircle, Save, RefreshCw, Search, ArrowUp,
-  ArrowDown, Copy, Database, Wrench, FileCode, Globe,
-  Brain, Camera, Mail, Zap,
+  Clock, BarChart3, List, Settings,
+  Terminal, Save, Search, ArrowUp,
+  ArrowDown, Database, Wrench, FileCode, Globe,
+  Brain, Camera, Mail,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -41,13 +41,11 @@ export default function TaskQueue() {
   const [stats, setStats] = useState<PipelineStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [runningId, setRunningId] = useState<string | null>(null);
-  const [showBuilder, setShowBuilder] = useState(false);
   const [newName, setNewName] = useState('');
   const [newTasks, setNewTasks] = useState<TaskDef[]>([]);
   const [newModule, setNewModule] = useState('browser');
   const [newAction, setNewAction] = useState('');
   const [newParams, setNewParams] = useState('{}');
-  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { addToast } = useToast();
 
