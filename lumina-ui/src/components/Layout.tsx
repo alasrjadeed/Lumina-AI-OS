@@ -4,7 +4,7 @@ import {
   LayoutDashboard, MessageSquare, Code2,   Bot, Settings,
   BarChart3, Globe, Folder, Search, Smartphone, MessageSquare as WhatsAppIcon,
   Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
-  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle,
+  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus,
 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
@@ -29,6 +29,7 @@ const navSections = [
     links: [
       { to: '/crm', label: 'CRM', icon: BarChart3 },
       { to: '/seo', label: 'SEO', icon: Search },
+      { to: '/leads', label: 'Lead Gen', icon: UserPlus },
       { to: '/social', label: 'Social Media', icon: Globe },
       { to: '/learning', label: 'Learning', icon: Brain },
       { to: '/tester', label: 'Self Tester', icon: Bug },

@@ -32,6 +32,7 @@ import VisualFlows from './pages/VisualFlows';
 import Help from './pages/Help';
 import SkillsPresets from './pages/SkillsPresets';
 import About from './pages/About';
+import LeadGen from './pages/LeadGen';
 import ToastContainer from './components/ui/Toast';
 
 export default function App() {
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="/help" element={<Help />} />
           <Route path="/about" element={<About />} />
           <Route path="/skills" element={<SkillsPresets />} />
+          <Route path="/leads" element={<LeadGen />} />
         </Routes>
       </Layout>
       <ToastContainer />

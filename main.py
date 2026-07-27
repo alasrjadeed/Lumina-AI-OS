@@ -53,9 +53,11 @@ from api.community_skills import router as community_skills_router
 from api.voice import router as voice_router
 from api.whatsapp import router as whatsapp_router
 from api.writer import router as writer_router
+from api.lead_gen import router as lead_gen_router
 from config.settings import settings
 from core.agents.content import CONTENT_AGENTS
 from core.agents.specialized import SPECIALIZED_AGENTS
+from core.agents.lead_gen import lead_gen_agent
 from core.android.device import android
 from core.automation.engine import engine as automation_engine
 from core.browser.automation import browser
@@ -111,6 +113,7 @@ async def lifespan(app: FastAPI):
     all_agents = {}
     all_agents.update(SPECIALIZED_AGENTS)
     all_agents.update(CONTENT_AGENTS)
+    all_agents["lead_gen"] = lead_gen_agent
     kernel.services.register("agents", all_agents)
 
     async def log_event(event: Event) -> None:
@@ -216,6 +219,7 @@ app.include_router(skills_router)
 app.include_router(presets_router)
 app.include_router(connectors_router)
 app.include_router(community_skills_router)
+app.include_router(lead_gen_router)
 
 
 @app.get("/")

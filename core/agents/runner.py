@@ -12,6 +12,7 @@ from datetime import datetime
 from core.agents.base import BaseAgent
 from core.agents.ceo import CEOAgent, OrchestrationRun
 from core.agents.specialized import SPECIALIZED_AGENTS
+from core.agents.lead_gen import lead_gen_agent
 from core.log import log
 
 RUNS_DIR = os.path.expanduser("~/.lumina/agent_runs")
@@ -295,6 +296,31 @@ AGENT_CAPABILITIES: dict[str, list[str]] = {
         "threat",
         "vulnerability scan",
     ],
+    "lead_gen": [
+        "lead",
+        "prospect",
+        "scrape",
+        "lead gen",
+        "lead generation",
+        "find leads",
+        "search business",
+        "enrich",
+        "apify",
+        "google maps",
+        "classifieds",
+        "gcc",
+        "bahrain",
+        "saudi",
+        "uae",
+        "qatar",
+        "kuwait",
+        "oman",
+        "instagram leads",
+        "tiktok leads",
+        "sales lead",
+        "find contact",
+        "business contact",
+    ],
 }
 
 AGENT_METADATA: dict[str, dict] = {
@@ -530,6 +556,14 @@ AGENT_METADATA: dict[str, dict] = {
         "capabilities": AGENT_CAPABILITIES["security_monitor"],
         "team": "security",
     },
+    "lead_gen": {
+        "name": "LeadGen AI",
+        "category": "specialist",
+        "description": "Lead generation, business prospecting, GCC classifieds scraping",
+        "icon": "UserPlus",
+        "capabilities": AGENT_CAPABILITIES["lead_gen"],
+        "team": "business",
+    },
 }
 
 ALL_CATEGORIES = {
@@ -540,6 +574,7 @@ ALL_CATEGORIES = {
 ALL_AGENTS: dict[str, BaseAgent] = {}
 ALL_AGENTS["ceo"] = CEOAgent()
 ALL_AGENTS.update(SPECIALIZED_AGENTS)
+ALL_AGENTS["lead_gen"] = lead_gen_agent
 
 for agent_id, agent in ALL_AGENTS.items():
     meta = AGENT_METADATA.get(agent_id, {})

@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     zai_api_key: str | None = None
 
     apify_api_token: str | None = None
+    apify_api_token_2: str | None = None
+    apify_api_token_3: str | None = None
+
+    lead_gen_enabled: bool = True
+    lead_gen_default_limit: int = 10
+    lead_gen_max_limit: int = 100
+    lead_gen_ai_fallback: bool = True
 
     google_business_api_key: str | None = None
     google_business_account_id: str | None = None
