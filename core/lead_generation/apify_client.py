@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from core.log import log
+
 from .models import PlatformInfo
 
 APIFY_BASE = "https://api.apify.com/v2"

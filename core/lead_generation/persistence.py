@@ -8,7 +8,8 @@ from dataclasses import asdict
 from typing import Any
 
 from core.log import log
-from .models import LeadRecord, LeadCategory, ScraperStatus, GenerationError, LEAD_TYPES
+
+from .models import GenerationError, LeadCategory, LeadRecord, ScraperStatus
 
 STORAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "")
 

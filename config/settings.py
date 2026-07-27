@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     api_keys: str = ""
     cors_origins: str = "*"
 
-    model_config = {"env_file": _ENV_FILE, "env_file_encoding": "utf-8"}
+    model_config = {"env_file": _ENV_FILE, "env_file_encoding": "utf-8", "extra": "ignore"}
 
     def reload(self) -> dict[str, object]:
         """Reload settings from .env file without restarting the server."""

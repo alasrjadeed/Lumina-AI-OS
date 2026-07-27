@@ -1539,6 +1539,31 @@
       "role": "user",
       "content": "testing recall method",
       "timestamp": "2026-07-11T16:11:40.124839"
+    },
+    {
+      "role": "user",
+      "content": "hello there",
+      "timestamp": "2026-07-28T02:47:17.527502"
+    },
+    {
+      "role": "user",
+      "content": "test message",
+      "timestamp": "2026-07-28T02:47:17.544690"
+    },
+    {
+      "role": "user",
+      "content": "what is the capital of france",
+      "timestamp": "2026-07-28T02:47:17.557720"
+    },
+    {
+      "role": "assistant",
+      "content": "paris",
+      "timestamp": "2026-07-28T02:47:17.561249"
+    },
+    {
+      "role": "user",
+      "content": "testing recall method",
+      "timestamp": "2026-07-28T02:47:17.571988"
     }
   ],
   "projects": [],

@@ -1,0 +1,103 @@
+{
+  "leads": {
+    "lead_1785196039_0": {
+      "id": "lead_1785196039_0",
+      "name": "Alice",
+      "email": "alice@test.com",
+      "phone": "",
+      "source": "website",
+      "status": "new",
+      "score": 0,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.4251397,
+      "last_contacted": 0.0
+    },
+    "lead_1785196039_1": {
+      "id": "lead_1785196039_1",
+      "name": "Bobby",
+      "email": "bob@test.com",
+      "phone": "",
+      "source": "website",
+      "status": "new",
+      "score": 0,
+      "company": "Corp",
+      "notes": "",
+      "created": 1785196039.4273129,
+      "last_contacted": 0.0
+    },
+    "lead_1785196039_2": {
+      "id": "lead_1785196039_2",
+      "name": "Charlie",
+      "email": "charlie@test.com",
+      "phone": "",
+      "source": "website",
+      "status": "qualified",
+      "score": 0,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.4302669,
+      "last_contacted": 1785196039.431002
+    },
+    "lead_1785196039_3": {
+      "id": "lead_1785196039_3",
+      "name": "Diana",
+      "email": "",
+      "phone": "",
+      "source": "referral",
+      "status": "new",
+      "score": 0,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.433978,
+      "last_contacted": 0.0
+    },
+    "lead_1785196039_4": {
+      "id": "lead_1785196039_4",
+      "name": "Eve",
+      "email": "",
+      "phone": "",
+      "source": "website",
+      "status": "new",
+      "score": 0,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.4349165,
+      "last_contacted": 0.0
+    },
+    "lead_1785196039_5": {
+      "id": "lead_1785196039_5",
+      "name": "Frank",
+      "email": "frank@corp.com",
+      "phone": "",
+      "source": "website",
+      "status": "new",
+      "score": 0,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.4375525,
+      "last_contacted": 0.0
+    },
+    "lead_1785196039_6": {
+      "id": "lead_1785196039_6",
+      "name": "Hank",
+      "email": "hank@test.com",
+      "phone": "",
+      "source": "website",
+      "status": "new",
+      "score": 20,
+      "company": "",
+      "notes": "",
+      "created": 1785196039.4553587,
+      "last_contacted": 0.0
+    }
+  },
+  "score_rules": [
+    {
+      "field": "email",
+      "operator": "not_empty",
+      "value": "",
+      "points": 20
+    }
+  ]
+}

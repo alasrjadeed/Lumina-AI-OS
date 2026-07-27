@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from core.log import log
-from .models import ScraperStatus, GenerationError
+
+from .models import ScraperStatus
 
 
 class ScraperHealthCheck:

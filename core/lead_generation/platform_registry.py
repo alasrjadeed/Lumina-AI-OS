@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from .models import CountryInfo, PlatformInfo, COUNTRY_CLASSIFIEDS_MAP, COUNTRY_METADATA, GCC_COUNTRIES
+from .models import (
+    COUNTRY_CLASSIFIEDS_MAP,
+    COUNTRY_METADATA,
+    GCC_COUNTRIES,
+    CountryInfo,
+    PlatformInfo,
+)
 
 CLASSIFIED_PLATFORMS: dict[str, PlatformInfo] = {
     "expatriates": PlatformInfo(key="expatriates", name="Expatriates.com", category="classifieds", scraper_type="python"),

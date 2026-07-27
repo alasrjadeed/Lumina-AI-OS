@@ -453,6 +453,16 @@
       "source": "manual",
       "created_at": "2026-07-11T16:11:41.833132",
       "tags": []
+    },
+    {
+      "id": "46",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+123",
+      "company": "Acme",
+      "source": "manual",
+      "created_at": "2026-07-28T02:47:19.383105",
+      "tags": []
     }
   ],
   "deals": [
@@ -797,6 +807,15 @@
       "stage": "qualified",
       "created_at": "2026-07-11T16:11:41.836338",
       "updated_at": "2026-07-11T16:11:41.838235"
+    },
+    {
+      "id": "39",
+      "title": "Big Deal",
+      "value": 50000,
+      "contact_id": "",
+      "stage": "qualified",
+      "created_at": "2026-07-28T02:47:19.387826",
+      "updated_at": "2026-07-28T02:47:19.392609"
     }
   ],
   "activities": [

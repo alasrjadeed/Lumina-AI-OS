@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import json
 import re
 from typing import Any
 
-import httpx
-
 from core.log import log
 from core.provider import engine as ai_engine
+
 from .models import LeadRecord
 
 

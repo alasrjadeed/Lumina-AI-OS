@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './components/ui/ThemeToggle';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -31,51 +32,53 @@ import Projects from './pages/Projects';
 import VisualFlows from './pages/VisualFlows';
 import Help from './pages/Help';
 import SkillsPresets from './pages/SkillsPresets';
-import About from './pages/About';
 import LeadGen from './pages/LeadGen';
+import About from './pages/About';
 import ToastContainer from './components/ui/Toast';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/code" element={<CodeGenerator />} />
-          <Route path="/code/review" element={<CodeReview />} />
-          <Route path="/agents" element={<Agents />} />
-          <Route path="/crm" element={<CRM />} />
-          <Route path="/files" element={<FileManager />} />
-          <Route path="/seo" element={<SEOToolkit />} />
-          <Route path="/android" element={<AndroidManager />} />
-          <Route path="/whatsapp" element={<WhatsAppMessenger />} />
-          <Route path="/automation" element={<Automation />} />
-          <Route path="/settings" element={<SettingsEditor />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/browser/agent" element={<BrowserAgent />} />
-          <Route path="/vault" element={<DataVault />} />
-          <Route path="/whatsapp/business" element={<WhatsAppBusiness />} />
-          <Route path="/social" element={<SocialManager />} />
-          <Route path="/writer" element={<ContentWriter />} />
-          <Route path="/assistant" element={<VoiceAssistant />} />
-          <Route path="/learning" element={<LearningAgent />} />
-          <Route path="/tester" element={<SelfTester />} />
-          <Route path="/queue" element={<TaskQueue />} />
-          <Route path="/employee" element={<AutonomousEmployee />} />
-          <Route path="/vision" element={<Vision />} />
-          <Route path="/desktop" element={<DesktopControl />} />
-          <Route path="/coding-agent" element={<CodingAgent />} />
-          <Route path="/multi-agent" element={<MultiAgent />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/visual-flows" element={<VisualFlows />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/skills" element={<SkillsPresets />} />
-          <Route path="/leads" element={<LeadGen />} />
-        </Routes>
-      </Layout>
-      <ToastContainer />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/code" element={<CodeGenerator />} />
+            <Route path="/code/review" element={<CodeReview />} />
+            <Route path="/agents" element={<Agents />} />
+            <Route path="/crm" element={<CRM />} />
+            <Route path="/files" element={<FileManager />} />
+            <Route path="/seo" element={<SEOToolkit />} />
+            <Route path="/android" element={<AndroidManager />} />
+            <Route path="/whatsapp" element={<WhatsAppMessenger />} />
+            <Route path="/automation" element={<Automation />} />
+            <Route path="/settings" element={<SettingsEditor />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/browser/agent" element={<BrowserAgent />} />
+            <Route path="/vault" element={<DataVault />} />
+            <Route path="/whatsapp/business" element={<WhatsAppBusiness />} />
+            <Route path="/social" element={<SocialManager />} />
+            <Route path="/writer" element={<ContentWriter />} />
+            <Route path="/assistant" element={<VoiceAssistant />} />
+            <Route path="/learning" element={<LearningAgent />} />
+            <Route path="/tester" element={<SelfTester />} />
+            <Route path="/queue" element={<TaskQueue />} />
+            <Route path="/employee" element={<AutonomousEmployee />} />
+            <Route path="/vision" element={<Vision />} />
+            <Route path="/desktop" element={<DesktopControl />} />
+            <Route path="/coding-agent" element={<CodingAgent />} />
+            <Route path="/multi-agent" element={<MultiAgent />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/visual-flows" element={<VisualFlows />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/skills" element={<SkillsPresets />} />
+            <Route path="/leads" element={<LeadGen />} />
+          </Routes>
+        </Layout>
+        <ToastContainer />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

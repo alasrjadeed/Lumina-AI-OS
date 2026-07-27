@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-import random
 import re
 from typing import Any
 
 from core.log import log
 from core.provider import engine as ai_engine
 
-from .apify_client import ApifyClient, APIFY_ACTOR_MAP
-from .platform_registry import PlatformRegistry
-from .persistence import LeadPersistenceService
+from .apify_client import APIFY_ACTOR_MAP, ApifyClient
 from .health import ScraperHealthCheck
-from .python_scraper_gateway import PythonScraperGateway
 from .models import LeadCategory
+from .persistence import LeadPersistenceService
+from .platform_registry import PlatformRegistry
+from .python_scraper_gateway import PythonScraperGateway
 
 
 class LeadScraperService:

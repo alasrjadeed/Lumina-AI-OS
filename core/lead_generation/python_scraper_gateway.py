@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import subprocess
 import sys
 from typing import Any
 
@@ -58,7 +57,7 @@ class PythonScraperGateway:
                 log.warning("Playwright scraper failed for %s: %s", platform, err)
                 return []
             return json.loads(stdout.decode() or "[]")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             log.warning("Playwright scraper timeout for %s", platform)
             return []
         except Exception as e:
@@ -85,7 +84,7 @@ class PythonScraperGateway:
                 log.warning("Fast scraper failed for %s: %s", platform, err)
                 return []
             return json.loads(stdout.decode() or "[]")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             log.warning("Fast scraper timeout for %s", platform)
             return []
         except Exception as e:

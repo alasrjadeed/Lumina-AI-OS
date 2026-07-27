@@ -2,25 +2,21 @@ from __future__ import annotations
 
 import csv
 import io
-import json
-import re
 from dataclasses import asdict
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 
 from core.lead_generation import (
     ApifyClient,
-    PlatformRegistry,
-    LeadScraperService,
     LeadPersistenceService,
+    LeadScraperService,
+    PlatformRegistry,
     ScraperHealthCheck,
-    COUNTRY_METADATA,
-    GCC_COUNTRIES,
 )
-from core.lead_generation.models import LeadCategory, LeadRecord
 from core.lead_generation.ai_services import LeadScoringService, OutreachService
+from core.lead_generation.models import LeadCategory, LeadRecord
 from core.log import log
 
 router = APIRouter(prefix="/lead-gen", tags=["Lead Generation"])
