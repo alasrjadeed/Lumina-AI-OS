@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Lead Generator — AI Lead Discovery for GCC</title>
+    <meta name="description" content="Discover business leads across 37 platforms. AI-powered scraping, enrichment & scoring for Bahrain, Saudi Arabia, UAE, Qatar, Kuwait, Oman & more.">
+    <meta property="og:title" content="Lumina Lead Generator">
+    <meta property="og:description" content="AI-powered lead generation for GCC businesses. 37 platforms, 12 countries.">
+    <meta property="og:type" content="website">
+    <style>
+        :root {
+            --bg: #0a0a14; --surface: #12122a; --border: #1e1e3a;
+            --primary: #6366F1; --primary-glow: #818CF8;
+            --text: #e8e8f8; --text2: #9090b8; --text3: #606080;
+            --green: #22C55E; --amber: #F59E0B; --red: #EF4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+        .nav-in { display: flex; align-items: center; justify-content: space-between; height: 60px; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .logo { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .logo b { width: 28px; height: 28px; background: linear-gradient(135deg,var(--primary),var(--primary-glow)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .nav-l { display: flex; gap: 24px; }
+        .nav-l a { color: var(--text2); text-decoration: none; font-size: 13px; transition: .2s; }
+        .nav-l a:hover { color: var(--text); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; text-decoration: none; }
+        .btn1 { background: var(--primary); color: #fff; }
+        .btn1:hover { background: var(--primary-glow); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
+        .btn2 { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn2:hover { border-color: var(--primary); }
+
+        .hero { padding: 140px 0 60px; text-align: center; position: relative; }
+        .hero::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:500px; height:500px; background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%); pointer-events:none; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); padding: 5px 14px; border-radius: 100px; font-size: 12px; color: var(--primary-glow); margin-bottom: 20px; }
+        .badge b { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .hero h1 { font-size: clamp(32px,5vw,56px); font-weight: 800; line-height: 1.1; margin-bottom: 16px; background: linear-gradient(135deg,#fff,#c0c0e8,var(--primary-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 16px; color: var(--text2); max-width: 600px; margin: 0 auto 28px; }
+        .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+        .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; padding: 50px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .stat { text-align: center; }
+        .stat big { font-size: 32px; font-weight: 800; background: linear-gradient(135deg,var(--primary),var(--primary-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; }
+        .stat small { font-size: 12px; color: var(--text3); }
+
+        section { padding: 80px 0; }
+        h2 { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 10px; }
+        .sub { font-size: 15px; color: var(--text2); text-align: center; max-width: 560px; margin: 0 auto 40px; }
+
+        .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; transition: .3s; }
+        .card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .card .icon { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 20px; }
+        .card h3 { font-size: 15px; margin-bottom: 6px; }
+        .card p { font-size: 13px; color: var(--text2); }
+
+        .ptags { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+        .ptag { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 10px; text-align: center; font-size: 11px; color: var(--text2); transition: .2s; }
+        .ptag:hover { border-color: var(--primary); color: var(--text); }
+        .ptag b { display: block; font-size: 18px; margin-bottom: 2px; }
+
+        .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .ccard { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: .2s; }
+        .ccard:hover { border-color: var(--primary); }
+        .ccard .flag { font-size: 24px; }
+        .ccard .cn { font-size: 13px; font-weight: 600; }
+        .ccard .cs { font-size: 10px; color: var(--text3); }
+
+        .demo-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-width: 700px; margin: 0 auto; }
+        .demo-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); }
+        .demo-bar i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+        .demo-bar i.r { background: #FF5F57; } .demo-bar i.y { background: #FFBD2E; } .demo-bar i.g { background: #28CA42; }
+        .demo-body { padding: 24px; }
+        .demo-body h3 { font-size: 18px; margin-bottom: 16px; }
+        .demo-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+        .demo-form label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+        .demo-form input, .demo-form select { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 13px; color: var(--text); outline: none; }
+        .demo-form input:focus, .demo-form select:focus { border-color: var(--primary); }
+        .demo-form select { cursor: pointer; }
+
+        .loading { display: none; text-align: center; padding: 24px; }
+        .loading.on { display: block; }
+        .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .results { display: none; margin-top: 20px; }
+        .results.on { display: block; }
+        .rstats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+        .rstat { background: rgba(99,102,241,0.08); border-radius: 7px; padding: 10px; text-align: center; }
+        .rstat .big { font-size: 22px; font-weight: 700; color: var(--primary-glow); }
+        .rstat .small { font-size: 10px; color: var(--text3); }
+        .rcards { display: grid; gap: 8px; }
+        .rcard { background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; animation: fadeIn .3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .rcard .name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .rcard .info { font-size: 11px; color: var(--text2); display: flex; flex-wrap: wrap; gap: 6px; }
+        .rcard .info em { font-style: normal; color: var(--primary-glow); }
+
+        .process { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .step { text-align: center; padding: 20px; }
+        .step .n { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--primary-glow)); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 18px; font-weight: 700; }
+        .step h4 { font-size: 14px; margin-bottom: 4px; }
+        .step p { font-size: 12px; color: var(--text2); }
+
+        .cta { text-align: center; padding: 60px 0; }
+        .cta h2 { font-size: 32px; margin-bottom: 12px; }
+
+        footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; font-size: 12px; color: var(--text3); }
+        footer a { color: var(--primary-glow); text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .stats { grid-template-columns: repeat(2,1fr); }
+            .demo-form { grid-template-columns: 1fr; }
+            .nav-l { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-in">
+            <div class="logo"><b>⚡</b> Lumina Lead Gen</div>
+            <div class="nav-l">
+                <a href="#features">Features</a>
+                <a href="#platforms">Platforms</a>
+                <a href="#countries">Countries</a>
+                <a href="#demo">Demo</a>
+                <a href="https://github.com/alasrjadeed/Lumina-AI-OS">GitHub</a>
+            </div>
+            <a href="#demo" class="btn btn1">Try Demo</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="wrap">
+            <div class="badge"><b></b> 37 Platforms · 12 GCC Countries · AI-Powered</div>
+            <h1>Discover Qualified Leads<br>Across the GCC</h1>
+            <p>AI-powered lead generation that scrapes 37 platforms across Bahrain, Saudi Arabia, UAE, Qatar, Kuwait, Oman and more. Auto-enrich, score, and export — all from one platform.</p>
+            <div class="btns">
+                <a href="#demo" class="btn btn1">🚀 Try Demo</a>
+                <a href="https://github.com/alasrjadeed/Lumina-AI-OS" class="btn btn2">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="wrap">
+        <div class="stats">
+            <div class="stat"><big>37+</big><small>Platforms</small></div>
+            <div class="stat"><big>12</big><small>GCC Countries</small></div>
+            <div class="stat"><big>3-Layer</big><small>Engine</small></div>
+            <div class="stat"><big>AI</big><small>Scoring</small></div>
+        </div>
+    </div>
+
+    <section id="features">
+        <div class="wrap">
+            <h2>Everything for Lead Generation</h2>
+            <p class="sub">From discovery to outreach — one unified platform</p>
+            <div class="grid2">
+                <div class="card"><div class="icon" style="background:rgba(99,102,241,.15)">🔍</div><h3>Multi-Platform</h3><p>Google Maps, Instagram, TikTok, Facebook, LinkedIn, YouTube, Twitter, Google Search, Reviews + 27 GCC classifieds.</p></div>
+                <div class="card"><div class="icon" style="background:rgba(34,197,94,.15)">🧠</div><h3>AI Scoring</h3><p>0-100 scoring with hot/warm/cold tiers. Based on data completeness, engagement, and business relevance.</p></div>
+                <div class="card"><div class="icon" style="background:rgba(59,130,246,.15)">✉️</div><h3>AI Outreach</h3><p>Generate personalized email and WhatsApp drafts in English or Arabic. Ready-to-send branded templates.</p></div>
+                <div class="card"><div class="icon" style="background:rgba(245,158,11,.15)">🗺️</div><h3>GCC Intelligence</h3><p>12 countries with auto-selected local classifieds. Bahrain: Expatriates, OLX. UAE: Dubizzle, Bayut. Saudi: Haraj.</p></div>
+                <div class="card"><div class="icon" style="background:rgba(244,63,94,.15)">🔗</div><h3>Auto Enrichment</h3><p>Crawl lead websites for emails, phones, social links, and descriptions. AI fallback generates realistic leads.</p></div>
+                <div class="card"><div class="icon" style="background:rgba(20,184,166,.15)">📊</div><h3>Export & Import</h3><p>CSV, vCard export. Import from CSV, vCard, WhatsApp group exports. Bulk operations for outreach.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="platforms">
+        <div class="wrap">
+            <h2>37 Platforms Across 3 Layers</h2>
+            <p class="sub">Python scrapers → Apify actors → AI fallback</p>
+            <p style="font-size:12px;color:var(--text3);margin-bottom:10px;text-align:center;">Core Apify Platforms</p>
+            <div class="ptags" id="core"></div>
+            <p style="font-size:12px;color:var(--text3);margin:20px 0 10px;text-align:center;">GCC Classifieds (Python)</p>
+            <div class="ptags" id="gcc"></div>
+            <p style="font-size:12px;color:var(--text3);margin:20px 0 10px;text-align:center;">Social & Web</p>
+            <div class="ptags" id="social"></div>
+        </div>
+    </section>
+
+    <section id="countries" style="padding-top:0">
+        <div class="wrap">
+            <h2>12 GCC Countries</h2>
+            <p class="sub">Auto-selected local classifieds per country</p>
+            <div class="cgrid" id="cgrid"></div>
+        </div>
+    </section>
+
+    <section id="demo">
+        <div class="wrap">
+            <h2>Live Demo</h2>
+            <p class="sub">Generate leads for any industry in the GCC</p>
+            <div class="demo-box">
+                <div class="demo-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span style="font-size:11px;color:var(--text3);margin-left:6px;">$ lumina leads:generate</span></div>
+                <div class="demo-body">
+                    <div class="demo-form">
+                        <div><label>Keyword</label><input id="kw" placeholder='restaurants, clinics, construction...' value="restaurants"></div>
+                        <div><label>Location</label><select id="loc"><option value="Bahrain">🇧🇭 Bahrain</option><option value="Saudi Arabia">🇸🇦 Saudi Arabia</option><option value="UAE">🇦🇪 UAE</option><option value="Qatar">🇶🇦 Qatar</option><option value="Kuwait">🇰🇼 Kuwait</option><option value="Oman">🇴🇲 Oman</option></select></div>
+                        <button class="btn btn1" onclick="run()" id="btn" style="height:42px">⚡ Generate</button>
+                    </div>
+                    <div class="loading" id="load"><div class="spinner"></div><p style="color:var(--text2);font-size:13px">Scraping platforms...</p></div>
+                    <div class="results" id="res">
+                        <div class="rstats" id="rstats"></div>
+                        <div class="rcards" id="rcards"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="wrap">
+            <h2>How It Works</h2>
+            <p class="sub">Three-layer engine with AI fallback</p>
+            <div class="process">
+                <div class="step"><div class="n">1</div><h4>Python Scrapers</h4><p>Playwright for JS sites (Instagram, TikTok). Fast HTTP for GCC classifieds.</p></div>
+                <div class="step"><div class="n">2</div><h4>Apify Actors</h4><p>10 cloud actors for Google Maps, Reviews, Search, YouTube, Twitter.</p></div>
+                <div class="step"><div class="n">3</div><h4>AI Fallback</h4><p>Generates realistic leads with correct area codes and business details.</p></div>
+                <div class="step"><div class="n">4</div><h4>Enrich & Score</h4><p>Crawls websites for contacts. AI scoring 0-100 with hot/warm/cold tiers.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="wrap">
+            <h2>Ready to Find Your Next Lead?</h2>
+            <p style="color:var(--text2);font-size:16px;margin-bottom:20px;">Open source. Free to use. Built for the GCC.</p>
+            <a href="https://github.com/alasrjadeed/Lumina-AI-OS" class="btn btn1" style="font-size:16px;padding:14px 28px">⭐ Star on GitHub</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="wrap">
+            <p>Lumina AI OS — The Autonomous AI Employee Operating System</p>
+            <p style="margin-top:6px"><a href="https://github.com/alasrjadeed/Lumina-AI-OS">GitHub</a> · MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        (function(){
+            var icons={};
+            'Google Maps🗺️,Instagram📸,TikTok🎵,YouTube▶️,Facebook👤,Twitter/X🐦,Google Search🔍,Google Reviews⭐,E-Commerce🛒,Website Content🌐,Expatriates🌍,OpenSooq🏪,OLX📦,Dubizzle🏙️,Haraj🛍️,Bayut🏠,ArabianTalks💬,DCCI Info📋,ABC GCC🏢,Bahrain Yellow📒,Bayt.com💼,GulfTalent🎯,Gumtree🌳,Craigslist📰,LinkedIn🔗,Reddit🤖,Pinterest📌,Yelp📝,TripAdvisor✈️,Foursquare📍,JustDial📞,Sulekha📱,Thumbtack🔨,VivaStreet🏘️,Nextdoor🚪,Noon Careers🌙,Meetup🤝'.split(',').forEach(function(p){var x=p.split(/[🗺️📸🎵▶️👤🐦🔍⭐🛒🌐🌍🏪📦🏙️🛍️🏠💬📋🏢📒💼🎯🌳📰🔗🤖📌📝✈️📍📞📱🔨🏘️🚪🌙🤝]/);if(x.length>1)icons[x[0].trim()]=p.slice(x[0].length);});
+
+            function t(id,list){document.getElementById(id).innerHTML=list.map(function(p){return'<div class="ptag"><b>'+(icons[p]||'🔹')+'</b>'+p+'</div>';}).join('');}
+            t('core','Google Maps,Instagram,TikTok,YouTube,Facebook,Twitter/X,Google Search,Google Reviews,E-Commerce,Website Content'.split(','));
+            t('gcc','Expatriates,OpenSooq,OLX,Dubizzle,Haraj,Bayut,ArabianTalks,DCCI Info,ABC GCC,Bahrain Yellow,Bayt.com,GulfTalent,Gumtree,Craigslist'.split(','));
+            t('social','LinkedIn,Reddit,Pinterest,Yelp,TripAdvisor,Foursquare,JustDial,Sulekha,Thumbtack,VivaStreet,Nextdoor,Noon Careers,Meetup'.split(','));
+
+            var cs=[{f:'🇧🇭',n:'Bahrain',s:'Expatriates, OpenSooq, OLX, DCCI, ABC GCC, Yellow Pages'},{f:'🇸🇦',n:'Saudi Arabia',s:'Expatriates, Haraj, OpenSooq, Bayt, GulfTalent'},{f:'🇦🇪',n:'UAE',s:'Dubizzle, Bayut, Expatriates, OpenSooq, Gumtree'},{f:'🇶🇦',n:'Qatar',s:'Expatriates, OpenSooq, Bayt, GulfTalent'},{f:'🇰🇼',n:'Kuwait',s:'Expatriates, OpenSooq, OLX, Bayt, GulfTalent'},{f:'🇴🇲',n:'Oman',s:'Expatriates, OpenSooq, Bayt, GulfTalent, ABC GCC'},{f:'🇪🇬',n:'Egypt',s:'Expatriates, OpenSooq, OLX, Bayt'},{f:'🇯🇴',n:'Jordan',s:'Expatriates, OpenSooq, Bayt'},{f:'🇱🇧',n:'Lebanon',s:'Expatriates, Bayt'},{f:'🇮🇳',n:'India',s:'Bayt, GulfTalent, JustDial, Sulekha'},{f:'🇵🇰',n:'Pakistan',s:'Bayt'},{f:'🇵🇭',n:'Philippines',s:'Bayt, GulfTalent'}];
+            document.getElementById('cgrid').innerHTML=cs.map(function(c){return'<div class="ccard"><div class="flag">'+c.f+'</div><div><div class="cn">'+c.n+'</div><div class="cs">'+c.s+'</div></div></div>';}).join('');
+        })();
+
+        function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+        function showMock(kw,loc){
+            var m=[{n:kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)})+' Al Jazeera',e:'info@aljazeera.bh',p:'+973 1700 1234',w:'aljazeera.bh',s:'google_maps',sc:85,t:'hot'},
+            {n:'Bahrain '+kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)})+' Center',e:'contact@bhcenter.bh',p:'+973 3600 5678',w:'bhcenter.bh',s:'expatriates',sc:70,t:'hot'},
+            {n:'Al Salam '+kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)}),e:'',p:'+973 3300 9012',w:'alsalam.bh',s:'opensooq',sc:60,t:'warm'},
+            {n:'Gulf '+kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)})+' Trading',e:'sales@gulftrading.bh',p:'',w:'gulftrading.bh',s:'olx',sc:55,t:'warm'},
+            {n:'Manama '+kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)})+' House',e:'hello@manama.bh',p:'+973 1700 3456',w:'',s:'bahrainyellow',sc:50,t:'warm'},
+            {n:'Pearl '+kw.replace(/\w+/g,function(w){return w.charAt(0).toUpperCase()+w.slice(1)})+' Co.',e:'',p:'+973 3900 7890',w:'pearl-co.bh',s:'abcgcc',sc:45,t:'warm'}];
+            document.getElementById('rstats').innerHTML='<div class="rstat"><div class="big">8</div><div class="small">Platforms</div></div><div class="rstat"><div class="big">'+m.length+'</div><div class="small">Demo Leads</div></div><div class="rstat"><div class="big">Demo</div><div class="small">Mode</div></div><div class="rstat"><div class="big">BH</div><div class="small">Country</div></div>';
+            document.getElementById('rcards').innerHTML=m.map(function(l){return'<div class="rcard"><div class="name">'+esc(l.n)+'</div><div class="info">'+(l.e?'📧 '+esc(l.e)+' ':'')+(l.p?'📞 '+esc(l.p)+' ':'')+(l.w?'🌐 '+esc(l.w)+' ':'')+'🏷️ '+l.s+' <em>⭐'+l.sc+'</em> <span style="color:'+(l.t==='hot'?'var(--red)':l.t==='warm'?'var(--amber)':'var(--text3)')+'">'+l.t.toUpperCase()+'</span></div></div>';}).join('');
+            document.getElementById('res').classList.add('on');
+        }
+
+        async function run(){
+            var kw=document.getElementById('kw').value.trim();
+            var loc=document.getElementById('loc').value;
+            if(!kw)return;
+            var btn=document.getElementById('btn'),load=document.getElementById('load'),res=document.getElementById('res');
+            btn.disabled=true;btn.innerHTML='<span style="animation:spin 1s linear infinite;display:inline-block">⚡</span> ...';
+            load.classList.add('on');res.classList.remove('on');
+            try{
+                var r=await fetch('https://raw.githubusercontent.com/alasrjadeed/Lumina-AI-OS/master/workspace/leads_plugin_data.json');
+                if(!r.ok)throw new Error();
+                showMock(kw,loc);
+            }catch(e){showMock(kw,loc);}
+            finally{btn.disabled=false;btn.innerHTML='⚡ Generate';load.classList.remove('on');}
+        }
+    </script>
+</body>
+</html>
