@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Globe, Search, Plus, Trash2, Download, Upload, RefreshCw, Target, Activity, ChevronDown, Filter, AlertCircle } from 'lucide-react';
+import { UserPlus, Globe, Search, Plus, Trash2, Download, Upload, RefreshCw, Target, Activity, ChevronDown, Filter, AlertCircle, ExternalLink } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { useApi, useApiMutation } from '../hooks/useApi';
 import { useToast } from '../hooks/useToast';
@@ -158,6 +158,9 @@ export default function LeadGen() {
           <p className="text-sm text-slate-400 mt-0.5">AI-powered lead discovery across 37 platforms</p>
         </div>
         <div className="flex items-center gap-2">
+          <a href="/demo.html" target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors border border-indigo-500/20">
+            <ExternalLink className="w-3.5 h-3.5" /> Demo Page
+          </a>
           <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
             <Download className="w-3.5 h-3.5" /> CSV
           </button>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Lead Generator — AI-Powered Lead Discovery for GCC Businesses</title>
+    <meta name="description" content="Discover qualified business leads across 37 platforms in Bahrain, Saudi Arabia, UAE, Qatar, Kuwait, Oman and more. AI-powered lead generation with automated enrichment and scoring.">
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --surface: #12122a;
+            --surface-hover: #1a1a40;
+            --border: #1e1e3a;
+            --primary: #6366F1;
+            --primary-glow: #818CF8;
+            --text: #e8e8f8;
+            --text-secondary: #9090b8;
+            --text-muted: #606080;
+            --success: #22C55E;
+            --warn: #F59E0B;
+            --error: #EF4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10,10,20,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-glow)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color .2s; }
+        .nav-links a:hover { color: var(--text); }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-glow); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Hero */
+        .hero {
+            padding: 160px 0 80px;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+            padding: 6px 16px; border-radius: 100px; font-size: 13px; color: var(--primary-glow);
+            margin-bottom: 24px;
+        }
+        .hero-badge .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero h1 {
+            font-size: clamp(36px, 5vw, 64px); font-weight: 800;
+            line-height: 1.1; margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #c0c0e8 50%, var(--primary-glow) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 18px; color: var(--text-secondary); max-width: 640px;
+            margin: 0 auto 32px;
+        }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        /* Stats */
+        .stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+            padding: 60px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--primary-glow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* Sections */
+        section { padding: 80px 0; }
+        .section-title { font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+        .section-subtitle { font-size: 16px; color: var(--text-secondary); text-align: center; max-width: 600px; margin: 0 auto 48px; }
+
+        /* Features Grid */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .feature-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 28px; transition: all .3s;
+        }
+        .feature-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.1); }
+        .feature-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 22px; }
+        .feature-icon.purple { background: rgba(99,102,241,0.15); }
+        .feature-icon.green { background: rgba(34,197,94,0.15); }
+        .feature-icon.amber { background: rgba(245,158,11,0.15); }
+        .feature-icon.blue { background: rgba(59,130,246,0.15); }
+        .feature-icon.rose { background: rgba(244,63,94,0.15); }
+        .feature-icon.teal { background: rgba(20,184,166,0.15); }
+        .feature-card h3 { font-size: 16px; margin-bottom: 8px; }
+        .feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Platforms Grid */
+        .platforms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .platform-tag {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; text-align: center; font-size: 12px;
+            color: var(--text-secondary); transition: all .2s;
+        }
+        .platform-tag:hover { border-color: var(--primary); color: var(--text); }
+        .platform-tag .p-icon { font-size: 20px; margin-bottom: 4px; display: block; }
+
+        /* Countries */
+        .countries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .country-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; display: flex; align-items: center; gap: 12px; transition: all .2s;
+        }
+        .country-card:hover { border-color: var(--primary); }
+        .country-flag { font-size: 28px; }
+        .country-name { font-size: 14px; font-weight: 600; }
+        .country-code { font-size: 11px; color: var(--text-muted); }
+
+        /* Demo Section */
+        .demo-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .demo-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 16px; background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+        }
+        .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .demo-dot.red { background: #FF5F57; }
+        .demo-dot.yellow { background: #FFBD2E; }
+        .demo-dot.green { background: #28CA42; }
+        .demo-body { padding: 28px; }
+        .demo-body h3 { font-size: 20px; margin-bottom: 20px; }
+        .demo-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+        .demo-form .field { display: flex; flex-direction: column; gap: 6px; }
+        .demo-form label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .demo-form input, .demo-form select {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px 14px; font-size: 14px; color: var(--text); outline: none; transition: border-color .2s;
+        }
+        .demo-form input:focus, .demo-form select:focus { border-color: var(--primary); }
+        .demo-form select { cursor: pointer; }
+        .demo-results { margin-top: 24px; display: none; }
+        .demo-results.active { display: block; }
+        .result-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+        .result-card {
+            background: rgba(0,0,0,0.15); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-card .r-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .result-card .r-info { font-size: 12px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 8px; }
+        .result-card .r-info span { display: flex; align-items: center; gap: 4px; }
+        .result-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .result-stat { background: rgba(99,102,241,0.08); border-radius: 8px; padding: 12px; text-align: center; }
+        .result-stat .rs-val { font-size: 24px; font-weight: 700; color: var(--primary-glow); }
+        .result-stat .rs-label { font-size: 11px; color: var(--text-muted); }
+        .loading { display: none; text-align: center; padding: 32px; }
+        .loading.active { display: block; }
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Process */
+        .process-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .process-step { text-align: center; padding: 24px; }
+        .process-step .step-number {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px; font-size: 20px; font-weight: 700;
+        }
+        .process-step h4 { font-size: 15px; margin-bottom: 6px; }
+        .process-step p { font-size: 13px; color: var(--text-secondary); }
+
+        /* CTA */
+        .cta { text-align: center; padding: 80px 0; }
+        .cta h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+        .cta p { color: var(--text-secondary); margin-bottom: 32px; font-size: 18px; }
+
+        /* Footer */
+        footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; font-size: 13px; color: var(--text-muted); }
+        footer a { color: var(--primary-glow); text-decoration: none; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 14px 20px; z-index: 200;
+            font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            animation: slideUp 0.3s ease-out; display: none;
+        }
+        .toast.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .result-stats { grid-template-columns: repeat(2, 1fr); }
+            .demo-form { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                Lumina Lead Gen
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#platforms">Platforms</a>
+                <a href="#countries">Countries</a>
+                <a href="#demo">Demo</a>
+                <a href="#process">How It Works</a>
+            </div>
+            <a href="#demo" class="btn btn-primary">Try Demo</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge"><span class="dot"></span> AI-Powered · 37 Platforms · 12 GCC Countries</div>
+            <h1>Discover Qualified Leads<br>for Your Business</h1>
+            <p>AI-powered lead generation that scrapes 37 platforms across Bahrain, Saudi Arabia, UAE, Qatar, Kuwait, Oman and more. Auto-enrich contacts, score leads, and export to CSV/vCard.</p>
+            <div class="hero-buttons">
+                <a href="#demo" class="btn btn-primary">🚀 Try Live Demo</a>
+                <a href="#features" class="btn btn-outline">Explore Features</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat"><div class="stat-value">37+</div><div class="stat-label">Platforms Scraped</div></div>
+            <div class="stat"><div class="stat-value">12</div><div class="stat-label">GCC Countries</div></div>
+            <div class="stat"><div class="stat-value">3-Layer</div><div class="stat-label">Scraping Engine</div></div>
+            <div class="stat"><div class="stat-value">AI</div><div class="stat-label">Smart Scoring</div></div>
+        </div>
+    </div>
+
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title">Everything You Need for Lead Generation</h2>
+            <p class="section-subtitle">From discovery to outreach — all in one platform</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon purple">🔍</div>
+                    <h3>Multi-Platform Scraping</h3>
+                    <p>Google Maps, Instagram, TikTok, Facebook, LinkedIn, YouTube, Twitter/X, Google Search, Google Reviews, and 27+ GCC classifieds & directories.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">🧠</div>
+                    <h3>AI Lead Scoring</h3>
+                    <p>Automatic scoring 0-100 with hot/warm/cold classification. Based on data completeness, engagement signals, and business relevance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue">✉️</div>
+                    <h3>AI Outreach Generator</h3>
+                    <p>Generate personalized email and WhatsApp message drafts in English or Arabic. Ready-to-send templates with your branding.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon amber">🗺️</div>
+                    <h3>GCC Intelligence</h3>
+                    <p>12 GCC countries with auto-selected local classifieds per country. Bahrain: Expatriates, OLX, Yellow Pages. UAE: Dubizzle, Bayut. Saudi: Haraj.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon rose">🔗</div>
+                    <h3>Auto Enrichment</h3>
+                    <p>Crawls each lead's website to extract emails, phone numbers, social media links, and business descriptions automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon teal">📊</div>
+                    <h3>Export & Import</h3>
+                    <p>Export leads as CSV or vCard. Import from CSV, vCard, or WhatsApp group exports. Bulk operations for status updates and outreach.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="platforms">
+        <div class="container">
+            <h2 class="section-title">37 Platforms Across 3 Layers</h2>
+            <p class="section-subtitle">Python scrapers → Apify actors → AI fallback — maximum coverage guaranteed</p>
+            <div style="margin-bottom: 24px;">
+                <h4 style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Core Platforms (Apify Actors)</h4>
+                <div class="platforms-grid" id="core-platforms"></div>
+            </div>
+            <div style="margin-bottom: 24px;">
+                <h4 style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">GCC Classifieds (Python Scrapers)</h4>
+                <div class="platforms-grid" id="gcc-platforms"></div>
+            </div>
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Social & Web Platforms</h4>
+                <div class="platforms-grid" id="social-platforms"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="countries" style="padding-top: 0;">
+        <div class="container">
+            <h2 class="section-title">12 GCC Countries Covered</h2>
+            <p class="section-subtitle">Auto-detected local classifieds per country</p>
+            <div class="countries-grid" id="countries-grid"></div>
+        </div>
+    </section>
+
+    <section id="demo">
+        <div class="container">
+            <h2 class="section-title">Live Demo</h2>
+            <p class="section-subtitle">Generate real leads from GCC platforms</p>
+            <div class="demo-section">
+                <div class="demo-header">
+                    <div class="demo-dot red"></div>
+                    <div class="demo-dot yellow"></div>
+                    <div class="demo-dot green"></div>
+                    <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">lead-generator — zsh</span>
+                </div>
+                <div class="demo-body">
+                    <h3>$ lumina leads:generate</h3>
+                    <div class="demo-form">
+                        <div class="field">
+                            <label>Keyword / Industry</label>
+                            <input type="text" id="keyword" placeholder='e.g. "restaurants", "construction", "clinics"' value="restaurants">
+                        </div>
+                        <div class="field">
+                            <label>Location</label>
+                            <select id="location">
+                                <option value="Bahrain">🇧🇭 Bahrain</option>
+                                <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+                                <option value="UAE">🇦🇪 UAE</option>
+                                <option value="Qatar">🇶🇦 Qatar</option>
+                                <option value="Kuwait">🇰🇼 Kuwait</option>
+                                <option value="Oman">🇴🇲 Oman</option>
+                                <option value="Egypt">🇪🇬 Egypt</option>
+                                <option value="Jordan">🇯🇴 Jordan</option>
+                                <option value="Lebanon">🇱🇧 Lebanon</option>
+                                <option value="India">🇮🇳 India</option>
+                                <option value="Pakistan">🇵🇰 Pakistan</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="runDemo()" id="gen-btn" style="height:42px;">
+                            ⚡ Generate Leads
+                        </button>
+                    </div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p style="color:var(--text-secondary);font-size:14px;">Scraping platforms... This may take 10-15 seconds</p>
+                    </div>
+                    <div class="demo-results" id="results">
+                        <div class="result-stats" id="result-stats"></div>
+                        <div class="result-cards" id="result-cards"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="process">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three-layer scraping engine with AI fallback</p>
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <h4>Python Scrapers</h4>
+                    <p>Playwright for JS-heavy sites (Instagram, TikTok, Facebook). Fast HTTP for GCC classifieds (Expatriates, OLX, OpenSooq).</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <h4>Apify Actors</h4>
+                    <p>10 Apify cloud actors for Google Maps, Reviews, Search, YouTube, Twitter/X, E-Commerce, and Website Content.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <h4>AI Fallback</h4>
+                    <p>When scrapers return empty, AI generates realistic leads with correct area codes, street names, and business details.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <h4>Enrich & Score</h4>
+                    <p>Auto-crawl websites for emails/phones. AI scoring from 0-100. Hot (70+), warm (30-69), cold (&lt;30) classification.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Find Your Next Lead?</h2>
+            <p>Start generating qualified leads for your business in the GCC today.</p>
+            <a href="#demo" class="btn btn-primary" style="font-size:16px;padding:14px 32px;">🚀 Try the Demo Above</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Lumina AI OS — The World's First Autonomous AI Employee Operating System</p>
+            <p style="margin-top:8px;"><a href="https://github.com/alasrjadeed/Lumina-AI-OS">GitHub</a> · <a href="#">Documentation</a> · <a href="#">API Reference</a></p>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const platforms = {
+            core: ['Google Maps','Instagram','TikTok','YouTube','Facebook','Twitter/X','Google Search','Google Reviews','E-Commerce','Website Content'],
+            gcc: ['Expatriates','OpenSooq','OLX','Dubizzle','Haraj','Bayut','ArabianTalks','DCCI Info','ABC GCC','Bahrain Yellow','Bayt.com','GulfTalent','Gumtree','Craigslist'],
+            social: ['LinkedIn','Reddit','Pinterest','Yelp','TripAdvisor','Foursquare','JustDial','Sulekha','Thumbtack','VivaStreet','Nextdoor','Noon Careers','Meetup']
+        };
+
+        const countries = [
+            {code:'BH',name:'Bahrain',flag:'🇧🇭',classifieds:'Expatriates, OpenSooq, OLX, DCCI Info, ABC GCC, Yellow Pages, Gumtree'},
+            {code:'SA',name:'Saudi Arabia',flag:'🇸🇦',classifieds:'Expatriates, Haraj, OpenSooq, Bayt, GulfTalent, ArabianTalks'},
+            {code:'AE',name:'UAE',flag:'🇦🇪',classifieds:'Dubizzle, Bayut, Expatriates, OpenSooq, Bayt, GulfTalent, Gumtree, Craigslist'},
+            {code:'QA',name:'Qatar',flag:'🇶🇦',classifieds:'Expatriates, OpenSooq, Bayt, GulfTalent, ArabianTalks'},
+            {code:'KW',name:'Kuwait',flag:'🇰🇼',classifieds:'Expatriates, OpenSooq, OLX, Bayt, GulfTalent, ArabianTalks'},
+            {code:'OM',name:'Oman',flag:'🇴🇲',classifieds:'Expatriates, OpenSooq, Bayt, GulfTalent, ABC GCC'},
+            {code:'EG',name:'Egypt',flag:'🇪🇬',classifieds:'Expatriates, OpenSooq, OLX, Bayt'},
+            {code:'JO',name:'Jordan',flag:'🇯🇴',classifieds:'Expatriates, OpenSooq, Bayt'},
+            {code:'LB',name:'Lebanon',flag:'🇱🇧',classifieds:'Expatriates, Bayt'},
+            {code:'IN',name:'India',flag:'🇮🇳',classifieds:'Bayt, GulfTalent, JustDial, Sulekha'},
+            {code:'PK',name:'Pakistan',flag:'🇵🇰',classifieds:'Bayt'},
+            {code:'PH',name:'Philippines',flag:'🇵🇭',classifieds:'Bayt, GulfTalent'},
+        ];
+
+        function renderPlatforms(containerId, list) {
+            const container = document.getElementById(containerId);
+            const icons = { 'Google Maps':'🗺️','Instagram':'📸','TikTok':'🎵','YouTube':'▶️','Facebook':'👤','Twitter/X':'🐦','Google Search':'🔍','Google Reviews':'⭐','E-Commerce':'🛒','Website Content':'🌐','Expatriates':'🌍','OpenSooq':'🏪','OLX':'📦','Dubizzle':'🏙️','Haraj':'🛍️','Bayut':'🏠','ArabianTalks':'💬','DCCI Info':'📋','ABC GCC':'🏢','Bahrain Yellow':'📒','Bayt.com':'💼','GulfTalent':'🎯','Gumtree':'🌳','Craigslist':'📰','LinkedIn':'🔗','Reddit':'🤖','Pinterest':'📌','Yelp':'📝','TripAdvisor':'✈️','Foursquare':'📍','JustDial':'📞','Sulekha':'📱','Thumbtack':'🔨','VivaStreet':'🏘️','Nextdoor':'🚪','Noon Careers':'🌙','Meetup':'🤝' };
+            container.innerHTML = list.map(p => `<div class="platform-tag"><span class="p-icon">${icons[p]||'🔹'}</span>${p}</div>`).join('');
+        }
+
+        function renderCountries() {
+            document.getElementById('countries-grid').innerHTML = countries.map(c =>
+                `<div class="country-card">
+                    <div class="country-flag">${c.flag}</div>
+                    <div><div class="country-name">${c.name}</div><div class="country-code">${c.classifieds}</div></div>
+                </div>`
+            ).join('');
+        }
+
+        renderPlatforms('core-platforms', platforms.core);
+        renderPlatforms('gcc-platforms', platforms.gcc);
+        renderPlatforms('social-platforms', platforms.social);
+        renderCountries();
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.borderColor = type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : 'var(--border)';
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+
+        async function runDemo() {
+            const keyword = document.getElementById('keyword').value.trim();
+            const location = document.getElementById('location').value;
+            if (!keyword) { showToast('Please enter a keyword', 'error'); return; }
+
+            const btn = document.getElementById('gen-btn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block;">⚡</span> Generating...';
+            loading.classList.add('active');
+            results.classList.remove('active');
+
+            try {
+                const resp = await fetch('/api/lead-gen/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword, location, limit: 8 })
+                });
+
+                if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+                const data = await resp.json();
+
+                document.getElementById('result-stats').innerHTML = `
+                    <div class="result-stat"><div class="rs-val">${data.platforms_used}</div><div class="rs-label">Platforms Used</div></div>
+                    <div class="result-stat"><div class="rs-val">${data.raw_leads_found}</div><div class="rs-label">Leads Found</div></div>
+                    <div class="result-stat"><div class="rs-val">${data.leads_saved}</div><div class="rs-label">Leads Saved</div></div>
+                    <div class="result-stat"><div class="rs-val">${data.uses_ai_fallback ? 'AI' : 'Live'}</div><div class="rs-label">Data Source</div></div>
+                `;
+
+                const leadsResp = await fetch(`/api/lead-gen/leads?limit=8`);
+                const leadsData = await leadsResp.json();
+                const leads = leadsData.leads || [];
+
+                document.getElementById('result-cards').innerHTML = leads.slice(0, 8).map(l => `
+                    <div class="result-card">
+                        <div class="r-name">${escapeHtml(l.business_name || 'Unknown')}</div>
+                        <div class="r-info">
+                            ${l.email ? `<span>📧 ${escapeHtml(l.email)}</span>` : ''}
+                            ${l.phone ? `<span>📞 ${escapeHtml(l.phone)}</span>` : ''}
+                            ${l.website ? `<span>🌐 ${escapeHtml(l.website)}</span>` : ''}
+                            ${l.source ? `<span>🏷️ ${escapeHtml(l.source)}</span>` : ''}
+                        </div>
+                        <div class="r-info" style="margin-top:4px;">
+                            ${l.lead_score ? `<span style="color:var(--primary-glow)">⭐ ${l.lead_score}</span>` : ''}
+                            ${l.score_tier ? `<span style="color:${l.score_tier==='hot'?'var(--error)':l.score_tier==='warm'?'var(--warn)':'var(--text-muted)'}">${l.score_tier.toUpperCase()}</span>` : ''}
+                            ${l.country ? `<span>📍 ${escapeHtml(l.country)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('') || '<p style="color:var(--text-muted);text-align:center;padding:20px;">No leads returned. Try a different keyword or ensure the API server is running.</p>';
+
+                results.classList.add('active');
+                showToast(`Found ${data.raw_leads_found} leads across ${data.platforms_used} platforms`, 'success');
+            } catch (e) {
+                // Show mock data when API is not available
+                showMockResults(keyword, location);
+                showToast('Showing demo data (API not connected)', 'info');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '⚡ Generate Leads';
+                loading.classList.remove('active');
+            }
+        }
+
+        function showMockResults(keyword, location) {
+            const mockLeads = [
+                {business_name:`${capitalize(keyword)} Al Jazeera`,email:'info@aljazeera.bh',phone:'+973 1700 1234',website:'aljazeera-const.bh',source:'google_maps',lead_score:85,score_tier:'hot',country:location},
+                {business_name:`Bahrain ${capitalize(keyword)} Center`,email:'contact@bhcenter.bh',phone:'+973 3600 5678',website:'bhcenter.bh',source:'expatriates',lead_score:70,score_tier:'hot',country:location},
+                {business_name:`Al Salam ${capitalize(keyword)}`,email:'',phone:'+973 3300 9012',website:'alsalam.bh',source:'opensooq',lead_score:60,score_tier:'warm',country:location},
+                {business_name:`Gulf ${capitalize(keyword)} Trading`,email:'sales@gulftrading.bh',phone:'',website:'gulftrading.bh',source:'olx',lead_score:55,score_tier:'warm',country:location},
+                {business_name:`Manama ${capitalize(keyword)} House`,email:'hello@manama.bh',phone:'+973 1700 3456',website:'',source:'bahrainyellow',lead_score:50,score_tier:'warm',country:location},
+                {business_name:`Pearl ${capitalize(keyword)} Co.`,email:'',phone:'+973 3900 7890',website:'pearl-co.bh',source:'abcgcc',lead_score:45,score_tier:'warm',country:location},
+            ];
+
+            document.getElementById('result-stats').innerHTML = `
+                <div class="result-stat"><div class="rs-val">8</div><div class="rs-label">Platforms Used</div></div>
+                <div class="result-stat"><div class="rs-val">${mockLeads.length}</div><div class="rs-label">Demo Leads</div></div>
+                <div class="result-stat"><div class="rs-val">Demo</div><div class="rs-label">Mode</div></div>
+                <div class="result-stat"><div class="rs-val">BH</div><div class="rs-label">Country</div></div>
+            `;
+            document.getElementById('result-cards').innerHTML = mockLeads.map(l => `
+                <div class="result-card">
+                    <div class="r-name">${escapeHtml(l.business_name)}</div>
+                    <div class="r-info">
+                        ${l.email ? `<span>📧 ${escapeHtml(l.email)}</span>` : ''}
+                        ${l.phone ? `<span>📞 ${escapeHtml(l.phone)}</span>` : ''}
+                        ${l.website ? `<span>🌐 ${escapeHtml(l.website)}</span>` : ''}
+                        <span>🏷️ ${l.source}</span>
+                    </div>
+                    <div class="r-info" style="margin-top:4px;">
+                        <span style="color:var(--primary-glow)">⭐ ${l.lead_score}</span>
+                        <span style="color:${l.score_tier==='hot'?'var(--error)':l.score_tier==='warm'?'var(--warn)':'var(--text-muted)'}">${l.score_tier.toUpperCase()}</span>
+                        <span>📍 ${l.country}</span>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('results').classList.add('active');
+        }
+
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+        function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    </script>
+</body>
+</html>
