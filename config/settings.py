@@ -12,8 +12,9 @@ class Settings(BaseSettings):
     version: str = "1.0.0"
     debug: bool = True
 
+    ollama_host: str = "http://localhost:11434"
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5-coder:0.5b"
+    ollama_model: str = "llama3"
 
     openai_api_key: str | None = None
     openai_base_url: str | None = None
