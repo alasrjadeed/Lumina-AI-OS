@@ -83,10 +83,14 @@ export default function MarketingHub() {
               </div>
             </div></Card>
 
-            {loading ? <div className="space-y-2">{Array(3).fill(0).map((_,i) => <Skeleton key={i} h="h-20" />)}</div> : campaigns.length === 0 ? <div className="text-center py-12 text-[var(--text-tertiary)]"><Megaphone className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No campaigns yet</p></div>
-            : <div className="space-y-2">
-              {campaigns.map((c: any) => (
-                <div key={c.name} className="bg-[var(--bg-tertiary)] rounded-xl p-4 hover:bg-[var(--bg-hover)] transition-colors">
+            {loading ? (
+              <div className="space-y-2">{Array(3).fill(0).map((_,i) => <Skeleton key={i} h="h-20" />)}</div>
+            ) : campaigns.length === 0 ? (
+              <div className="text-center py-12 text-[var(--text-tertiary)]"><Megaphone className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No campaigns yet</p></div>
+            ) : (
+              <div className="space-y-2">
+                {campaigns.map((c: any) => (
+                  <div key={c.name} className="bg-[var(--bg-tertiary)] rounded-xl p-4 hover:bg-[var(--bg-hover)] transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{c.name}</span>
@@ -165,7 +169,8 @@ export default function MarketingHub() {
             ) : <div className="text-center py-12 text-[var(--text-tertiary)]"><TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No data available yet</p></div>}
           </div>
         )}
-      </div>
-    </div>
-  );
-}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
