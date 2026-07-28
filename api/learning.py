@@ -42,8 +42,14 @@ async def record_action(req: RecordAction):
 async def get_patterns():
     return {
         "patterns": [
-            {"sequence": p.sequence, "frequency": p.frequency}
-            for p in agent.get_frequent_patterns(10)
+            {
+                "action": " → ".join(p.sequence),
+                "sequence": p.sequence,
+                "frequency": p.frequency,
+                "last_seen": p.last_used,
+                "context": p.context,
+            }
+            for p in agent.get_frequent_patterns(50)
         ]
     }
 

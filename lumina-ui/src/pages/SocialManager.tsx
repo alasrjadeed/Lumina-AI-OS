@@ -291,7 +291,6 @@ export default function SocialManager() {
           </CardSection>
         )}
       </div>
-      </div>
 
       {/* ── Instagram Repost Integration ── */}
       <div className="mt-4 bg-gradient-to-r from-purple-500/5 to-pink-500/5 border border-purple-500/10 rounded-xl p-4">
