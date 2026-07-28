@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     api_keys: str = ""
     cors_origins: str = "*"
 
+    mail_mailer: str = "smtp"
+    mail_host: str = ""
+    mail_port: int = 587
+    mail_username: str = ""
+    mail_password: str = ""
+    mail_encryption: str = "tls"
+    mail_from_address: str = ""
+    mail_from_name: str = "Lumina"
+
     model_config = {"env_file": _ENV_FILE, "env_file_encoding": "utf-8", "extra": "ignore"}
 
     def reload(self) -> dict[str, object]:
