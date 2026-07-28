@@ -4,6 +4,7 @@ import {
   BarChart3, Loader2, CheckCircle, XCircle,
   MessageSquare, Users,
   Search, RefreshCw, Heart, Share2, MessageCircle,
+  ExternalLink, Repeat, Calendar,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Card, { CardSection } from '../components/ui/Card';
@@ -289,6 +290,23 @@ export default function SocialManager() {
             )}
           </CardSection>
         )}
+      </div>
+      </div>
+
+      {/* ── Instagram Repost Integration ── */}
+      <div className="mt-4 bg-gradient-to-r from-purple-500/5 to-pink-500/5 border border-purple-500/10 rounded-xl p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><Repeat className="w-5 h-5 text-white" /></div>
+            <div><h3 className="text-sm font-semibold">Lumina Repost</h3><p className="text-xs text-[var(--text-secondary)]">Instagram auto-repost · Caption AI · Scheduling</p></div>
+          </div>
+          <a href="/home/oem/Documents/Lumina Repost/" target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 transition-colors border border-purple-500/20">
+            <ExternalLink className="w-3 h-3" /> Open Repost
+          </a>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+          {[{l:'Smart Repost',v:'Auto-detect new media'},{l:'AI Captions',v:'9 AI providers'},{l:'Scheduling',v:'Calendar-based'},{l:'Hashtags',v:'Auto-optimized'}].map(f => <div key={f.l} className="bg-[var(--bg-primary)] rounded-lg p-3"><p className="text-2xs text-[var(--text-secondary)]">{f.l}</p><p className="text-xs mt-0.5">{f.v}</p></div>)}
+        </div>
       </div>
     </div>
   );

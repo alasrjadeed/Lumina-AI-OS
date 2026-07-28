@@ -6,7 +6,7 @@ import {
   Layers, Radio, Database, UserCheck, Briefcase, TrendingUp,
   RefreshCw, ArrowRight, ChevronRight,
   Smartphone, Eye, Heart, Terminal, BookOpen,
-  PieChart, Gauge, Sparkles, FileCode, Bell, Mail,
+  PieChart, Gauge, Sparkles, FileCode, Bell, Mail, Film, ExternalLink,
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 
@@ -38,6 +38,7 @@ const SECTIONS: Section[] = [
   { id: 'crm', label: 'CRM', icon: Briefcase },
   { id: 'marketing', label: 'Marketing', icon: TrendingUp },
   { id: 'tasks', label: 'Tasks', icon: Layers },
+  { id: 'video', label: 'Video Studio', icon: Film },
   { id: 'activity', label: 'Activity', icon: Clock },
 ];
 
@@ -62,6 +63,8 @@ export default function Dashboard() {
   const [whatsapp, setWhatsapp] = useState<any>(null);
   const [notificationFeed, setNotificationFeed] = useState<Array<{ time: number; icon: string; msg: string }>>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [vsTasks, setVsTasks] = useState<any[]>([]);
+  const [vsConnected, setVsConnected] = useState(false);
 
   const loadAll = useCallback(async () => {
     setRefreshing(true);
@@ -110,6 +113,22 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // V2: Video Studio connection check
+  useEffect(() => {
+    async function checkVS() {
+      try {
+        const r = await fetch('http://localhost:8000/api/health');
+        if (r.ok) {
+          setVsConnected(true);
+          const tasks: any = await fetch('http://localhost:8000/api/tasks?limit=5').then(r => r.json());
+          setVsTasks(tasks || []);
+        } else { setVsConnected(false); }
+      } catch { setVsConnected(false); }
+    }
+    checkVS();
+    if (autoRefresh) { const i = setInterval(checkVS, 15000); return () => clearInterval(i); }
+  }, [autoRefresh]);
 
   // V2: Auto-refresh every 15 seconds
   useEffect(() => {
@@ -779,6 +798,34 @@ export default function Dashboard() {
                 </Link>
               ))}
             </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── VIDEO STUDIO ── */}
+      {activeSection === 'video' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[var(--bg-tertiary)] rounded-xl p-4"><p className="text-2xs text-[var(--text-tertiary)] uppercase">Status</p><p className="text-xl font-bold mt-1" style={{color: vsConnected ? 'var(--color-success)' : 'var(--color-error)'}}>{vsConnected ? 'Connected' : 'Offline'}</p></div>
+            <div className="bg-[var(--bg-tertiary)] rounded-xl p-4"><p className="text-2xs text-[var(--text-tertiary)] uppercase">Active Tasks</p><p className="text-xl font-bold mt-1" style={{color:'var(--brand-500)'}}>{vsTasks.filter((t:any) => t.status === 'running' || t.status === 'pending').length}</p></div>
+            <div className="bg-[var(--bg-tertiary)] rounded-xl p-4"><p className="text-2xs text-[var(--text-tertiary)] uppercase">Completed</p><p className="text-xl font-bold mt-1" style={{color:'var(--color-success)'}}>{vsTasks.filter((t:any) => t.status === 'completed').length}</p></div>
+            <div className="bg-[var(--bg-tertiary)] rounded-xl p-4"><p className="text-2xs text-[var(--text-tertiary)] uppercase">Failed</p><p className="text-xl font-bold mt-1" style={{color:'var(--color-error)'}}>{vsTasks.filter((t:any) => t.status === 'failed').length}</p></div>
+          </div>
+          <Card hover={false}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold">Recent Video Tasks</h3>
+              <Link to="/video-studio" className="text-xs text-[var(--text-brand)] hover:underline">Open Video Studio →</Link>
+            </div>
+            {vsTasks.length === 0 ? <p className="text-sm text-[var(--text-tertiary)] text-center py-4">No tasks yet. Generate a video from Video Studio.</p>
+            : <div className="space-y-2">{vsTasks.slice(0, 5).map((t: any) => (
+              <div key={t.task_id || t.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--bg-primary)]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-2 h-2 rounded-full ${t.status === 'completed' ? 'bg-green-500' : t.status === 'failed' ? 'bg-red-500' : t.status === 'running' ? 'bg-blue-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <span className="text-sm truncate">{t.prompt?.substring(0, 50) || t.task_id}</span>
+                </div>
+                <span className="text-xs text-[var(--text-tertiary)]">{t.status}</span>
+              </div>
+            ))}</div>}
           </Card>
         </div>
       )}

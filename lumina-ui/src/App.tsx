@@ -37,6 +37,7 @@ import EmailCampaigns from './pages/EmailCampaigns';
 import MarketingHub from './pages/MarketingHub';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import AuditLog from './pages/AuditLog';
+import VideoStudio from './pages/VideoStudio';
 import About from './pages/About';
 import ToastContainer from './components/ui/Toast';
 
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/marketing" element={<MarketingHub />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/audit" element={<AuditLog />} />
+          <Route path="/video-studio" element={<VideoStudio />} />
           </Routes>
         </Layout>
         <ToastContainer />

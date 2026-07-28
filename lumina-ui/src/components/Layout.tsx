@@ -5,7 +5,7 @@ import {
   BarChart3, Globe, Folder, Search, Smartphone, MessageSquare as WhatsAppIcon,
   Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
   User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus,
-  Mail, Megaphone, TrendingUp,
+  Mail, Megaphone, TrendingUp, Video,
 } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { useToast } from '../hooks/useToast';
@@ -53,6 +53,7 @@ const navSections = [
       { to: '/writer', label: 'AI Writer', icon: PenTool },
       { to: '/whatsapp', label: 'WhatsApp', icon: WhatsAppIcon },
       { to: '/whatsapp/business', label: 'WA Business', icon: Store },
+      { to: '/video-studio', label: 'Video Studio', icon: Video },
     ],
   },
   {
