@@ -7,6 +7,7 @@ import json
 import os
 import re
 import smtplib
+import ssl
 from dataclasses import dataclass, field
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -47,11 +48,92 @@ _templates: dict[str, EmailTemplate] = {}
 _campaigns: list[EmailCampaign] = []
 _storage_path = "email_plugin_data.json"
 _smtp_config: dict = {}
+_initialized = False
+
+
+def _ensure_init() -> None:
+    global _initialized
+    if not _initialized:
+        _load_data()
+        _load_from_env()
+        _seed_defaults()
+        _initialized = True
 
 
 def on_load() -> None:
-    _load_data()
+    _ensure_init()
     log.info("Email Automation plugin loaded")
+
+
+def _seed_defaults() -> None:
+    if not _templates:
+        _templates["welcome"] = EmailTemplate(
+            name="welcome",
+            subject="Welcome to Lumina AI OS",
+            body="""Hi {name},
+
+Welcome aboard! Lumina AI OS is now ready to help you automate your workflows.
+
+With Lumina you can:
+- Generate leads from 37 platforms
+- Manage your CRM pipeline
+- Run email and marketing campaigns
+- Create AI-powered videos
+- And much more!
+
+Best regards,
+Lumina AI Team""",
+            is_html=False,
+            variables=["name"],
+        )
+        _templates["outreach"] = EmailTemplate(
+            name="outreach",
+            subject="Partnership Opportunity with {company}",
+            body="""Dear {contact},
+
+I hope this message finds you well. I came across {company} and was impressed by your presence in the market.
+
+At Lumina AI, we help businesses automate lead generation, customer outreach, and marketing workflows using AI.
+
+Would you be open to a brief call this week?
+
+Best regards,
+Lumina AI Team""",
+            is_html=False,
+            variables=["company", "contact"],
+        )
+        _templates["followup"] = EmailTemplate(
+            name="followup",
+            subject="Following up — {company}",
+            body="""Hi {contact},
+
+Just following up on my previous message about how Lumina AI can help {company} streamline operations with AI automation.
+
+I'd love to schedule a quick 15-minute call to show you a live demo.
+
+Looking forward to hearing from you!
+Lumina AI Team""",
+            is_html=False,
+            variables=["company", "contact"],
+        )
+        _save_data()
+
+
+def _load_from_env() -> None:
+    if not _smtp_config.get("host"):
+        host = os.environ.get("MAIL_HOST", "")
+        port = int(os.environ.get("MAIL_PORT", "587"))
+        username = os.environ.get("MAIL_USERNAME", "")
+        password = os.environ.get("MAIL_PASSWORD", "")
+        encryption = os.environ.get("MAIL_ENCRYPTION", "tls")
+        if host and username:
+            _smtp_config.update({
+                "host": host, "port": port, "username": username,
+                "password": password, "use_tls": encryption == "tls",
+                "from_name": os.environ.get("MAIL_FROM_NAME", "").strip('"'),
+                "from_address": os.environ.get("MAIL_FROM_ADDRESS", username),
+            })
+            log.info("SMTP auto-configured from environment: %s:%d", host, port)
 
 
 def on_unload() -> None:
@@ -114,6 +196,7 @@ def _save_data() -> None:
 
 
 def get_smtp_config() -> dict:
+    _ensure_init()
     return dict(_smtp_config)
 
 
@@ -124,6 +207,7 @@ def configure_smtp(
     password: str,
     use_tls: bool = True,
 ) -> None:
+    _ensure_init()
     _smtp_config.update(
         {"host": host, "port": port, "username": username, "password": password, "use_tls": use_tls}
     )
@@ -137,6 +221,7 @@ def create_template(
     body: str,
     is_html: bool = False,
 ) -> EmailTemplate:
+    _ensure_init()
     variables = list(set(re.findall(r"\{(\w+)\}", body)))
     template = EmailTemplate(
         name=name,
@@ -151,6 +236,7 @@ def create_template(
 
 
 def delete_template(name: str) -> bool:
+    _ensure_init()
     if name in _templates:
         del _templates[name]
         _save_data()
@@ -163,6 +249,7 @@ def get_template(name: str) -> EmailTemplate | None:
 
 
 def list_templates() -> list[EmailTemplate]:
+    _ensure_init()
     return list(_templates.values())
 
 
@@ -175,6 +262,7 @@ def render_template(template: EmailTemplate, variables: dict[str, str]) -> tuple
 
 
 def create_campaign(name: str, template_name: str, recipients: list[str]) -> EmailCampaign:
+    _ensure_init()
     campaign = EmailCampaign(name=name, template=template_name, recipients=recipients)
     _campaigns.append(campaign)
     _save_data()
@@ -182,6 +270,7 @@ def create_campaign(name: str, template_name: str, recipients: list[str]) -> Ema
 
 
 def delete_campaign(name: str) -> bool:
+    _ensure_init()
     for i, c in enumerate(_campaigns):
         if c.name == name:
             _campaigns.pop(i)
@@ -191,27 +280,39 @@ def delete_campaign(name: str) -> bool:
 
 
 def list_campaigns() -> list[EmailCampaign]:
+    _ensure_init()
     return list(_campaigns)
 
 
 def send_email(to: str, subject: str, body: str, is_html: bool = False) -> bool:
+    _ensure_init()
     if not _smtp_config.get("host"):
         log.error("SMTP not configured")
         return False
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = _smtp_config["username"]
+        from_addr = _smtp_config.get("from_address") or _smtp_config["username"]
+        from_name = _smtp_config.get("from_name", "")
+        msg["From"] = f"{from_name} <{from_addr}>" if from_name else from_addr
         msg["To"] = to
-        if is_html:
-            msg.attach(MIMEText(body, "html"))
+        subtype = "html" if is_html else "plain"
+        msg.attach(MIMEText(body, subtype))
+
+        host = _smtp_config["host"]
+        port = int(_smtp_config["port"])
+
+        if port == 465:
+            ctx = ssl.create_default_context()
+            with smtplib.SMTP_SSL(host, port, timeout=15, context=ctx) as server:
+                server.login(_smtp_config["username"], _smtp_config["password"])
+                server.send_message(msg)
         else:
-            msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(_smtp_config["host"], _smtp_config["port"]) as server:
-            if _smtp_config.get("use_tls", True):
-                server.starttls()
-            server.login(_smtp_config["username"], _smtp_config["password"])
-            server.send_message(msg)
+            with smtplib.SMTP(host, port, timeout=15) as server:
+                if _smtp_config.get("use_tls", True):
+                    server.starttls()
+                server.login(_smtp_config["username"], _smtp_config["password"])
+                server.send_message(msg)
         log.info("Email sent to %s: %s", to, subject[:50])
         return True
     except Exception as e:
