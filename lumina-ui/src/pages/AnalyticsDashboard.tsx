@@ -75,8 +75,9 @@ export default function AnalyticsDashboard() {
             </div></div></Card>
           {trendData&&<Card><pre className="text-xs text-[var(--text-secondary)] overflow-auto max-h-80">{JSON.stringify(trendData,null,2)}</pre></Card>}
         </>}
-        {tab==='report'&&(reportData
-          ? <Card><pre className="text-xs text-[var(--text-secondary)] overflow-auto max-h-96">{JSON.stringify(reportData,null,2)}</pre></Card>
+        {tab==='report'&&(
+          loading ? <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-3 border-[var(--border-primary)] border-t-[var(--brand-500)] rounded-full animate-spin"/></div>
+          : reportData ? <ReportView data={reportData}/>
           : <div className="text-center py-12 text-[var(--text-tertiary)]"><Download className="w-12 h-12 mx-auto mb-3 opacity-30"/><p className="text-sm">No report data</p><button onClick={load} className="btn btn-secondary btn-sm mt-3"><RefreshCw className="w-3.5 h-3.5"/>Refresh</button></div>
         )}
       </div>
@@ -87,4 +88,52 @@ export default function AnalyticsDashboard() {
 function Stat({label,value,Icon,color='brand'}:{label:string;value:string|number;Icon?:any;color?:string}) {
   const c:any={brand:'var(--brand-500)',green:'var(--color-success)',amber:'var(--color-warning)',red:'var(--color-error)',blue:'var(--color-info)'};
   return <div className="bg-[var(--bg-tertiary)] rounded-xl p-4"><div className="flex items-center justify-between"><p className="text-2xs text-[var(--text-tertiary)] uppercase tracking-wider">{label}</p>{Icon&&<Icon className="w-4 h-4" style={{color:c[color]}}/>}</div><p className="text-2xl font-bold mt-1" style={{color:c[color]}}>{value}</p></div>;
+}
+
+function ReportView({data}:{data:any}) {
+  const report = typeof data.report === 'string' ? data.report : JSON.stringify(data, null, 2);
+  const sections = report.split('\n## ').filter(Boolean);
+  const title = sections[0]?.replace('# ','').split('\n')[0] || 'Analytics Report';
+  const date = sections[0]?.match(/Generated: (.+)/)?.[1] || '';
+  const bodySections = sections.slice(1);
+
+  return (
+    <div className="space-y-6">
+      <Card><div className="space-y-2">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {date && <p className="text-xs text-[var(--text-tertiary)]">Generated: {date}</p>}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+          {bodySections.map((section:string, i:number) => {
+            const lines = section.trim().split('\n');
+            const catName = lines[0].trim();
+            const metrics = lines.slice(1).filter(l => l.startsWith('-'));
+            return (
+              <div key={i} className="bg-[var(--bg-tertiary)] rounded-xl p-4 border border-[var(--border-primary)]">
+                <h4 className="text-sm font-semibold capitalize mb-3">{catName}</h4>
+                <div className="space-y-2">
+                  {metrics.map((m: string, j: number) => {
+                    const name = m.match(/\*\*(.+?)\*\*/)?.[1] || '';
+                    const avg = m.match(/avg=(.+?),/)?.[1] || '';
+                    const count = m.match(/count=(.+)/)?.[1] || '';
+                    return (
+                      <div key={j} className="text-xs">
+                        <div className="font-medium text-[var(--text-secondary)]">{name}</div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[var(--brand-500)] font-semibold">{avg}</span>
+                          <span className="text-[var(--text-tertiary)]">avg</span>
+                          <span className="text-[var(--text-tertiary)]">· {count} points</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {metrics.length === 0 && <p className="text-xs text-[var(--text-tertiary)]">No metrics</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div></Card>
+      <Card><pre className="text-xs text-[var(--text-secondary)] overflow-auto max-h-60 whitespace-pre-wrap font-mono">{report}</pre></Card>
+    </div>
+  );
 }
