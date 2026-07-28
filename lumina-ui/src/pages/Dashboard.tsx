@@ -6,7 +6,7 @@ import {
   Layers, Radio, Database, UserCheck, Briefcase, TrendingUp,
   RefreshCw, ArrowRight, ChevronRight,
   Smartphone, Eye, Heart, Terminal, BookOpen,
-  PieChart, Gauge, Sparkles, FileCode,
+  PieChart, Gauge, Sparkles, FileCode, Bell, Mail,
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 
@@ -60,6 +60,8 @@ export default function Dashboard() {
   const [chatThreads, setChatThreads] = useState(0);
   const [codeReviews, setCodeReviews] = useState(0);
   const [whatsapp, setWhatsapp] = useState<any>(null);
+  const [notificationFeed, setNotificationFeed] = useState<Array<{ time: number; icon: string; msg: string }>>([]);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const loadAll = useCallback(async () => {
     setRefreshing(true);
@@ -108,6 +110,24 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // V2: Auto-refresh every 15 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => { loadAll(); }, 15000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, loadAll]);
+
+  // V2: Track notification feed on data changes
+  useEffect(() => {
+    if (!loaded) return;
+    const now = Date.now();
+    const feed = [...notificationFeed];
+    if (health?.status === 'degraded') feed.unshift({ time: now, icon: '⚠️', msg: 'System health degraded' });
+    if (crmSummary?.total_deals) feed.unshift({ time: now, icon: '💰', msg: `CRM: ${crmSummary.total_deals} deals in pipeline` });
+    if (connectedCount < totalCount) feed.unshift({ time: now, icon: '🔌', msg: `${totalCount - connectedCount} AI providers offline` });
+    setNotificationFeed(feed.slice(0, 20));
+  }, [loaded, health, crmSummary]);
 
   const providerEntries = config ? Object.entries(config.providers || {}) : [];
   const connectedCount = providerEntries.filter(([_, v]) => v).length;
@@ -190,6 +210,11 @@ export default function Dashboard() {
             </div>
             <span className="text-[10px] font-medium text-emerald-400">Online</span>
           </div>
+          <button onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`p-2 rounded-lg border transition-all text-xs ${autoRefresh ? 'bg-lumina-500/10 text-lumina-300 border-lumina-500/20' : 'bg-white/5 border-white/10 text-slate-500'}`}
+            title={autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}>
+            <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin-slow' : ''}`} />
+          </button>
           <button onClick={loadAll} disabled={refreshing}
             className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-slate-200 disabled:opacity-50 transition-all">
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />

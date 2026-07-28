@@ -4,7 +4,7 @@ import {
   Plus, MessageSquare, Trash2, Edit3,
   Search, X, PanelLeftClose, PanelLeft,
   Code2, Brain, Globe, Terminal, Database, Cpu,
-  Hash,
+  Hash, Download, Paperclip,
 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
@@ -135,6 +135,8 @@ export default function Chat() {
   const [activeThread, setActiveThread] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [useMemory, setUseMemory] = useState(true);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const streamRef = useRef<AbortController | null>(null);
@@ -436,6 +438,27 @@ export default function Chat() {
         </div>
 
         <div className="px-6 py-4 border-t border-white/5 shrink-0">
+          {/* V2 Features Row */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <button onClick={() => setUseMemory(!useMemory)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-2xs rounded-lg transition-colors border ${useMemory ? 'bg-lumina-500/15 text-lumina-300 border-lumina-500/20' : 'text-slate-500 border-white/5 hover:text-slate-300'}`}>
+              <Brain className="w-3 h-3" /> Memory {useMemory ? 'ON' : 'OFF'}
+            </button>
+            <label className="flex items-center gap-1.5 px-2.5 py-1 text-2xs text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors cursor-pointer border border-white/5">
+              <Paperclip className="w-3 h-3" /> Attach
+              <input type="file" className="hidden" onChange={e => { const f = e.target.files?.[0] || null; setUploadedFile(f); if (f) addToast(`Attached: ${f.name}`, 'info'); }} />
+            </label>
+            {uploadedFile && <span className="text-2xs text-lumina-300 px-2 py-1 bg-lumina-500/10 rounded-lg border border-lumina-500/20">{uploadedFile.name}</span>}
+            <button onClick={() => {
+              const text = messages.map(m => `[${m.role.toUpperCase()}] ${m.content}`).join('\n\n');
+              const blob = new Blob([text], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = `chat-export-${Date.now()}.txt`; a.click();
+              URL.revokeObjectURL(url); addToast('Conversation exported', 'success');
+            }} className="flex items-center gap-1.5 px-2.5 py-1 text-2xs text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition-colors border border-white/5 ml-auto">
+              <Download className="w-3 h-3" /> Export
+            </button>
+          </div>
           <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
               <textarea
@@ -479,7 +502,7 @@ export default function Chat() {
             </button>
           </div>
           <p className="text-[9px] text-slate-600 mt-1.5 text-center">
-            Agent: {agent} · {streaming ? 'Streaming...' : `${messages.length} messages`}
+            Agent: {agent} · {streaming ? 'Streaming...' : `${messages.length} messages`} · Memory: {useMemory ? 'on' : 'off'}{uploadedFile ? ` · File: ${uploadedFile.name}` : ''}
           </p>
         </div>
       </div>
