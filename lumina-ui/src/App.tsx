@@ -33,6 +33,10 @@ import VisualFlows from './pages/VisualFlows';
 import Help from './pages/Help';
 import SkillsPresets from './pages/SkillsPresets';
 import LeadGen from './pages/LeadGen';
+import EmailCampaigns from './pages/EmailCampaigns';
+import MarketingHub from './pages/MarketingHub';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import AuditLog from './pages/AuditLog';
 import About from './pages/About';
 import ToastContainer from './components/ui/Toast';
 
@@ -75,6 +79,10 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/skills" element={<SkillsPresets />} />
             <Route path="/leads" element={<LeadGen />} />
+          <Route path="/email" element={<EmailCampaigns />} />
+          <Route path="/marketing" element={<MarketingHub />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
+          <Route path="/audit" element={<AuditLog />} />
           </Routes>
         </Layout>
         <ToastContainer />

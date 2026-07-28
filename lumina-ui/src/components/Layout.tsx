@@ -4,7 +4,8 @@ import {
   LayoutDashboard, MessageSquare, Code2, Bot, Settings,
   BarChart3, Globe, Folder, Search, Smartphone, MessageSquare as WhatsAppIcon,
   Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
-  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus, Sun, Moon,
+  User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus,
+  Mail, Megaphone, TrendingUp,
 } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { useToast } from '../hooks/useToast';
@@ -36,6 +37,8 @@ const navSections = [
       { to: '/tester', label: 'Self Tester', icon: Bug },
       { to: '/employee', label: 'AI Employee', icon: Bot },
       { to: '/automation', label: 'Automation', icon: Activity },
+      { to: '/email', label: 'Email', icon: Mail },
+      { to: '/marketing', label: 'Marketing', icon: Megaphone },
     ],
   },
   {
@@ -58,6 +61,8 @@ const navSections = [
       { to: '/users', label: 'Users', icon: User },
       { to: '/vault', label: 'Data Vault', icon: Shield },
       { to: '/settings', label: 'Settings', icon: Settings },
+      { to: '/analytics', label: 'Analytics', icon: TrendingUp },
+      { to: '/audit', label: 'Audit Log', icon: Shield },
       { to: '/help', label: 'Help Guide', icon: BookOpen },
     ],
   },
