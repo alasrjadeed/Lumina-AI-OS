@@ -60,6 +60,7 @@ lumina agent lead_gen "Find restaurants in Bahrain"
 - **19 Specialized Agents**: Software engineer, lead gen, CRM, content writer, designer, and more
 - **8-Layer Memory Engine**: Working, Short-Term, Long-Term, Episodic, Semantic, Vector, Embeddings, Recall
 - **Self-Healing Loop**: Autonomous PLAN → EXECUTE → VERIFY → FIX → RETRY cycle
+- **Brain System**: Autonomous Think → Observe → Command loop powered by DeepSeek — monitors system state, triggers actions, runs workflows, sends alerts
 
 ### Automation
 - **Browser** (Playwright): Navigate, click, fill forms, extract data, screenshots, multi-tab
@@ -67,6 +68,9 @@ lumina agent lead_gen "Find restaurants in Bahrain"
 - **Android**: ADB device control, APK install, screen tap, logcat
 - **WhatsApp**: Cloud API messaging (text, templates, images, documents)
 - **Email**: Automated email campaigns and management
+- **Workflow Editor**: 15 built-in n8n-compatible workflow templates across 7 categories
+- **Workflow Execution Engine**: Run templates locally (DAG walker, 13 node types, conditional branching)
+- **Template Import/Export**: Save custom templates, import/export n8n-compatible JSON
 
 ### Business Modules
 - **CRM Pipeline**: Contacts, deals, stages (Lead → Qualified → Proposal → Negotiation → Closed)
@@ -100,7 +104,7 @@ lumina agent lead_gen "Find restaurants in Bahrain"
 ```
 Interfaces (Dashboard · CLI · VSCode · Flutter · MCP)
          │
-    API Layer (FastAPI, 80+ endpoints)
+    API Layer (FastAPI, 53 routers, 100+ endpoints)
          │
     Kernel (Event Bus · DI · Scheduler · Service Registry · Plugin Loader)
          │
@@ -118,10 +122,12 @@ Interfaces (Dashboard · CLI · VSCode · Flutter · MCP)
 ```
 workspace/
 ├── main.py                 # FastAPI entry point
-├── api/                    # 39 API routers
-├── core/                   # Business logic (20+ modules)
+├── api/                    # 53 API routers
+├── core/                   # Business logic (39 modules)
 │   ├── provider.py         # 8-provider AI chain
 │   ├── orchestrator.py     # CEO orchestrator agent
+│   ├── brain.py            # Brain autonomous loop
+│   ├── workflow_editor.py  # n8n templates + execution engine
 │   ├── agents/             # 19 specialized agents
 │   ├── memory/             # 8-layer memory engine
 │   ├── browser/            # Playwright automation
@@ -150,7 +156,7 @@ workspace/
 
 | # | Document | Description |
 |---|----------|-------------|
-| 0 | [Blueprint.md](Blueprint.md) | High-level vision and architecture |
+| 0 | [BLUEPRINT.md](BLUEPRINT.md) | High-level vision and architecture |
 | 1 | [PRD.md](PRD.md) | Product requirements and user stories |
 | 2 | [Architecture.md](Architecture.md) | Detailed system design |
 | 3 | [Rules.md](Rules.md) | Coding standards and conventions |
@@ -159,7 +165,6 @@ workspace/
 | 6 | [Security.md](Security.md) | Security architecture |
 | 7 | [README.md](README.md) | This document |
 | — | [USER_MANUAL.md](USER_MANUAL.md) | Full user manual |
-| — | [BLUEPRINT.md](BLUEPRINT.md) | Original blueprint |
 
 ---
 

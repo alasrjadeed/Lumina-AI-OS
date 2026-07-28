@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from core.tools.base import Tool, ToolResult
+from core.token_juice import compress_tool_output
 
 
 class ToolRegistry:
@@ -30,11 +31,17 @@ class ToolRegistry:
     def to_openai_tools(self) -> list[dict]:
         return [t.to_openai_tool() for t in self._tools.values()]
 
-    async def execute_call(self, name: str, arguments: str | dict[str, Any]) -> ToolResult:
+    async def execute_call(self, name: str, arguments: str | dict[str, Any], compress: bool = False) -> ToolResult:
         tool = self.get(name)
         if tool is None:
             return ToolResult(success=False, error=f"Unknown tool: {name}")
         if isinstance(arguments, str):
             arguments = json.loads(arguments)
         assert isinstance(arguments, dict)
-        return await tool.execute(**{str(k): v for k, v in arguments.items()})
+        result = await tool.execute(**{str(k): v for k, v in arguments.items()})
+        if compress and result.output:
+            result.output = compress_tool_output(result.output)
+        return result
+
+    def compress_output(self, output: str) -> str:
+        return compress_tool_output(output)

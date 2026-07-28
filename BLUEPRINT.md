@@ -42,15 +42,20 @@ All inside one unified, modular platform.
 │  │ Event Bus│    DI    │Scheduler │    Service Registry  │  │
 │  └──────────┴──────────┴──────────┴──────────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
-│                        AI Core                              │
+│                    AI Core                              │
 │  ┌──────────┬──────────┬──────────┬──────────────────────┐  │
 │  │Provider  │  Agents  │  Tools   │    Memory Engine     │  │
 │  │Chain (8) │  (19)    │Executor  │  (8 layers)          │  │
 │  └──────────┴──────────┴──────────┴──────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Brain (Think → Observe → Command loop, DeepSeek)    │   │
+│  └──────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                    Core Services                             │
 │  ┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐  │
 │  │Voice │Browser│Desktop│Mobile│ CRM  │ SEO  │WhatsApp│ ...│
+│  │Brain │Work- │       │      │      │      │Voice  │     │  │
+│  │      │flows │       │      │      │      │       │     │  │
 │  └──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘  │
 ├─────────────────────────────────────────────────────────────┤
 │                    Plugins (7 built-in)                      │
@@ -174,13 +179,16 @@ PBKDF2 auth, JWT/API key/Master key, RBAC with role inheritance, Fernet encrypti
 
 | Metric | Value |
 |--------|-------|
-| Python files | 239 |
-| TypeScript files | 16 |
-| Core modules | 20 |
+| Python files | 408 |
+| TypeScript files | 66 |
+| Core modules | 39 |
 | Built-in plugins | 7 |
-| Web dashboard pages | 14 |
-| API endpoints | 60+ |
+| Web dashboard pages | 53 |
+| API routers | 53 |
+| API endpoints | 100+ |
 | Tests | 1112+ passing |
 | AI providers | 8 |
 | Agents | 19 |
 | Memory layers | 8 |
+| n8n workflow templates | 15 |
+| Brain loop agents | 3 (Observer, Thinker, Commander) |

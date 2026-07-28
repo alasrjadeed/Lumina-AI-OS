@@ -53,7 +53,20 @@ from api.community_skills import router as community_skills_router
 from api.voice import router as voice_router
 from api.whatsapp import router as whatsapp_router
 from api.writer import router as writer_router
+from api.goals import router as goals_router
 from api.lead_gen import router as lead_gen_router
+from api.memory_tree import router as memory_tree_router
+from api.workflow_editor import router as workflow_editor_router
+from api.meeting_agent import router as meeting_agent_router
+from api.messaging_channels import router as messaging_channels_router
+from api.model_routing import router as model_routing_router
+from api.agent_memory import router as agent_memory_router
+from api.multi_modal import router as multi_modal_router
+from api.rag_pipeline import router as rag_pipeline_router
+from api.agent_chaining import router as agent_chaining_router
+from api.tool_framework import router as tool_framework_router
+from api.agent_builder import router as agent_builder_router
+from api.brain import router as brain_router
 from config.settings import settings
 from core.agents.content import CONTENT_AGENTS
 from core.agents.specialized import SPECIALIZED_AGENTS
@@ -72,6 +85,9 @@ from core.seo.analytics import seo
 from core.task_manager import task_manager
 from core.vision import CameraDevice, ObjectDetector, SceneDescriber, VideoStream  # noqa: F401
 from core.vision.cortex import VisualCortex  # noqa: F401
+from core.auto_fetch import auto_fetch_loop
+from core.brain import brain
+from core.subconscious import Insight, subconscious_loop
 from core.voice import voice_controller
 from core.whatsapp.client import whatsapp
 from kernel import Kernel
@@ -114,6 +130,7 @@ async def lifespan(app: FastAPI):
     all_agents.update(SPECIALIZED_AGENTS)
     all_agents.update(CONTENT_AGENTS)
     all_agents["lead_gen"] = lead_gen_agent
+    kernel.services.register("brain", brain)
     kernel.services.register("agents", all_agents)
 
     async def log_event(event: Event) -> None:
@@ -123,6 +140,25 @@ async def lifespan(app: FastAPI):
 
     await kernel.init()
     log.info("Kernel initialized. %d services", len(kernel.services.list()))
+
+    async def _subconscious_insight_handler(insight: Insight) -> None:
+        log.info("Subconscious insight: %s — %s", insight.title, insight.body[:80])
+        await kernel.event_bus.publish(Event(
+            name="subconscious.insight",
+            payload=insight.to_dict(),
+        ))
+
+    subconscious_task = asyncio.create_task(
+        subconscious_loop(on_insight=_subconscious_insight_handler)
+    )
+
+    auto_fetch_task = asyncio.create_task(
+        auto_fetch_loop(memory=memory)
+    )
+
+    brain_task = asyncio.create_task(
+        brain.loop()
+    )
 
     # Auto-start Jarvis voice controller (continuous listening with wake word)
     if voice_controller.recorder.is_available():
@@ -156,6 +192,9 @@ async def lifespan(app: FastAPI):
 
     yield
     log.info("Shutting down...")
+    subconscious_task.cancel()
+    auto_fetch_task.cancel()
+    brain_task.cancel()
     await kernel.shutdown()
 
 
@@ -219,7 +258,20 @@ app.include_router(skills_router)
 app.include_router(presets_router)
 app.include_router(connectors_router)
 app.include_router(community_skills_router)
+app.include_router(goals_router)
 app.include_router(lead_gen_router)
+app.include_router(memory_tree_router)
+app.include_router(workflow_editor_router)
+app.include_router(meeting_agent_router)
+app.include_router(messaging_channels_router)
+app.include_router(model_routing_router)
+app.include_router(agent_memory_router)
+app.include_router(multi_modal_router)
+app.include_router(rag_pipeline_router)
+app.include_router(agent_chaining_router)
+app.include_router(tool_framework_router)
+app.include_router(agent_builder_router)
+app.include_router(brain_router)
 
 
 @app.get("/")

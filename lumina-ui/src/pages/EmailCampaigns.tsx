@@ -5,8 +5,8 @@ import { useToast } from '../hooks/useToast';
 
 const BASE = '/api';
 
-async function get<T>(path: string): Promise<T> { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
-async function post<T>(path: string, body?: any): Promise<T> { const r = await fetch(`${BASE}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+async function get<T = any>(path: string): Promise<T> { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+async function post<T = any>(path: string, body?: any): Promise<T> { const r = await fetch(`${BASE}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }); if (!r.ok) throw new Error(await r.text()); return r.json(); }
 async function del(path: string): Promise<any> { const r = await fetch(`${BASE}${path}`, { method: 'DELETE' }); if (!r.ok) throw new Error(await r.text()); return r.json(); }
 
 function StatCard({ label, value, color = 'brand' }: { label: string; value: string | number; color?: string }) {

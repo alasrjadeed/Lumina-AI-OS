@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from core.provider import engine
 from core.tools.registry import ToolRegistry
+from core.memory.preference_store import detect_correction, apply_preferences
 
 
 class AgentResult(BaseModel):
@@ -72,6 +73,12 @@ class BaseAgent:
                 output="",
                 error=f"{type(e).__name__}: {e}\n{traceback.format_exc()}",
             )
+
+    def on_user_correction(self, user_input: str, last_action: str | None = None) -> dict | None:
+        return detect_correction(user_input, last_action)
+
+    def apply_preferences(self, user_input: str) -> str:
+        return apply_preferences(user_input)
 
     def build_system_prompt(self, context: dict | None = None) -> str:
         return self.system_prompt

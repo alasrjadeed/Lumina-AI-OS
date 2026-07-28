@@ -56,11 +56,9 @@ async def retry_request(
     for attempt in range(1, max_retries + 1):
         try:
             if stream:
-                return await client.send(
-                    client.build_request(method, url, json=json, headers=headers),
-                    stream=True,
-                    timeout=httpx.Timeout(timeout),
-                )
+                req = client.build_request(method, url, json=json, headers=headers)
+                req.extensions = {"timeout": httpx.Timeout(timeout).as_dict()}
+                return await client.send(req, stream=True)
             resp = await client.request(
                 method, url, json=json, headers=headers, timeout=httpx.Timeout(timeout)
             )
@@ -646,6 +644,7 @@ class AIEngine:
     def __init__(self):
         self._slots: list[_ProviderSlot] = []
         self.router = ModelRouter()
+        self._privacy_mode: bool = settings.privacy_mode
         self._init_providers()
 
     def _init_providers(self):
@@ -692,6 +691,16 @@ class AIEngine:
     def providers(self) -> list[AIProvider]:
         return [s.provider for s in self._slots]
 
+    @property
+    def privacy_mode(self) -> bool:
+        return self._privacy_mode
+
+    def set_privacy_mode(self, enabled: bool) -> None:
+        self._privacy_mode = enabled
+        for slot in self._slots:
+            slot.cooldown_until = 0.0
+            slot.consecutive_failures = 0
+
     def _capabilities_for(self, name: str) -> list[str]:
         mapping = {
             "ollama": ["general", "chat", "code"],
@@ -710,10 +719,15 @@ class AIEngine:
         now = time.time()
         available = []
         for slot in self._slots:
+            if self._privacy_mode and slot.provider.name != "ollama":
+                continue
             if slot.cooldown_until > now:
                 continue
             available.append(slot)
-        return available or self._slots
+        if not available:
+            available = [s for s in self._slots if not self._privacy_mode or s.provider.name == "ollama"]
+            available = available[:1] if available else []
+        return available
 
     def _record_failure(self, slot: _ProviderSlot, error: str) -> None:
         slot.consecutive_failures += 1
@@ -726,8 +740,12 @@ class AIEngine:
         slot.cooldown_until = 0.0
         slot.last_error = ""
 
-    def _resolve_slots(self, task: str | None = None) -> list[_ProviderSlot]:
-        """Return provider slots in priority order, optionally routing by task capability."""
+    def _resolve_slots(self, task: str | None = None, provider: str | None = None) -> list[_ProviderSlot]:
+        """Return provider slots in priority order, optionally routing by task or pinned provider."""
+        if provider:
+            pinned = [s for s in self._slots if s.provider.name == provider]
+            if pinned:
+                return pinned + [s for s in self._get_available() if s.provider.name != provider]
         if task:
             best = self.router.route(task)
             if best:
@@ -738,8 +756,9 @@ class AIEngine:
 
     async def chat(self, messages: list[dict], tools: list[dict] | None = None, **kwargs) -> dict:
         task = kwargs.pop("task", None)
+        provider = kwargs.pop("provider", None)
         errors = []
-        for slot in self._resolve_slots(task):
+        for slot in self._resolve_slots(task, provider):
             try:
                 result = await slot.provider.chat(messages, tools=tools, **kwargs)
                 self._record_success(slot)

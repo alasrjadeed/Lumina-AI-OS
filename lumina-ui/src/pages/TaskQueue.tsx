@@ -47,6 +47,7 @@ export default function TaskQueue() {
   const [newAction, setNewAction] = useState('');
   const [newParams, setNewParams] = useState('{}');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showBuilder, setShowBuilder] = useState(false);
   const { addToast } = useToast();
 
   useEffect(() => {

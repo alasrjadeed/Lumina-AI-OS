@@ -5,7 +5,8 @@ import {
   BarChart3, Globe, Folder, Search, Smartphone, MessageSquare as WhatsAppIcon,
   Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
   User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus,
-  Mail, Megaphone, TrendingUp, Video,
+  Mail, Megaphone, TrendingUp, Video, ListTodo, TreePine, GitMerge, Calendar, MessageCircle, Route,
+  BrainCircuit, Image, Wrench, Brain as BrainIcon,
 } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { useToast } from '../hooks/useToast';
@@ -22,8 +23,21 @@ const navSections = [
       { to: '/coding-agent', label: 'Coding Agent', icon: GitBranch },
       { to: '/agents', label: 'Agents', icon: Bot },
       { to: '/multi-agent', label: 'Multi-Agent', icon: Crown },
+      { to: '/memory-tree', label: 'Memory Tree', icon: TreePine },
+      { to: '/brain', label: 'Brain', icon: BrainIcon },
+      { to: '/goals', label: 'Goals & Todos', icon: ListTodo },
       { to: '/projects', label: 'Projects', icon: Folder },
       { to: '/visual-flows', label: 'Visual Agents', icon: GitBranch },
+      { to: '/workflow-editor', label: 'Workflow Editor', icon: GitMerge },
+      { to: '/meetings', label: 'Meetings', icon: Calendar },
+      { to: '/channels', label: 'Channels', icon: MessageCircle },
+      { to: '/model-routing', label: 'Model Routing', icon: Route },
+      { to: '/agent-memory', label: 'Agent Memory', icon: BrainCircuit },
+      { to: '/multi-modal', label: 'Multi-modal', icon: Image },
+      { to: '/rag-pipeline', label: 'RAG Pipeline', icon: BookOpen },
+      { to: '/agent-chaining', label: 'Agent Chains', icon: GitBranch },
+      { to: '/tools', label: 'Tool Framework', icon: Wrench },
+      { to: '/agent-builder', label: 'Agent Builder', icon: UserPlus },
     ],
   },
   {
@@ -183,7 +197,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] select-none transition-colors">
+    <div className="h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] select-text transition-colors">
       {/* Menu Bar */}
       <div className="flex items-center h-9 bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] px-2 shrink-0 relative z-50">
         <div className="flex items-center gap-1 mr-4">

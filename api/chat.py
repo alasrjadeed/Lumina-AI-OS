@@ -6,13 +6,16 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from core.agents.base import BaseAgent
 from core.agents.runner import ALL_AGENTS
 from core.crm.pipeline import crm
 from core.desktop.os_automation import desktop
+from core.memory.preference_store import apply_preferences, detect_correction
 from core.memory.store import memory
 from core.orchestrator import ceo
 from core.provider import engine
 from core.self_heal import self_heal
+from core.super_context import super_context
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -189,6 +192,8 @@ async def handle_slash_command(message: str) -> str:
 async def chat(req: ChatRequest):
     msg = req.message.strip()
 
+    msg = apply_preferences(msg)
+
     if msg.startswith("/"):
         reply = await handle_slash_command(msg)
         memory.add_conversation("user", msg, thread_id=req.thread_id)
@@ -196,7 +201,8 @@ async def chat(req: ChatRequest):
         return ChatResponse(reply=reply, agent="slash", thread_id=req.thread_id)
 
     memory.add_conversation("user", msg, thread_id=req.thread_id)
-    context = memory.get_recent_context(5, thread_id=req.thread_id)
+    super_context.set_memory(memory)
+    context = super_context.build_context(msg, max_turns=10)
 
     if not engine.providers:
         raise HTTPException(status_code=503, detail="No AI providers available")
@@ -214,6 +220,14 @@ async def chat(req: ChatRequest):
 
     if result.status == "error":
         raise HTTPException(status_code=500, detail=result.error)
+
+    correction = detect_correction(msg)
+    if correction:
+        memory.remember_long_term(
+            f"preference_{correction['category']}_{correction['key']}",
+            f"{correction['key']} -> {correction['value']} ({correction['category']})",
+            namespace="preferences",
+        )
 
     memory.add_conversation("assistant", result.output, thread_id=req.thread_id)
     return ChatResponse(reply=result.output, agent=req.agent, thread_id=req.thread_id)

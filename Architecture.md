@@ -16,7 +16,7 @@ Lumina follows a **layered microkernel architecture** with a kernel at the cente
 │  └─────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └───┬───┘ │
 ├────────┼─────────────┼───────────┼───────────┼───────────┼───────┤
 │        └─────────────┴───────────┴─ API LAYER ┴───────────┘      │
-│                    FastAPI :8000 (39 routers)                      │
+│                    FastAPI :8000 (53 routers)                      │
 ├───────────────────────────────┬──────────────────────────────────┤
 │                          KERNEL                                   │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────────┐ │
@@ -101,6 +101,8 @@ Services registered at startup in `main.py`:
 - `whatsapp`, `crm`, `seo`, `task_manager`
 - `pipeline_builder`, `voice_controller`
 - `camera_factory`, `detector_factory`, `describer_factory`, `cortex_factory`
+- `brain` (Think → Observe → Command autonomous loop)
+- `workflow_store` (n8n template store + execution engine)
 - `agents` (all 19 agents merged)
 
 ### 2.3 DI Container
@@ -265,7 +267,7 @@ Files: `os_automation.py`, `app_manager.py`, `window_manager.py`, `clipboard.py`
 
 ## 5. API Layer
 
-### 5.1 Router Map (39 Routers)
+### 5.1 Router Map (53 Routers)
 
 | Router | File | Purpose |
 |--------|------|---------|
@@ -308,6 +310,8 @@ Files: `os_automation.py`, `app_manager.py`, `window_manager.py`, `clipboard.py`
 | `presets_router` | `api/presets.py` | Presets |
 | `connectors_router` | `api/connectors.py` | External connectors |
 | `community_skills_router` | `api/community_skills.py` | Community skills |
+| `brain_router` | `api/brain.py` | Brain system (Think → Observe → Command) |
+| `workflow_editor_router` | `api/workflow_editor.py` | n8n workflow templates + execution engine |
 
 ### 5.2 Middleware Stack
 
@@ -342,21 +346,61 @@ src/
 ├── hooks/
 │   ├── useApi.ts              # GET/POST hooks with loading/error states
 │   └── useToast.ts            # Toast context and hooks
-└── pages/
+└── pages/ (53 pages)
     ├── Dashboard.tsx           # System overview, provider status
     ├── Chat.tsx                # AI chat with slash commands
+    ├── Brain.tsx               # Brain system dashboard
+    ├── WorkflowEditor.tsx      # n8n workflow templates + execution
     ├── CodeGenerator.tsx       # Multi-language code generation
     ├── Agents.tsx              # Agent catalog and execution
     ├── Settings.tsx            # Configuration, providers, system
+    ├── SettingsEditor.tsx      # Advanced settings
     ├── About.tsx               # App info
+    ├── Help.tsx                # Help and support
     ├── AndroidManager.tsx      # Android device control
     ├── Automation.tsx          # Workflow automation
-    ├── Browser.tsx             # Browser control panel
+    ├── BrowserAgent.tsx        # Browser agent control
+    ├── BrowserConsole.tsx      # Browser console
     ├── CRM.tsx                 # CRM pipeline UI
-    ├── Desktop.tsx             # File manager
+    ├── DesktopControl.tsx      # Desktop automation
+    ├── FileManager.tsx         # File operations
     ├── Projects.tsx            # Project management
     ├── SEO.tsx                 # SEO toolkit
-    └── FileManager.tsx         # File operations
+    ├── SEOToolkit.tsx          # Advanced SEO tools
+    ├── Vision.tsx              # Vision system
+    ├── VoiceAssistant.tsx      # Voice control panel
+    ├── WhatsAppBusiness.tsx    # WhatsApp Business API
+    ├── WhatsAppMessenger.tsx   # WhatsApp messaging
+    ├── MarketingHub.tsx        # Marketing campaigns
+    ├── LeadGen.tsx             # Lead generation
+    ├── ContentWriter.tsx       # Content generation
+    ├── CodingAgent.tsx         # Coding agent
+    ├── CodeReview.tsx          # Code review
+    ├── AgentBuilder.tsx        # Agent builder
+    ├── AgentChaining.tsx       # Agent chaining
+    ├── AgentMemory.tsx         # Agent memory management
+    ├── MultiAgent.tsx          # Multi-agent coordination
+    ├── AutonomousEmployee.tsx  # Employee orchestrator
+    ├── EmailCampaigns.tsx      # Email marketing
+    ├── SocialManager.tsx       # Social media manager
+    ├── MessagingChannels.tsx   # Multi-channel messaging
+    ├── DataVault.tsx           # Secrets vault
+    ├── AuditLog.tsx            # Audit log viewer
+    ├── UserManagement.tsx      # User administration
+    ├── AnalyticsDashboard.tsx  # Analytics
+    ├── VisualFlows.tsx         # Visual flow builder
+    ├── TaskQueue.tsx           # Job queue
+    ├── Goals.tsx               # Goals tracking
+    ├── MemoryTree.tsx          # Memory browser
+    ├── ModelRouting.tsx        # Model routing
+    ├── MultiModal.tsx          # Multi-modal input
+    ├── RAGPipeline.tsx         # RAG pipeline
+    ├── ToolFramework.tsx       # Tool framework
+    ├── LearningAgent.tsx       # Learning agent
+    ├── MeetingAgents.tsx       # Meeting agents
+    ├── SkillsPresets.tsx       # Skills and presets
+    ├── SelfTester.tsx          # Self-testing
+    └── VideoStudio.tsx         # Video studio
 ```
 
 Tech: React 19, TypeScript 5.6, Tailwind CSS v4, Vite 6, lucide-react, recharts
@@ -458,12 +502,14 @@ workspace/
 ├── nginx.conf                  # Reverse proxy config
 ├── .env.example                # Environment template
 │
-├── api/                        # 39 FastAPI routers
+├── api/                        # 53 FastAPI routers
 │   └── middleware/             # auth.py, ratelimit.py
 │
 ├── core/                       # Business logic
 │   ├── provider.py             # 8-provider AI chain
 │   ├── orchestrator.py         # CEO agent
+│   ├── brain.py                # Brain system (Think → Observe → Command)
+│   ├── workflow_editor.py      # n8n workflow templates + execution engine (15 templates)
 │   ├── self_heal.py            # Self-healing loop
 │   ├── agents/                 # 19 agents (base, specialized, content)
 │   ├── memory/                 # 8-layer memory engine

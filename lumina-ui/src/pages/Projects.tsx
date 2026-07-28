@@ -92,6 +92,8 @@ export default function Projects() {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+  const [showExplorer, setShowExplorer] = useState(true);
+  const [showProjectSidebar, setShowProjectSidebar] = useState(false);
 
   // Create dialog
   const [showCreate, setShowCreate] = useState(false);

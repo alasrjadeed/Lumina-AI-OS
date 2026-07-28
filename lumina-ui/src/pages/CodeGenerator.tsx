@@ -88,6 +88,7 @@ export default function CodeGenerator() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templateFilter, setTemplateFilter] = useState('');
+  const [testUrl, setTestUrl] = useState('');
   const { addToast } = useToast();
 
   const loadFrameworks = useCallback(async (l: string) => {

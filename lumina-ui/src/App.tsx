@@ -42,6 +42,19 @@ const AnalyticsDashboard = lazy(() => import('./pages/AnalyticsDashboard'));
 const AuditLog = lazy(() => import('./pages/AuditLog'));
 const VideoStudio = lazy(() => import('./pages/VideoStudio'));
 const About = lazy(() => import('./pages/About'));
+const Goals = lazy(() => import('./pages/Goals'));
+const MemoryTree = lazy(() => import('./pages/MemoryTree'));
+const WorkflowEditor = lazy(() => import('./pages/WorkflowEditor'));
+const MeetingAgents = lazy(() => import('./pages/MeetingAgents'));
+const MessagingChannels = lazy(() => import('./pages/MessagingChannels'));
+const ModelRouting = lazy(() => import('./pages/ModelRouting'));
+const AgentMemory = lazy(() => import('./pages/AgentMemory'));
+const MultiModal = lazy(() => import('./pages/MultiModal'));
+const RAGPipeline = lazy(() => import('./pages/RAGPipeline'));
+const AgentChaining = lazy(() => import('./pages/AgentChaining'));
+const ToolFramework = lazy(() => import('./pages/ToolFramework'));
+const AgentBuilder = lazy(() => import('./pages/AgentBuilder'));
+const Brain = lazy(() => import('./pages/Brain'));
 
 function PageLoader() {
   return <div className="flex items-center justify-center h-full"><div className="w-8 h-8 border-3 border-[var(--border-primary)] border-t-[var(--brand-500)] rounded-full animate-spin" /></div>;
@@ -59,7 +72,12 @@ const pages: Record<string, React.LazyExoticComponent<React.ComponentType<any>>>
   '/multi-agent': MultiAgent, '/projects': Projects, '/visual-flows': VisualFlows,
   '/help': Help, '/skills': SkillsPresets, '/leads': LeadGen, '/email': EmailCampaigns,
   '/marketing': MarketingHub, '/analytics': AnalyticsDashboard, '/audit': AuditLog,
-  '/video-studio': VideoStudio, '/about': About,
+  '/video-studio': VideoStudio, '/about': About,   '/goals': Goals, '/memory-tree': MemoryTree, '/workflow-editor': WorkflowEditor,
+  '/meetings': MeetingAgents, '/channels': MessagingChannels,   '/model-routing': ModelRouting, '/agent-memory': AgentMemory,
+  '/multi-modal': MultiModal, '/rag-pipeline': RAGPipeline,
+  '/agent-chaining': AgentChaining, '/tools': ToolFramework,
+  '/agent-builder': AgentBuilder,
+  '/brain': Brain,
 };
 
 export default function App() {

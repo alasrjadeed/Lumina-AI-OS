@@ -13,7 +13,8 @@ async def health_check():
     return {
         "status": "ok",
         "version": settings.version,
-        "providers": provider_names,
+        "privacy_mode": engine.privacy_mode,
+        "providers": provider_names if not engine.privacy_mode else ["ollama"],
         "primary_provider": engine.providers[0].name if engine.providers else None,
     }
 
@@ -55,7 +56,19 @@ async def get_config():
 
 @router.post("/reload")
 async def reload_config():
-    """Reload settings from .env without restarting the server."""
     result = settings.reload()
     log.info("Settings reloaded: %s", result)
     return result
+
+
+@router.get("/privacy")
+async def get_privacy_mode():
+    return {"privacy_mode": engine.privacy_mode}
+
+
+@router.post("/privacy")
+async def toggle_privacy_mode(enabled: bool = True):
+    engine.set_privacy_mode(enabled)
+    status = "enabled" if enabled else "disabled"
+    log.info("Privacy mode %s", status)
+    return {"privacy_mode": enabled, "status": status, "active_providers": [p.name for p in engine.providers] if not enabled else ["ollama"]}

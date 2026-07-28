@@ -116,7 +116,7 @@ Existing AI tools are fragmented: chatbots in one tab, CRM in another, browser a
 - Visual cortex for unified vision pipeline
 
 #### FR-14: Multi-Interface Support
-- **Web Dashboard** (React 19 + TypeScript + Tailwind v4): Chat, Code Generator, Agents, Settings, 14+ pages
+- **Web Dashboard** (React 19 + TypeScript + Tailwind v4): Chat, Code Generator, Agents, Brain, Workflow Editor, Settings, 53+ pages
 - **CLI** (`lumina` command): Chat, code gen, agents, CRM, SEO, file ops
 - **VS Code Extension**: 8 commands with keyboard shortcuts
 - **Flutter Mobile App**: Dashboard and Chat screens for iOS/Android
@@ -135,7 +135,7 @@ Existing AI tools are fragmented: chatbots in one tab, CRM in another, browser a
 - Account lockout after 5 failed attempts (15 min lockout)
 
 #### FR-16: API Layer
-- FastAPI with 39 routers and 80+ endpoints
+- FastAPI with 53 routers and 100+ endpoints
 - CORS middleware with configurable origins
 - Rate limiting middleware in production mode
 - Swagger/OpenAPI documentation at `/docs`
@@ -150,7 +150,36 @@ Existing AI tools are fragmented: chatbots in one tab, CRM in another, browser a
 - GitHub Actions CI/CD pipeline
 - Health checks with auto-restart
 
-### 2.2 Non-Functional Requirements
+#### FR-18: Brain System (Think → Observe → Command)
+- Autonomous loop: monitor system state and user activity
+- Think phase: analyze context using DeepSeek (`provider="deepseek"`)
+- Observe phase: check notifications, system health, schedule
+- Command phase: trigger actions, run workflows, send alerts
+- REST API with 9 endpoints: status, trigger, history, configure
+- Web dashboard: Brain.tsx with live status, log viewer, config panel
+- Background loop thread with configurable interval
+- Integration tests: 8/8 passing
+
+#### FR-19: n8n Workflow Templates (Import/Export)
+- Template-based n8n integration (no live n8n connection required)
+- 15 built-in templates across 7 categories: automation, communication, crm, development, ecommerce, data, custom
+- Each template: id, name, description, category, tags, nodes, edges
+- Template search by keyword across name/description/tags
+- Category filter: automation, communication, crm, development, ecommerce, data, custom
+- Export individual workflow as JSON file
+- Import n8n-compatible JSON workflows
+- Custom template save/load from `~/.lumina/workflows/templates.json`
+- Web dashboard: WorkflowEditor.tsx with n8n tab, search bar, category dropdown, Save/Run buttons
+
+#### FR-20: Workflow Execution Engine
+- Execute workflow templates locally without n8n installation
+- DAG walker: topological sort of workflow nodes → execute each node in order
+- Supported node types: trigger, schedule, manual, api_call, condition, delay, data, action, message, email, slack, notification, transform
+- Conditional branching: true/false branches based on field evaluation
+- Variable interpolation: `{{$json.field}}` references resolved from upstream outputs
+- Per-node result collection with execution trace
+- Error handling: graceful node failure with partial results
+- Web dashboard: Run button with execution result display (per-node status + outputs)
 
 | ID | Requirement | Target |
 |----|------------|--------|
@@ -231,12 +260,14 @@ Existing AI tools are fragmented: chatbots in one tab, CRM in another, browser a
 
 | Metric | Current | Target (v1.0) | Target (v1.5) |
 |--------|---------|---------------|---------------|
-| API endpoints | 80+ | 100 | 150 |
+| API endpoints | 100+ | 150 | 200 |
+| API routers | 53 | 60 | 80 |
 | Test count | 1,112+ | 1,200 | 2,000 |
-| AI providers | 8 | 8 | 10 |
-| Specialized agents | 19 | 20 | 30 |
-| Plugin ecosystem | 7 built-in | 10 built-in | Community marketplace |
-| Web dashboard pages | 14 | 20 | 30 |
+| AI providers | 8 | 10 | 12 |
+| Specialized agents | 19 | 25 | 35 |
+| Plugin ecosystem | 7 built-in + 15 n8n templates | 15 built-in + 30 templates | Community marketplace |
+| Web dashboard pages | 53 | 60 | 75 |
+| Workflow templates | 15 | 25 | 50 |
 | Response time (p95) | < 500ms | < 400ms | < 300ms |
 | Concurrent users | 10 (tested) | 50 | 200 |
 | Uptime (cloud mode) | 99% | 99.5% | 99.9% |
@@ -266,7 +297,7 @@ Existing AI tools are fragmented: chatbots in one tab, CRM in another, browser a
 
 - **Multi-tenant support**: Isolated workspaces for teams
 - **Plugin marketplace**: Community plugin sharing and rating
-- **Workflow visual editor**: Drag-and-drop automation builder
+- **Live n8n connection**: Direct n8n instance for real-time workflow execution and monitoring
 - **LLM fine-tuning**: Custom model training on user data
 - **Mobile push notifications**: Real-time alerts on iOS/Android
 - **OAuth/SSO**: Google, GitHub, Microsoft login integration

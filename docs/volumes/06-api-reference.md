@@ -116,6 +116,52 @@ Returns full configuration with provider status.
 ### `POST /seo/analyze`
 ### `POST /seo/meta`
 
+## Workflow Editor
+
+### `GET /workflows`
+List all workflows. Optional `?category=` filter.
+
+### `POST /workflows?name=&description=&category=`
+Create a new workflow.
+
+### `GET /workflows/{id}`
+### `PATCH /workflows/{id}?name=&description=&category=`
+### `DELETE /workflows/{id}`
+
+### `POST /workflows/{id}/nodes?node_type=&label=&config={}&x=&y=`
+### `DELETE /workflows/{id}/nodes/{node_id}`
+
+### `POST /workflows/{id}/edges?source=&target=`
+### `DELETE /workflows/{id}/edges/{edge_id}`
+
+### `GET /workflows/{id}/export/n8n`
+Export as n8n-compatible JSON.
+
+### `POST /workflows/{id}/execute`
+Execute the workflow locally (no n8n required). Optional JSON body as trigger payload.
+```json
+{"body": "Hello AI"}
+```
+Returns per-node execution results.
+
+### `POST /workflows/{id}/save-template?tags=`
+Save workflow as a reusable template in the gallery.
+
+### `GET /workflows/n8n/templates?category=&query=`
+List templates (15 built-in + custom). Filter by category or search query.
+
+### `POST /workflows/n8n/templates/{template_id}/import`
+Import a template as a new workflow.
+
+### `POST /workflows/n8n/import`
+Import raw n8n JSON as a Lumina workflow.
+```json
+{"name":"My n8n WF","nodes":[...],"connections":{...}}
+```
+
+### `DELETE /workflows/n8n/templates/{template_id}`
+Delete a custom saved template.
+
 ## Automation
 
 ### `POST /automation/heal`

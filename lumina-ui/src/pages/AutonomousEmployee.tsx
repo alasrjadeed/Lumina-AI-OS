@@ -57,6 +57,7 @@ export default function AutonomousEmployee() {
   const [output, setOutput] = useState<string[]>([]);
   const [tools, setTools] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
   const [memory, setMemory] = useState<any>(null);
   const [tab, setTab] = useState<'execute' | 'history' | 'memory'>('execute');
   const logEndRef = useRef<HTMLDivElement>(null);

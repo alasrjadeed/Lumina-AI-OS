@@ -4,7 +4,7 @@ import Card from '../components/ui/Card';
 import { useToast } from '../hooks/useToast';
 
 const BASE = '/api';
-async function get<T>(path: string): Promise<T> { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+async function get<T = any>(path: string): Promise<T> { const r = await fetch(`${BASE}${path}`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
 
 function StatCard({ label, value, color = 'brand', icon: Icon }: { label: string; value: string | number; color?: string; icon?: any }) {
   const colors: Record<string, string> = { brand: 'var(--brand-500)', green: 'var(--color-success)', amber: 'var(--color-warning)', red: 'var(--color-error)' };

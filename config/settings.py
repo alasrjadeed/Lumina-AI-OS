@@ -85,6 +85,8 @@ class Settings(BaseSettings):
     mail_from_address: str = ""
     mail_from_name: str = "Lumina"
 
+    privacy_mode: bool = False
+
     model_config = {"env_file": _ENV_FILE, "env_file_encoding": "utf-8", "extra": "ignore"}
 
     def reload(self) -> dict[str, object]:

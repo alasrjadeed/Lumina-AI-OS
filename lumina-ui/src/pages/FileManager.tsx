@@ -65,7 +65,7 @@ const EXT_COLORS: Record<string, string> = {
 const ROOT_DIR = '/';
 
 function getDefaultHome(): string {
-  try { return process?.env?.HOME || '/home/' + (process?.env?.USER || 'oem'); } catch { return '/home/oem'; }
+  try { return (import.meta as any).env?.HOME || '/home/oem'; } catch { return '/home/oem'; }
 }
 
 const HOME_DIR = getDefaultHome();
@@ -118,7 +118,7 @@ export default function FileManager() {
 
   const openLocalFolder = async () => {
     try {
-      const handle = await window.showDirectoryPicker({ mode: 'read' });
+      const handle = await (window as any).showDirectoryPicker({ mode: 'read' });
       setLocalRoot(handle);
       setLocalMode(true);
       setLocalPath([handle.name]);
