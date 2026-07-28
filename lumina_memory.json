@@ -24,6 +24,31 @@
       "role": "user",
       "content": "testing recall method",
       "timestamp": "2026-07-28T03:48:12.742723"
+    },
+    {
+      "role": "user",
+      "content": "hello there",
+      "timestamp": "2026-07-28T04:27:12.625106"
+    },
+    {
+      "role": "user",
+      "content": "test message",
+      "timestamp": "2026-07-28T04:27:12.631819"
+    },
+    {
+      "role": "user",
+      "content": "what is the capital of france",
+      "timestamp": "2026-07-28T04:27:12.638522"
+    },
+    {
+      "role": "assistant",
+      "content": "paris",
+      "timestamp": "2026-07-28T04:27:12.639467"
+    },
+    {
+      "role": "user",
+      "content": "testing recall method",
+      "timestamp": "2026-07-28T04:27:12.643700"
     }
   ],
   "threads": [],
