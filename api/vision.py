@@ -473,12 +473,14 @@ async def scene_memory():
 async def vision_status():
     """Get the overall vision module status."""
     camera = _get_camera()
+    if not camera.is_open:
+        camera.open()
     cortex_status = {}
     if _cortex_instance is not None:
         cortex_status = await _cortex_instance.get_status()
     return {
         "camera": {
-            "available": camera.info.available,
+            "available": camera.is_open,
             "info": camera.info.to_dict(),
         },
         "detector": {

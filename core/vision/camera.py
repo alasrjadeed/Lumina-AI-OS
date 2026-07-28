@@ -320,19 +320,21 @@ def list_cameras(max_devices: int = 10) -> list[CameraInfo]:
     for i in range(max_devices):
         cap = cv2.VideoCapture(i)
         if cap.isOpened():
-            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            cap.release()
-            cameras.append(
-                CameraInfo(
-                    device_id=i,
-                    width=w,
-                    height=h,
-                    fps=int(fps),
-                    available=True,
+            ret, _ = cap.read()
+            if ret:
+                w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                cameras.append(
+                    CameraInfo(
+                        device_id=i,
+                        width=w or 640,
+                        height=h or 480,
+                        fps=int(fps) if fps > 0 else 30,
+                        available=True,
+                    )
                 )
-            )
-        else:
-            cap.release()
+            else:
+                cameras.append(CameraInfo(device_id=i, available=True, width=640, height=480, fps=30))
+        cap.release()
     return cameras or [CameraInfo(available=False)]
