@@ -15,3 +15,17 @@ node_modules/
 lumina-ui/node_modules/
 lumina-ui/.next/
 
+# Plugin data files (generated at runtime)
+*_plugin_data.json
+*_data.json
+lumina_*.json
+email_plugin_data.json
+leads_plugin_data.json
+lead_categories.json
+scraper_health.json
+generation_errors.json
+crm_data.json
+seo_data.json
+marketing_plugin_data.json
+reporting_plugin_data.json
+whatsapp_plugin_data.json

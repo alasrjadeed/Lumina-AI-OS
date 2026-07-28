@@ -482,56 +482,30 @@ async def send_outreach_email(req: EmailSendRequest):
     if not lead.email:
         raise HTTPException(400, "Lead has no email address")
 
-    html_body = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"></head>
-<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333">
-    <div style="background:linear-gradient(135deg,#6366F1,#818CF8);padding:30px;border-radius:12px 12px 0 0;text-align:center">
-        <h1 style="color:#fff;margin:0;font-size:24px">Lumina AI</h1>
-        <p style="color:#e0e0ff;margin:8px 0 0;font-size:14px">AI Automation Platform</p>
-    </div>
-    <div style="background:#fff;padding:30px;border:1px solid #e5e7eb;border-top:none">
-        <h2 style="color:#1f2937;font-size:18px">{req.subject}</h2>
-        <div style="color:#4b5563;font-size:15px;line-height:1.6;white-space:pre-wrap">{req.message}</div>
-    </div>
-    <div style="background:#f9fafb;padding:20px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;text-align:center">
-        <p style="color:#9ca3af;font-size:12px;margin:0">Sent by Lumina AI OS | <a href="https://lumina.ai" style="color:#6366F1">lumina.ai</a></p>
-    </div>
-</body></html>"""
-
-    if lead.email:
-        log.info("Outreach email queued for: %s (%s)", lead.business_name, lead.email)
+    from core.plugins.email_automation import send_email
+    ok = send_email(lead.email, req.subject, req.message, is_html=False)
+    if ok:
+        log.info("Outreach email sent to: %s (%s)", lead.business_name, lead.email)
         persistence.update_lead(lead.id, outreach_count=lead.outreach_count + 1, last_contacted_at=__import__("time").time())
 
-    return {"sent": True, "lead_id": req.lead_id, "to": lead.email, "subject": req.subject}
+    return {"sent": ok, "lead_id": req.lead_id, "to": lead.email, "subject": req.subject}
 
 
 @router.post("/bulk-send-outreach")
 async def bulk_send_outreach(req: OutreachRequest):
     persistence = get_persistence()
+    from core.plugins.email_automation import send_email
     results = []
     for lead_id in req.lead_ids:
         lead = persistence.get_lead(lead_id)
         if not lead or not lead.email:
             results.append({"lead_id": lead_id, "status": "skipped"})
             continue
-        html_body = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"></head>
-<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333">
-    <div style="background:linear-gradient(135deg,#6366F1,#818CF8);padding:30px;border-radius:12px 12px 0 0;text-align:center">
-        <h1 style="color:#fff;margin:0;font-size:24px">Lumina AI</h1>
-        <p style="color:#e0e0ff;margin:8px 0 0;font-size:14px">AI Automation Platform</p>
-    </div>
-    <div style="background:#fff;padding:30px;border:1px solid #e5e7eb;border-top:none">
-        <h2 style="color:#1f2937;font-size:18px">{req.subject or f'Partnership Opportunity for {lead.business_name}'}</h2>
-        <div style="color:#4b5563;font-size:15px;line-height:1.6;white-space:pre-wrap">{req.message}</div>
-    </div>
-    <div style="background:#f9fafb;padding:20px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;text-align:center">
-        <p style="color:#9ca3af;font-size:12px;margin:0">Sent by Lumina AI OS | <a href="https://lumina.ai" style="color:#6366F1">lumina.ai</a></p>
-    </div>
-</body></html>"""
-        log.info("Outreach email queued for: %s (%s)", lead.business_name, lead.email)
-        persistence.update_lead(lead.id, outreach_count=lead.outreach_count + 1, last_contacted_at=__import__("time").time())
-        results.append({"lead_id": lead_id, "status": "sent", "to": lead.email})
+        ok = send_email(lead.email, req.subject or f'Partnership Opportunity for {lead.business_name}', req.message)
+        if ok:
+            log.info("Outreach email sent to: %s (%s)", lead.business_name, lead.email)
+            persistence.update_lead(lead.id, outreach_count=lead.outreach_count + 1, last_contacted_at=__import__("time").time())
+        results.append({"lead_id": lead_id, "status": "sent" if ok else "failed", "to": lead.email})
     return {"results": results}
 
 
@@ -542,8 +516,9 @@ async def send_custom_email(req: dict[str, Any]):
     message = req.get("message", "")
     if not to_email or not subject:
         raise HTTPException(400, "email and subject required")
-    log.info("Custom email queued to: %s", to_email)
-    return {"sent": True, "to": to_email}
+    from core.plugins.email_automation import send_email
+    ok = send_email(to_email, subject, message, is_html=req.get("is_html", False))
+    return {"sent": ok, "to": to_email}
 
 
 # ── Import Operations ──
