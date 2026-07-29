@@ -192,6 +192,9 @@ async def handle_slash_command(message: str) -> str:
 async def chat(req: ChatRequest):
     msg = req.message.strip()
 
+    if not msg:
+        return ChatResponse(reply="Please provide a message.", agent=req.agent, thread_id=req.thread_id)
+
     msg = apply_preferences(msg)
 
     if msg.startswith("/"):

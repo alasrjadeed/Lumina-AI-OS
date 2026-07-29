@@ -170,9 +170,14 @@ class VoiceController:
 
         plan = await self._plan_task(text, intent)
         result = await self._execute_intent(intent, plan)
-        result = await self._tool_result_digest(result)
 
-        reply = await self._generate_reply(text, result)
+        direct = result.pop("direct_reply", None)
+        if direct:
+            reply = direct
+        else:
+            result = await self._tool_result_digest(result)
+            reply = await self._generate_reply(text, result)
+
         self._conversation_history.append({"role": "assistant", "content": reply})
 
         self._echo.record_utterance(reply)
@@ -380,6 +385,12 @@ If single-step, return "strategy": "direct" with empty steps."""
                 desc = params.get("description", params.get("message", intent.get("summary", "")))
                 result = await pipeline_builder.launch(description=desc)
                 return result
+
+            elif category == "chat":
+                msg = params.get("message", intent.get("summary", intent.get("action", "")))
+                resp = await ai_engine.chat([{"role": "user", "content": msg}])
+                text = resp.get("message", {}).get("content", "")
+                return {"direct_reply": text}
 
             elif category == "code":
                 from api.code import code_agent
