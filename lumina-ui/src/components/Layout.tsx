@@ -6,7 +6,7 @@ import {
   Activity, FileText, Shield, Store, Menu, X, Home, ExternalLink,
   User, Bell, ChevronRight, PenTool, Brain, Bug, Camera, Monitor, GitBranch, Crown, BookOpen, Puzzle, UserPlus,
   Mail, Megaphone, TrendingUp, Video, ListTodo, TreePine, GitMerge, Calendar, MessageCircle, Route,
-  BrainCircuit, Image, Wrench, Brain as BrainIcon,
+  BrainCircuit, Image, Wrench, Brain as BrainIcon, LayoutList,
 } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { useToast } from '../hooks/useToast';
@@ -29,6 +29,7 @@ const navSections = [
       { to: '/projects', label: 'Projects', icon: Folder },
       { to: '/visual-flows', label: 'Visual Agents', icon: GitBranch },
       { to: '/workflow-editor', label: 'Workflow Editor', icon: GitMerge },
+      { to: '/templates', label: 'Templates', icon: LayoutList },
       { to: '/meetings', label: 'Meetings', icon: Calendar },
       { to: '/channels', label: 'Channels', icon: MessageCircle },
       { to: '/model-routing', label: 'Model Routing', icon: Route },

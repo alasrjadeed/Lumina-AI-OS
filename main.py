@@ -148,20 +148,23 @@ async def lifespan(app: FastAPI):
             payload=insight.to_dict(),
         ))
 
-    subconscious_task = asyncio.create_task(
-        subconscious_loop(on_insight=_subconscious_insight_handler)
-    )
+    bg = os.environ.get("ENABLE_BACKGROUND_TASKS", "0") == "1"
 
-    auto_fetch_task = asyncio.create_task(
-        auto_fetch_loop(memory=memory)
-    )
+    if bg:
+        subconscious_task = asyncio.create_task(
+            subconscious_loop(on_insight=_subconscious_insight_handler)
+        )
 
-    brain_task = asyncio.create_task(
-        brain.loop()
-    )
+        auto_fetch_task = asyncio.create_task(
+            auto_fetch_loop(memory=memory)
+        )
+
+        brain_task = asyncio.create_task(
+            brain.loop()
+        )
 
     # Auto-start Jarvis voice controller (continuous listening with wake word)
-    if voice_controller.recorder.is_available():
+    if bg and voice_controller.recorder.is_available():
         voice_controller.listening = True
         wake_word_mode = True
         log.info("Jarvis voice: continuous mode started (wake_word=%s)", wake_word_mode)
@@ -187,14 +190,17 @@ async def lifespan(app: FastAPI):
                     await asyncio.sleep(1)
 
         asyncio.create_task(_voice_loop())
+    elif voice_controller.recorder.is_available():
+        log.info("Jarvis voice: available (enable with ENABLE_BACKGROUND_TASKS=1)")
     else:
         log.warning("Jarvis voice: no microphone available, voice disabled")
 
     yield
     log.info("Shutting down...")
-    subconscious_task.cancel()
-    auto_fetch_task.cancel()
-    brain_task.cancel()
+    if bg:
+        subconscious_task.cancel()
+        auto_fetch_task.cancel()
+        brain_task.cancel()
     await kernel.shutdown()
 
 

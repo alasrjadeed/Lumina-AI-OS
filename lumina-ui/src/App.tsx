@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import { ThemeProvider } from './components/ui/ThemeToggle';
 import Layout from './components/Layout';
 import ToastContainer from './components/ui/Toast';
+import { ToastContext, useToastProvider } from './hooks/useToast';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Chat = lazy(() => import('./pages/Chat'));
@@ -45,6 +46,7 @@ const About = lazy(() => import('./pages/About'));
 const Goals = lazy(() => import('./pages/Goals'));
 const MemoryTree = lazy(() => import('./pages/MemoryTree'));
 const WorkflowEditor = lazy(() => import('./pages/WorkflowEditor'));
+const TemplateGallery = lazy(() => import('./pages/TemplateGallery'));
 const MeetingAgents = lazy(() => import('./pages/MeetingAgents'));
 const MessagingChannels = lazy(() => import('./pages/MessagingChannels'));
 const ModelRouting = lazy(() => import('./pages/ModelRouting'));
@@ -72,7 +74,7 @@ const pages: Record<string, React.LazyExoticComponent<React.ComponentType<any>>>
   '/multi-agent': MultiAgent, '/projects': Projects, '/visual-flows': VisualFlows,
   '/help': Help, '/skills': SkillsPresets, '/leads': LeadGen, '/email': EmailCampaigns,
   '/marketing': MarketingHub, '/analytics': AnalyticsDashboard, '/audit': AuditLog,
-  '/video-studio': VideoStudio, '/about': About,   '/goals': Goals, '/memory-tree': MemoryTree, '/workflow-editor': WorkflowEditor,
+  '/video-studio': VideoStudio, '/about': About,   '/goals': Goals, '/memory-tree': MemoryTree, '/workflow-editor': WorkflowEditor, '/templates': TemplateGallery,
   '/meetings': MeetingAgents, '/channels': MessagingChannels,   '/model-routing': ModelRouting, '/agent-memory': AgentMemory,
   '/multi-modal': MultiModal, '/rag-pipeline': RAGPipeline,
   '/agent-chaining': AgentChaining, '/tools': ToolFramework,
@@ -81,17 +83,20 @@ const pages: Record<string, React.LazyExoticComponent<React.ComponentType<any>>>
 };
 
 export default function App() {
+  const toast = useToastProvider();
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            {Object.entries(pages).map(([path, Component]) => (
-              <Route key={path} path={path} element={<Suspense fallback={<PageLoader />}><Component /></Suspense>} />
-            ))}
-          </Routes>
-        </Layout>
-        <ToastContainer />
+        <ToastContext.Provider value={toast}>
+          <Layout>
+            <Routes>
+              {Object.entries(pages).map(([path, Component]) => (
+                <Route key={path} path={path} element={<Suspense fallback={<PageLoader />}><Component /></Suspense>} />
+              ))}
+            </Routes>
+          </Layout>
+          <ToastContainer />
+        </ToastContext.Provider>
       </BrowserRouter>
     </ThemeProvider>
   );

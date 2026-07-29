@@ -4,11 +4,53 @@ import asyncio
 import contextlib
 import math
 import os
+import time
+import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from core.log import log
+
+AUDIO_TEMP_DIR = os.path.join(tempfile.gettempdir(), "lumina_audio")
+os.makedirs(AUDIO_TEMP_DIR, exist_ok=True)
+STT_MODEL_DIR = os.path.join(os.path.expanduser("~"), ".cache", "lumina_stt_models")
+os.makedirs(STT_MODEL_DIR, exist_ok=True)
+
+
+def cleanup_old_temp_files(max_age_hours: float = 1):
+    """Remove audio temp files older than max_age_hours to prevent disk bloat."""
+    now = time.time()
+    for fname in os.listdir(AUDIO_TEMP_DIR):
+        path = os.path.join(AUDIO_TEMP_DIR, fname)
+        try:
+            if os.path.isfile(path) and now - os.path.getmtime(path) > max_age_hours * 3600:
+                os.unlink(path)
+        except OSError:
+            pass
+
+
+# Clean up old temp files on import
+cleanup_old_temp_files()
+
+
+async def convert_to_wav(audio_data: bytes, sample_rate: int = 16000) -> bytes:
+    """Convert any audio format to 16-bit 16kHz mono WAV using ffmpeg (in-memory, no temp files)."""
+    proc = await asyncio.create_subprocess_exec(
+        "ffmpeg",
+        "-i", "pipe:0",
+        "-f", "wav",
+        "-acodec", "pcm_s16le",
+        "-ar", str(sample_rate),
+        "-ac", "1",
+        "pipe:1",
+        "-y",
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    stdout, _ = await proc.communicate(audio_data)
+    return stdout
 
 try:
     from dotenv import load_dotenv
@@ -79,15 +121,17 @@ class OpenAIWhisperProvider:
         from openai import AsyncOpenAI
 
         client = AsyncOpenAI(api_key=self.api_key)
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp.write(audio_data)
+        wav_data = await convert_to_wav(audio_data)
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
+            tmp.write(wav_data)
+            tmp_path = tmp.name
         try:
             kwargs: dict[str, Any] = {"model": self.model, "response_format": "verbose_json"}
             if language:
                 kwargs["language"] = language
             if prompt:
                 kwargs["prompt"] = prompt
-            with open(tmp.name, "rb") as f:
+            with open(tmp_path, "rb") as f:
                 transcript = await client.audio.transcriptions.create(
                     file=("audio.wav", f, "audio/wav"),
                     **kwargs,
@@ -161,7 +205,7 @@ class OpenAIWhisperProvider:
             )
         finally:
             with contextlib.suppress(OSError):
-                os.unlink(tmp.name)
+                os.unlink(tmp_path)
 
     async def transcribe_file(self, file_path: str, language: str = "") -> STTResult:
         with open(file_path, "rb") as f:
@@ -170,13 +214,15 @@ class OpenAIWhisperProvider:
 
 
 class FasterWhisperProvider:
-    def __init__(self, model_size: str = "base", device: str = "cpu", compute_type: str = "int8"):
+    def __init__(self, model_size: str = "tiny", device: str = "cpu", compute_type: str = "int8"):
         self.model_size = model_size
         self.device = device
         self.compute_type = compute_type
         self.hallucination_min_confidence: float = 0.3
         self.hallucination_no_speech_threshold: float = 0.5
         self._model = None
+        os.environ.setdefault("HF_HOME", STT_MODEL_DIR)
+        os.environ.setdefault("XDG_CACHE_HOME", STT_MODEL_DIR)
 
     async def _get_model(self):
         if self._model is None:
@@ -191,12 +237,14 @@ class FasterWhisperProvider:
         self, audio_data: bytes, language: str = "", prompt: str = ""
     ) -> STTResult:
         model = await self._get_model()
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp.write(audio_data)
+        wav_data = await convert_to_wav(audio_data)
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
+            tmp.write(wav_data)
+            tmp_path = tmp.name
         try:
             segments, info = await asyncio.to_thread(
                 model.transcribe,
-                tmp.name,
+                tmp_path,
                 language=language or None,
                 beam_size=5,
             )
@@ -236,7 +284,7 @@ class FasterWhisperProvider:
             )
         finally:
             with contextlib.suppress(OSError):
-                os.unlink(tmp.name)
+                os.unlink(tmp_path)
 
     async def transcribe_file(self, file_path: str, language: str = "") -> STTResult:
         with open(file_path, "rb") as f:

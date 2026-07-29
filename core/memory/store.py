@@ -4,9 +4,18 @@ import json
 import os
 import uuid
 from datetime import datetime
+from typing import Any
 
 MEMORY_FILE = "lumina_memory.json"
 
+
+class _StubSemantic:
+    def query(self) -> list:
+        return []
+
+class _StubEpisodic:
+    def search(self, query: str, limit: int = 3) -> list:
+        return []
 
 class MemoryStore:
     def __init__(self, path: str = MEMORY_FILE):
@@ -51,6 +60,23 @@ class MemoryStore:
             }
         )
         self._save()
+
+    def recall_context_prompt(self, task: str = "", max_turns: int = 10) -> str:
+        """Interface-compatible alias for SuperContext."""
+        return self.get_recent_context(limit=max_turns)
+
+    @property
+    def semantic(self) -> _StubSemantic:
+        return _StubSemantic()
+
+    @property
+    def episodic(self) -> _StubEpisodic:
+        """Stub for MemoryEngine.episodic compatibility."""
+        return self
+
+    def search(self, query: str, limit: int = 3) -> list:
+        """Stub for MemoryEngine.episodic.search() compatibility."""
+        return []
 
     def get_recent_context(self, limit: int = 10, thread_id: str | None = None) -> str:
         if thread_id:

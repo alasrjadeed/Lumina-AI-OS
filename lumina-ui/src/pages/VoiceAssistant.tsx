@@ -103,9 +103,18 @@ export default function VoiceAssistant() {
     const form = new FormData();
     form.append('file', blob, 'voice.webm');
     addMessage({ id: Date.now().toString(), role: 'user', content: '🎤 Audio recording...', timestamp: Date.now() });
-    setLoading(true);
+    if (blob.size < 1000) {
+      setMessages(m => m.slice(0, -1));
+      setStatus('Recording too short');
+      setLoading(false);
+      return;
+    }
+    setStatus('Transcribing...');
     try {
-      const res = await fetch('/voice/listen', { method: 'POST', body: form });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
+      const res = await fetch('/voice/listen', { method: 'POST', body: form, signal: controller.signal });
+      clearTimeout(timeout);
       const data = await res.json();
       setMessages(m => m.slice(0, -1));
       if (data.text) {
@@ -130,10 +139,14 @@ export default function VoiceAssistant() {
     setLoading(true);
     setStatus('Processing command...');
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
       const res = await fetch('/voice/command', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, play: false }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json();
       addMessage({
         id: (Date.now() + 1).toString(), role: 'assistant',
@@ -294,11 +307,10 @@ export default function VoiceAssistant() {
 
           <div className="flex gap-2">
             <button
-              onMouseDown={startAudioRecording}
-              onMouseUp={stopAudioRecording}
-              onMouseLeave={() => listening && stopAudioRecording()}
-              onTouchStart={startAudioRecording}
-              onTouchEnd={stopAudioRecording}
+            onPointerDown={startAudioRecording}
+            onPointerUp={stopAudioRecording}
+            onPointerLeave={stopAudioRecording}
+            onContextMenu={(e) => e.preventDefault()}
               className={`p-2.5 rounded-xl transition-all select-none ${
                 listening
                   ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-110'

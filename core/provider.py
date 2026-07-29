@@ -16,6 +16,7 @@ TIMEOUT = 60.0
 MAX_RETRIES = 3
 BASE_DELAY = 1.0
 MAX_DELAY = 10.0
+PER_PROVIDER_TIMEOUT = 15.0
 
 
 class ProviderError(Exception): ...
@@ -757,17 +758,36 @@ class AIEngine:
     async def chat(self, messages: list[dict], tools: list[dict] | None = None, **kwargs) -> dict:
         task = kwargs.pop("task", None)
         provider = kwargs.pop("provider", None)
-        errors = []
-        for slot in self._resolve_slots(task, provider):
-            try:
-                result = await slot.provider.chat(messages, tools=tools, **kwargs)
-                self._record_success(slot)
-                return result
-            except Exception as e:
-                self._record_failure(slot, str(e))
-                errors.append(f"{slot.provider.name}: {e}")
-                continue
-        raise Exception("All providers failed:\n" + "\n".join(errors))
+        errors: dict[str, str] = {}
+        slots = self._resolve_slots(task, provider)
+
+        async def _try(slot: _ProviderSlot) -> dict:
+            return await asyncio.wait_for(
+                slot.provider.chat(messages, tools=tools, **kwargs),
+                timeout=PER_PROVIDER_TIMEOUT,
+            )
+
+        pending = {asyncio.create_task(_try(s), name=s.provider.name): s for s in slots}
+        while pending:
+            done, _ = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for task in done:
+                slot = pending[task]
+                del pending[task]
+                try:
+                    result = task.result()
+                    for t in pending:
+                        t.cancel()
+                    self._record_success(slot)
+                    return result
+                except asyncio.TimeoutError:
+                    errors[slot.provider.name] = f"timeout ({PER_PROVIDER_TIMEOUT}s)"
+                    self._record_failure(slot, f"timeout ({PER_PROVIDER_TIMEOUT}s)")
+                except asyncio.CancelledError:
+                    pass
+                except Exception as e:
+                    errors[slot.provider.name] = str(e)
+                    self._record_failure(slot, str(e))
+        raise Exception("All providers failed:\n" + "\n".join(f"{k}: {v}" for k, v in errors.items()))
 
     async def chat_stream(
         self, messages: list[dict], tools: list[dict] | None = None, **kwargs
@@ -783,6 +803,10 @@ class AIEngine:
                 return
             except NotImplementedError:
                 errors.append(f"{slot.provider.name}: streaming not supported")
+                continue
+            except asyncio.TimeoutError:
+                self._record_failure(slot, f"timeout ({PER_PROVIDER_TIMEOUT}s)")
+                errors.append(f"{slot.provider.name}: timeout ({PER_PROVIDER_TIMEOUT}s)")
                 continue
             except Exception as e:
                 self._record_failure(slot, str(e))

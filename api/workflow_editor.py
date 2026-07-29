@@ -1,8 +1,35 @@
 from fastapi import APIRouter, HTTPException, Body, Query
 
-from core.workflow_editor import WorkflowEdge, WorkflowNode, workflow_store
+from core.workflow_editor import (
+    WorkflowEdge, WorkflowNode, Workflow,
+    workflow_store, credential_store,
+    NODE_REGISTRY, NODE_CATEGORIES, NODE_TYPE_MAP, REVERSE_NODE_MAP,
+    WORKFLOW_CATEGORIES,
+)
 
 router = APIRouter(prefix="/workflows", tags=["Workflow Editor"])
+
+
+# ── Node Types ──
+
+
+@router.get("/node-types")
+async def list_node_types(category: str | None = None):
+    types = list(NODE_REGISTRY.values())
+    if category:
+        types = [t for t in types if t["category"] == category]
+    return {"nodeTypes": types, "categories": NODE_CATEGORIES}
+
+
+@router.get("/node-types/{node_type}")
+async def get_node_type(node_type: str):
+    nt = NODE_REGISTRY.get(node_type)
+    if not nt:
+        raise HTTPException(status_code=404, detail="Node type not found")
+    return {"nodeType": nt}
+
+
+# ── Workflow CRUD ──
 
 
 @router.get("")
@@ -25,7 +52,14 @@ async def get_workflow(workflow_id: str):
 
 
 @router.patch("/{workflow_id}")
-async def update_workflow(workflow_id: str, name: str | None = None, description: str | None = None, category: str | None = None):
+async def update_workflow(
+    workflow_id: str,
+    name: str | None = None,
+    description: str | None = None,
+    category: str | None = None,
+    tags: str | None = None,
+    settings: str | None = None,
+):
     kwargs = {}
     if name is not None:
         kwargs["name"] = name
@@ -33,6 +67,18 @@ async def update_workflow(workflow_id: str, name: str | None = None, description
         kwargs["description"] = description
     if category is not None:
         kwargs["category"] = category
+    if tags is not None:
+        import json as _json
+        try:
+            kwargs["tags"] = _json.loads(tags)
+        except Exception:
+            kwargs["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+    if settings is not None:
+        import json as _json
+        try:
+            kwargs["settings"] = _json.loads(settings)
+        except Exception:
+            pass
     wf = workflow_store.update(workflow_id, **kwargs)
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -47,8 +93,20 @@ async def delete_workflow(workflow_id: str):
     return {"deleted": True}
 
 
+# ── Nodes ──
+
+
 @router.post("/{workflow_id}/nodes")
-async def add_node(workflow_id: str, node_type: str, label: str, config: str = "{}", x: float = 0, y: float = 0):
+async def add_node(
+    workflow_id: str,
+    node_type: str,
+    label: str,
+    config: str = "{}",
+    x: float = 0,
+    y: float = 0,
+    credentials: str | None = None,
+    notes: str = "",
+):
     wf = workflow_store.get(workflow_id)
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -57,14 +115,27 @@ async def add_node(workflow_id: str, node_type: str, label: str, config: str = "
         cfg = _json.loads(config)
     except Exception:
         cfg = {}
-    node = WorkflowNode(node_type=node_type, label=label, config=cfg, position={"x": x, "y": y})
+    node = WorkflowNode(
+        node_type=node_type, label=label,
+        config=cfg, position={"x": x, "y": y},
+        credentials=credentials, notes=notes,
+    )
     node_id = wf.add_node(node)
     workflow_store._save()
     return {"node_id": node_id, "node": node.to_dict()}
 
 
 @router.patch("/{workflow_id}/nodes/{node_id}")
-async def update_node(workflow_id: str, node_id: str, label: str | None = None, config: str | None = None, x: float | None = None, y: float | None = None):
+async def update_node(
+    workflow_id: str,
+    node_id: str,
+    label: str | None = None,
+    config: str | None = None,
+    x: float | None = None,
+    y: float | None = None,
+    credentials: str | None = None,
+    notes: str | None = None,
+):
     wf = workflow_store.get(workflow_id)
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
@@ -78,8 +149,11 @@ async def update_node(workflow_id: str, node_id: str, label: str | None = None, 
         except Exception:
             pass
     if x is not None or y is not None:
-        pos = {"x": x or 0, "y": y or 0}
-        kwargs["position"] = pos
+        kwargs["position"] = {"x": x or 0, "y": y or 0}
+    if credentials is not None:
+        kwargs["credentials"] = credentials
+    if notes is not None:
+        kwargs["notes"] = notes
     node = wf.update_node(node_id, **kwargs)
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
@@ -97,12 +171,25 @@ async def delete_node(workflow_id: str, node_id: str):
     return {"deleted": True}
 
 
+# ── Edges ──
+
+
 @router.post("/{workflow_id}/edges")
-async def add_edge(workflow_id: str, source: str, target: str, label: str = ""):
+async def add_edge(
+    workflow_id: str,
+    source: str,
+    target: str,
+    label: str = "",
+    sourceHandle: str = "",
+    targetHandle: str = "",
+):
     wf = workflow_store.get(workflow_id)
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    edge = WorkflowEdge(source=source, target=target, label=label)
+    edge = WorkflowEdge(
+        source=source, target=target, label=label,
+        sourceHandle=sourceHandle, targetHandle=targetHandle,
+    )
     edge_id = wf.add_edge(edge)
     workflow_store._save()
     return {"edge_id": edge_id, "edge": edge.to_dict()}
@@ -116,6 +203,63 @@ async def delete_edge(workflow_id: str, edge_id: str):
     wf.remove_edge(edge_id)
     workflow_store._save()
     return {"deleted": True}
+
+
+# ── Credentials ──
+
+
+@router.get("/credentials")
+async def list_credentials():
+    return {"credentials": credential_store.list()}
+
+
+@router.post("/credentials")
+async def create_credential(name: str, cred_type: str, data: str = "{}"):
+    import json as _json
+    try:
+        d = _json.loads(data)
+    except Exception:
+        d = {}
+    cred = credential_store.create(name=name, cred_type=cred_type, data=d)
+    return {"credential": cred}
+
+
+@router.get("/credentials/{cred_id}")
+async def get_credential(cred_id: str):
+    cred = credential_store.get(cred_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return {"credential": cred}
+
+
+@router.patch("/credentials/{cred_id}")
+async def update_credential(cred_id: str, data: str = "{}"):
+    import json as _json
+    try:
+        d = _json.loads(data)
+    except Exception:
+        d = {}
+    cred = credential_store.update(cred_id, d)
+    if not cred:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return {"credential": cred}
+
+
+@router.delete("/credentials/{cred_id}")
+async def delete_credential(cred_id: str):
+    ok = credential_store.delete(cred_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return {"deleted": True}
+
+
+# ── Execution ──
+
+
+@router.post("/{workflow_id}/execute")
+async def execute_workflow(workflow_id: str, payload: dict = Body({})):
+    result = workflow_store.execute_workflow(workflow_id, payload=payload)
+    return result
 
 
 # ── n8n Integration ──
@@ -145,8 +289,16 @@ async def export_n8n(workflow_id: str):
 
 
 @router.get("/n8n/templates")
-async def list_n8n_templates(category: str | None = None, query: str = ""):
-    return {"templates": workflow_store.get_n8n_templates(category=category, query=query)}
+async def list_n8n_templates(
+    category: str | None = None,
+    query: str = "",
+    offset: int = 0,
+    limit: int = 50,
+):
+    return workflow_store.get_n8n_templates(
+        category=category, query=query,
+        offset=offset, limit=limit,
+    )
 
 
 @router.post("/n8n/templates/{template_id}/import")
@@ -166,38 +318,22 @@ async def save_as_template(workflow_id: str, tags: str = ""):
     return {"template": tmpl}
 
 
+@router.post("/n8n/templates")
+async def create_custom_template(
+    name: str = Body(...), description: str = Body(""),
+    category: str = Body("custom"), node_types: list[str] = Body(...),
+    tags: list[str] = Body([]),
+):
+    tmpl = workflow_store.create_custom_template(
+        name=name, description=description,
+        category=category, node_types=node_types, tags=tags,
+    )
+    return {"template": tmpl}
+
+
 @router.delete("/n8n/templates/{template_id}")
 async def delete_custom_template(template_id: str):
     ok = workflow_store.delete_custom_template(template_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Template not found")
     return {"deleted": True}
-
-
-@router.post("/{workflow_id}/execute")
-async def execute_workflow(workflow_id: str, payload: dict = Body({})):
-    result = workflow_store.execute_workflow(workflow_id, payload=payload)
-    return result
-
-
-# ── Deprecated n8n endpoints (return messages) ──
-
-
-@router.post("/n8n/install")
-async def install_n8n():
-    return {"success": False, "error": "n8n is not bundled — install separately with: npm install -g n8n"}
-
-
-@router.post("/{workflow_id}/push-n8n")
-async def push_to_n8n(workflow_id: str):
-    return {"success": False, "error": "Live push not available — export as JSON and import manually into n8n"}
-
-
-@router.post("/{workflow_id}/execute-n8n")
-async def execute_on_n8n(workflow_id: str):
-    return {"success": False, "error": "Live execution not available — use /execute to run locally"}
-
-
-@router.get("/n8n/workflows")
-async def list_n8n_workflows():
-    return {"success": False, "error": "Remote n8n workflows not available — use templates and import/export instead"}

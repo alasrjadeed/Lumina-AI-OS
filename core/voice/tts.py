@@ -9,6 +9,7 @@ from typing import Protocol
 
 from core.log import log
 from core.voice.languages import LANGUAGE_VOICES, get_voice_for_language
+from core.voice.stt import AUDIO_TEMP_DIR
 
 TTS_VOICES = {
     "alloy": "OpenAI - versatile, balanced",
@@ -82,7 +83,7 @@ class OpenAITTSProvider:
 
         client = AsyncOpenAI(api_key=self.api_key)
         voice = voice or "shimmer"
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
             pass
         try:
             response = await client.audio.speech.create(
@@ -124,7 +125,7 @@ class GTTSSynthesizer:
 
         from gtts import gTTS
 
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
             pass
         try:
             tts = gTTS(text=text, lang="en", slow=False)
@@ -162,7 +163,7 @@ class PyTTSEngine:
 
         engine = pyttsx3.init()
         engine.setProperty("rate", 175)
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
             pass
         await asyncio.to_thread(engine.save_to_file, text, tmp.name)
         await asyncio.to_thread(engine.runAndWait)
@@ -256,7 +257,7 @@ class PiperTTSProvider:
         await proc.communicate()
 
     async def synthesize(self, text: str, voice: str = "", speed: float = 1.0) -> TTSResult:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
             pass
         try:
             await self._synthesize_piper(text, tmp.name)
@@ -385,7 +386,7 @@ class EdgeTTSProvider:
 
         voice = voice or "en-US-JennyNeural"
         rate = f"+{int((speed - 1) * 100)}%" if speed >= 1.0 else f"-{int((1 - speed) * 100)}%"
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False, dir=AUDIO_TEMP_DIR) as tmp:
             pass
         try:
             communicate = edge_tts.Communicate(text, voice, rate=rate)

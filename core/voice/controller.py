@@ -125,6 +125,12 @@ class VoiceController:
 
         return text or None
 
+    GREETINGS = {
+        "hi", "hello", "hey", "hi there", "hello there", "hey there",
+        "good morning", "good afternoon", "good evening", "howdy",
+        "sup", "yo", "what's up", "whatsup", "wassup",
+    }
+
     async def process_command(self, text: str) -> dict:
         if not text:
             return {"status": "empty", "reply": ""}
@@ -133,9 +139,20 @@ class VoiceController:
             self._reply_in_progress = False
             return {"status": "stopped", "text": text, "reply": ""}
 
+        lower = text.lower().strip().rstrip("?!.,")
+        if lower in self.GREETINGS or lower.split()[0] in self.GREETINGS:
+            reply = f"Hello! I'm {self.wake_word.title()}, your AI assistant. How can I help you?"
+            self._conversation_history.append({"role": "user", "content": text})
+            self._conversation_history.append({"role": "assistant", "content": reply})
+            return {"status": "completed", "text": text, "intent": {"action": "greeting", "category": "chat", "confidence": 1.0}, "reply": reply}
+
         self._conversation_history.append({"role": "user", "content": text})
 
-        intent = await self._understand_intent(text)
+        try:
+            intent = await asyncio.wait_for(self._understand_intent(text), timeout=15.0)
+        except (asyncio.TimeoutError, Exception):
+            reply = "Sorry, I'm having trouble processing that right now. Please try again."
+            return {"status": "timeout", "text": text, "reply": reply}
 
         if (
             intent.get("needs_confirmation", False)
@@ -200,7 +217,7 @@ User command: "{text}"
 Analyze the intent. Return ONLY valid JSON:
 {{
   "action": "brief action name",
-  \"category\": \"chat | code | browser | whatsapp | email | crm | seo | pipeline | system | agent\
+  \"category\": \"chat | code | browser | whatsapp | email | crm | seo | system | agent\
  | desktop | memory | voice | vision\",
   "target": "what the command targets (optional)",
   "params": {{"key": "value"}},
@@ -210,11 +227,21 @@ Analyze the intent. Return ONLY valid JSON:
   "follow_up": true if this references a previous topic
 }}"""
         try:
-            resp = await ai_engine.chat([{"role": "user", "content": prompt}])
+            resp = await asyncio.wait_for(
+                ai_engine.chat([{"role": "user", "content": prompt}]),
+                timeout=15.0,
+            )
             text_resp = resp.get("message", {}).get("content", "")
+            if not isinstance(text_resp, str):
+                text_resp = str(text_resp)
             match = re.search(r"\{.*\}", text_resp, re.DOTALL)
             if match:
-                return json.loads(match.group())
+                raw = match.group()
+                raw = raw.replace("'", '"')
+                raw = raw.replace("True", "true").replace("False", "false").replace("None", "null")
+                raw = re.sub(r'(\w+)(?=\s*:)', r'"\1"', raw)
+                raw = raw.replace('""', '"')  # fix double-quoting
+                return json.loads(raw)
         except Exception as e:
             log.warning("Voice: intent parse failed: %s", e)
 
@@ -302,7 +329,10 @@ Return JSON:
 }}
 If single-step, return "strategy": "direct" with empty steps."""
         try:
-            resp = await ai_engine.chat([{"role": "user", "content": prompt}])
+            resp = await asyncio.wait_for(
+                ai_engine.chat([{"role": "user", "content": prompt}]),
+                timeout=15.0,
+            )
             text_resp = resp.get("message", {}).get("content", "")
             match = re.search(r"\{.*\}", text_resp, re.DOTALL)
             if match:
@@ -502,7 +532,10 @@ Result: {json.dumps(result, default=str)[:600]}
 Reply conversationally. Be concise. Sound like a helpful assistant named \
 {self.wake_word.title()}."""
         try:
-            resp = await ai_engine.chat([{"role": "user", "content": prompt}])
+            resp = await asyncio.wait_for(
+                ai_engine.chat([{"role": "user", "content": prompt}]),
+                timeout=15.0,
+            )
             return resp.get("message", {}).get("content", "Done.")
         except Exception:
             return "Done."

@@ -6,13 +6,13 @@ export interface Toast {
   type: 'success' | 'error' | 'info' | 'warning';
 }
 
-interface ToastContextValue {
+export interface ToastContextValue {
   toasts: Toast[];
   addToast: (message: string, type?: Toast['type']) => void;
   removeToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextValue | null>(null);
+export const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function useToast() {
   const ctx = useContext(ToastContext);
