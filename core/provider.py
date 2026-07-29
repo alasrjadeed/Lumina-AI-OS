@@ -476,7 +476,12 @@ class CloudflareAIProvider(AIProvider):
             headers=headers,
         )
         data = resp.json()
-        text = data.get("result", {}).get("response", "")
+        result = data.get("result", {})
+        text = result.get("response", "")
+        if not isinstance(text, str):
+            text = result.get("choices", [{}])[0].get("message", {}).get("content", json.dumps(text))
+        if not isinstance(text, str):
+            text = str(text)
         return {"message": {"role": "assistant", "content": text}}
 
     async def chat_stream(
